@@ -169,9 +169,12 @@ def update_distr_kwargs(distr_x, distr_y, distr_z):
         Input(component_id='distr-slider-x', component_property='children'),
         Input(component_id='distr-dropdown-y', component_property='value'),
         Input(component_id='distr-slider-y', component_property='children'),
+        Input(component_id='distr-dropdown-z', component_property='value'),
+        Input(component_id='distr-slider-z', component_property='children'),
         Input(component_id='input-mechanism', component_property='value'),
         )
-def update_graph_and_table(n_clicks, distr_x, distr_x_kwargs, distr_y, distr_y_kwargs, mechanism):
+def update_graph_and_table(n_clicks, distr_x, distr_x_kwargs, distr_y, distr_y_kwargs,
+                           distr_z, distr_z_kwargs, mechanism):
     # TODO: cleaner version with auto update?
     kwargs_x = dict()
     for x in distr_x_kwargs:
@@ -187,8 +190,16 @@ def update_graph_and_table(n_clicks, distr_x, distr_x_kwargs, distr_y, distr_y_k
                 key = child['props']['id']['index']
                 value = child['props']['value'] 
                 kwargs_y.update({key: value})
+    kwargs_z = dict()
+    for z in distr_z_kwargs:
+        for child in z['props']['children']:
+            if child['type'].lower() == 'slider':
+                key = child['props']['id']['index']
+                value = child['props']['value'] 
+                kwargs_z.update({key: value})
 
-    df = create_data(distr_x=distr_x, distr_y=distr_y, kwargs_x=kwargs_x, kwargs_y=kwargs_y,
+    df = create_data(distr_x=distr_x, distr_y=distr_y, distr_z=distr_z,
+                     kwargs_x=kwargs_x, kwargs_y=kwargs_y, kwargs_z=kwargs_z,
                      mechanism=mechanism)
     fig = px.scatter(df, x='x', y='y', color='color')
     fig.update_layout(autosize=False, height=800, width=1000)

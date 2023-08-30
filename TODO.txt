@@ -5,15 +5,15 @@ steps:
         - [X] scatter plot
     - [ ] new file: network graphs -> hardcode all options
         https://dash.plotly.com/cytoscape/styling
-    - [ ] new file: distributions
+    - [X] new file: distributions
     - [ ] design menu
         - [ ] each node -> menu with exo + endo variable + distr sliders
-            - [ ] simple mechanism to combine them
-            - [ ] advanced mechanism to combine them
-        - [ ] mechanisms
-            - [ ] hard coded
-            - [ ] options
-            - [ ] user defined?
+            - [X] simple mechanism to combine them
+            - [X] advanced mechanism to combine them
+        - [X] mechanisms
+            - [X] hard coded
+            - [X] options
+            - [X] user defined?
         - [ ] select graph network structure
             - [ ] chain
             - [ ] fork
@@ -64,4 +64,30 @@ root causes very often just noise:
         x -> noise
         y -> x + z + noise
         z -> noise
+
+simple process design:
+    1) user selects graph type -> chain, fork, collider -> 3 variables each nice to visulize
+    2) user selects noise distributions -> root causes are id of noise
+    3) user defines mechanism according to chosen graph type
+    4) pressing 'create' button generates the data set and a simple visualization
+
+possible features:
+    1) custom graph e.g. via adjacency matrix -> needs check for circles; also automatically 
+       creates the fields for exact number of mechanisms
+    2) more distributions to same variable -> enables cluster formation e.g. 3 normal distributions
+       with different mu's
+    3) interactive intervention tool -> should be available for each variable -> changing to fixed
+       value shows effects on other variables immediately
+    4) more graphs e.g. correlation matrix, marginal distributions, tsne if many variables
+
+order of implementation:
+    since everything was tested -> no need to experiment
+    1) choose graph type
+       depending on graph type -> application of noise and mechanism -> needs definition
+       provide default values and examples for instant result
+    2) choose distribution
+       drop down menu with many options and sliders for various distributions
+       only noise
+    3) adjust mechanism -> depending on intent: classification or regression -> user choice
+
 

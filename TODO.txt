@@ -18,6 +18,9 @@ steps:
             - [ ] chain
             - [ ] fork
             - [ ] collider
+    - [ ] settings file
+        - [ ] enable/disable type of distributions + kwargs
+        - [ ] hardcode graph type as adj mat -> extract relation and their direction
     
 
  

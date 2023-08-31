@@ -111,9 +111,7 @@ app.layout = html.Div([
 def test_mechansim(arr_1: str, arr_2: str, mech: str):
     if arr_1 and arr_2:
         arr_1_int = np.array([int(x) for x in arr_1.replace(' ', '').split(',')])
-        print(f"{arr_1_int=}")
         arr_2_int = np.array([int(x) for x in arr_2.replace(' ', '').split(',')])
-        print(f"{arr_2_int=}")
         if len(arr_1_int) != len(arr_2_int):
             return ['len error']
         try:

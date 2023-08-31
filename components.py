@@ -11,8 +11,16 @@ from distributions import Distributions
 
 import numpy as np
 
+GRAPH_TYPES: List[str] = ['chain', 'fork', 'collider']
+
 
 class MenuComponent(html.Div):
+    """
+    Main componenent acting as tab container for other tabs:
+        * graph type e.g. nodes and edges
+        * distributions e.g. noise for each variable
+        * mechanism e.g. x->y means y=f(x)
+    """
     def __init__(self, children: Optional[List[Component]]=None, id=None, className=None,
                  contentEditable=None, style=None, title=None,*, distributions: Distributions):
         super().__init__(children, id, className, contentEditable, style, title)
@@ -30,37 +38,30 @@ class MenuComponent(html.Div):
 
     def init_graph_type(self):
         # TODO: depending on graph -> different graph, mechanism etc.
-        self.tab_graph_type.children = [
-                html.Div(id='type-selection-container', children=[
-                    RadioItems(id='select-graph-type', options=['chain', 'fork', 'collider'],
-                               value='fork', inline=True)
-                    ])
-                ]
+        # TODO: add graph for visualization
+        component = GraphComponent(id='graph-component')
+        self.tab_graph_type.children = component
 
     def init_distributions(self, distributions: Distributions):
-        component = DistributionsComponent(id='distr-comp', distributions=distributions)
+        component = DistributionComponent(id='distr-comp', distributions=distributions)
         self.tab_distributions.children = component
 
     def init_mechanisms(self):
-        x = np.array([1, 2, 6])
-        y = np.array([4, 3, 2])
-        op_string = 'lambda x, y: 2*(x + y) + 1'
-        op = eval(op_string)
-        res = op(x, y)
+        component = MechanismComponent(id='mechanism-component')
+        self.tab_mechanisms.children = component
 
-        self.tab_mechanisms.children = [
-                html.Div(children=[
-                    Input(id="input-array-1", type="text",  placeholder="1, 2, 3"),
-                    Input(id="input-array-2", type="text",  placeholder="2, 3, 4"),
-                    Input(id="input-mechanism", type="text",  placeholder="3 * x"),
-                    html.Div(id='result', children=[]),
-                    html.P(str(type(res))),
-                    Dropdown(['x', 'y'], 'x'),
-                    Dropdown(['x', 'y'], 'y'),
-                    ])
-                ]
 
-class DistributionsComponent(html.Div):
+class GraphComponent(html.Div):
+    # TODO: could also be arbitrary with adj mat
+    def __init__(self, id, children=None, title=None):
+        global GRAPH_TYPES
+        super().__init__(children, id, title)
+        self.children = [RadioItems(id='select-graph-type', options=GRAPH_TYPES,
+                                    value=GRAPH_TYPES[0], inline=True),
+                         html.Div("TODO: add graph here")]
+
+
+class DistributionComponent(html.Div):
     def __init__(self, id, children=[], title=None, *, distributions: Distributions):
         assert distributions is not None, "error"
         super().__init__(children, id, title)
@@ -75,6 +76,23 @@ class DistributionsComponent(html.Div):
             html.Div(id=f'distr-slider-{var_name}', children=[])], style=style)
         dropdowns = [dropdown_template(var) for var in variables]
         self.children = dropdowns
+
+class MechanismComponent(html.Div):
+    def __init__(self, id, children=None, title=None):
+        super().__init__(children, id, title)
+        x = np.array([1, 2, 6])
+        y = np.array([4, 3, 2])
+        op_string = 'lambda x, y: 2*(x + y) + 1'
+        op = eval(op_string)
+        res = op(x, y)
+
+        self.children = [
+                Input(id="input-array-1", type="text",  placeholder="1, 2, 3"),
+                Input(id="input-array-2", type="text",  placeholder="2, 3, 4"),
+                Input(id="input-mechanism", type="text",  placeholder="3 * x"),
+                html.Div(id='result', children=[]),
+                html.P(str(type(res)))
+                ]
 
 # graph -> width 49%
 # todo: more graphs e.g. tsne, histogram, corr mat

@@ -37,8 +37,6 @@ class MenuComponent(html.Div):
         self.children = [self.tab_container]
 
     def init_graph_type(self):
-        # TODO: depending on graph -> different graph, mechanism etc.
-        # TODO: add graph for visualization
         component = GraphComponent(id='graph-component')
         self.tab_graph_type.children = component
 
@@ -79,6 +77,7 @@ class DistributionComponent(html.Div):
 
 class MechanismComponent(html.Div):
     def __init__(self, id, children=None, title=None):
+        global GRAPH_TYPES
         super().__init__(children, id, title)
         x = np.array([1, 2, 6])
         y = np.array([4, 3, 2])

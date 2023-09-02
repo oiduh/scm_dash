@@ -2,53 +2,37 @@ from dash import Dash, html
 from dash.html.P import P
 import numpy as np
 import dash_cytoscape as cyto
+from typing import List, Tuple
+
+class AdjecencyList:
+    def __init__(self, input: List[Tuple[str, str]]) -> None:
+        self.nodes = set()
+        self.edges: List[Tuple[str, str]] = []
+        for src, tgt in input:
+            self.nodes.add(tgt)
+            self.nodes.add(src)
+            self.edges.append((tgt, src))
+    
+    def to_cyto(self):
+        elements = []
+        for node in self.nodes:
+            elements.append({'data': {'id': node, 'label': node}})
+        for tgt, src in self.edges:
+            elements.append({'data': {'source': tgt, 'target': src}})
+        return elements
+
+
 
 if __name__ == "__main__":
+    # currently via adj matrix
+    # since expected to be sparse -> better adj list
+
     # x -> y -> z
-    chain = np.array([
-        #x, y, z
-        [0, 0, 0, 0],
-        [1, 0, 0, 0],
-        [1, 1, 0, 0],
-        [0, 0, 1, 0]
-        ])
-
+    chain = AdjecencyList([('x', 'y'), ('y', 'z'), ('z', 'a'), ('a', 'b'), ('b', 'c')])
     # x <- y -> z
-    fork = np.array([
-        #x, y, z
-        [0, 1, 0],
-        [0, 0, 0],
-        [0, 1, 0]
-        ])
-
+    fork = AdjecencyList([('y', 'x'), ('y', 'z'), ('y', 'a')])
     # x -> y <- z
-    collider = np.array([
-        #x, y, z
-        [0, 0, 0],
-        [1, 0, 1],
-        [0, 0, 0]
-        ])
-
-    chain_elements = []
-    fork_elements = []
-    collider_elements = []
-
-    for ridx, row in enumerate(chain):
-        chain_elements.append({'data': {'id': str(ridx), 'label': str(ridx)}})
-        for cidx, element in enumerate(row):
-            if element == 1:
-                chain_elements.append({'data': {'source': str(ridx), 'target': str(cidx)}})
-    for ridx, row in enumerate(fork):
-        fork_elements.append({'data': {'id': str(ridx), 'label': str(ridx)}})
-        for cidx, element in enumerate(row):
-            if element == 1:
-                fork_elements.append({'data': {'source': str(ridx), 'target': str(cidx)}})
-    for ridx, row in enumerate(collider):
-        collider_elements.append({'data': {'id': str(ridx), 'label': str(ridx)}})
-        for cidx, element in enumerate(row):
-            if element == 1:
-                collider_elements.append({'data': {'source': str(ridx), 'target': str(cidx)}})
-
+    collider = AdjecencyList([('x', 'y'), ('z', 'y'), ('a', 'y')])
 
     app = Dash(__name__)
 
@@ -70,7 +54,7 @@ if __name__ == "__main__":
                                          }
 
                                      }]
-                             ) for elements in [chain_elements, fork_elements, collider_elements]]
+                             ) for elements in [chain.to_cyto(), fork.to_cyto(), collider.to_cyto()]]
 
     layout_div = html.Div(children=[
         html.P("Dash Cytoscape:")])

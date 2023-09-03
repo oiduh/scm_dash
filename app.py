@@ -15,7 +15,8 @@ n: int = 300
 distributions = Distributions()
 
 
-# TODO: depending on structure -> 1 or 2 mechanism, 2 or 3 parameters -> mechanism needs to be flexible
+# TODO: depending on structure -> 1 or 2 mechanism, 2 or 3 parameters
+#   -> mechanism needs to be flexible
 # TODO: intervention -> norm with loc=x, scale=0
 def create_data(distr_x: str, distr_y: str, distr_z: str,
                 kwargs_x: Dict[str, int | float],
@@ -34,16 +35,6 @@ def create_data(distr_x: str, distr_y: str, distr_z: str,
     x = distr_gen_x.rvs(size=n)
     y = distr_gen_y.rvs(size=n)
     z = distr_gen_z.rvs(size=n)
-
-    # TODO: depending on chosen structure -> apply mechanism and noise
-    # 1) chain: x -> y=f(x, y_n) -> z=g(y, z_n)=g(f(x, x_n), y_n)
-    # 2) fork: x=f(y, x_n) <- y -> z=g(y, z_n)
-    # 3) collider: x -> y=f(x, z, y_n) <- z
-    # how to properly distinct between continuous and discrete output?
-    # type of output should be independent of noise -> output can be continuous while noise is binary
-    # and vice versa; idea: detect whether output has more than 10 int values or something
-
-
     # use this to distinguish between graph types, when implemented
     graph_type = "collider"
     match graph_type:
@@ -77,7 +68,8 @@ def create_data(distr_x: str, distr_y: str, distr_z: str,
 
     color = np.random.uniform(low=0, high=1, size=n)
     func = eval(f"lambda x, y: {mechanism}")
-    color = ['True' if func(x_i, y_i) else 'False' for x_i, y_i in np.column_stack((x, y))]
+    color = ['True' if func(x_i, y_i) else 'False'
+        for x_i, y_i in np.column_stack((x, y))]
     df = pd.DataFrame(np.array([x, y, color]).T, columns=['x', 'y', 'color'])
     df['x'] = df['x'].astype(np.float64)
     df['y'] = df['y'].astype(np.float64)
@@ -95,8 +87,10 @@ app.layout = html.Div([
     html.Button('new', id='create-new-data', n_clicks=0),
     html.Div(id='container', children='click text'),
     html.Div(children=[
-        html.Div(children=[MenuComponent(id='menu-component', distributions=distributions)],
-                 style={'width': '49%', 'display': 'inline-block', 'verticalAlign': 'top'}),
+        html.Div(children=[MenuComponent(id='menu-component',
+                                         distributions=distributions)],
+                 style={'width': '49%', 'display': 'inline-block', 
+                        'verticalAlign': 'top'}),
         html.Div(children=[dcc.Graph(figure={}, id='controls-and-graph')],
                  style={'width': '49%', 'display': 'inline-block'})
         ])
@@ -110,8 +104,12 @@ app.layout = html.Div([
         )
 def test_mechansim(arr_1: str, arr_2: str, mech: str):
     if arr_1 and arr_2:
-        arr_1_int = np.array([int(x) for x in arr_1.replace(' ', '').split(',')])
-        arr_2_int = np.array([int(x) for x in arr_2.replace(' ', '').split(',')])
+        arr_1_int = np.array(
+            [int(x) for x in arr_1.replace(' ', '').split(',')]
+        )
+        arr_2_int = np.array(
+            [int(x) for x in arr_2.replace(' ', '').split(',')]
+        )
         if len(arr_1_int) != len(arr_2_int):
             return ['len error']
         try:
@@ -139,22 +137,27 @@ def update_distr_kwargs(distr_x, distr_y, distr_z):
     sliders_x = [html.Div([html.Label(f'{param_name}'),
                            dcc.Slider(min=param_range.min, max=param_range.max,
                                       # not providing the step -> 5 marks
-                                      step=param_range.step, value=param_range.max,
-                                      id={'type': 'distr_x_kwargs', 'index': param_name})])
+                                      step=param_range.step,
+                                      value=param_range.max,
+                                      id={'type': 'distr_x_kwargs',
+                                          'index': param_name})])
                  for param_name, param_range in param_limits_x.items()]
     param_limits_y = distributions.get_values(distr_y)
     sliders_y = [html.Div([html.Label(f'{param_name}'),
                            dcc.Slider(min=param_range.min, max=param_range.max,
                                       # not providing the step -> 5 marks
-                                      step=param_range.step, value=param_range.max,
-                                      id={'type': 'distr_y_kwargs', 'index': param_name})])
+                                      step=param_range.step,
+                                      value=param_range.max,
+                                      id={'type': 'distr_y_kwargs',
+                                          'index': param_name})])
                  for param_name, param_range in param_limits_y.items()]
     param_limits_z = distributions.get_values(distr_z)
     sliders_z = [html.Div([html.Label(f'{param_name}'),
                            dcc.Slider(min=param_range.min, max=param_range.max,
                                       # not providing the step -> 5 marks
                                       step=param_range.step, value=param_range.max,
-                                      id={'type': 'distr_z_kwargs', 'index': param_name})])
+                                      id={'type': 'distr_z_kwargs',
+                                          'index': param_name})])
                  for param_name, param_range in param_limits_z.items()]
     return sliders_x, sliders_y, sliders_z
 
@@ -205,8 +208,6 @@ def update_graph_and_table(n_clicks, distr_x, distr_x_kwargs, distr_y, distr_y_k
     assert isinstance(fig.layout, Layout), "type checking"
     assert isinstance(fig.layout.yaxis, YAxis), "type checking"
     fig.layout.yaxis.scaleanchor = 'x'
-    # data = df.to_dict('records')
-    # return fig, data, n_clicks
     return fig, n_clicks
 
 # Run the app

@@ -8,6 +8,8 @@ from dash import html
 from dash.development._py_components_generation import Component
 from typing import List, Optional
 from distributions import Distributions
+from graph_test import AdjecencyList
+import dash_cytoscape as cyto
 
 import numpy as np
 
@@ -52,11 +54,44 @@ class MenuComponent(html.Div):
 class GraphComponent(html.Div):
     # TODO: could also be arbitrary with adj mat
     def __init__(self, id, children=None, title=None):
-        global GRAPH_TYPES
+        chain = AdjecencyList([('x', 'y'), ('y', 'z'), ('z', 'a'), ('a', 'b'), ('b', 'c')])
+        fork = AdjecencyList([('y', 'x'), ('y', 'z'), ('y', 'a')])
+        collider = AdjecencyList([('x', 'y'), ('z', 'y'), ('a', 'y')])
+
+        graphs: List[cyto.Cytoscape] = []
+        for adj_list in [chain, fork, collider]:
+            elements = adj_list.to_cyto()
+            style = {
+                'width': '400px', 'height': '500px',
+                'border': '2px black solid',
+                'margin': '2px'
+            }
+            layout = {'name': 'breadthfirst'}
+            stylesheet = [
+                {
+                    'selector': 'edge',
+                    'style': {
+                        'curve-style': 'bezier',
+                        'source-arrow-shape': 'triangle'
+                    }
+                },
+                {
+                    'selector': 'node',
+                    'style': {
+                        'label': 'data(id)',
+                    }
+                }
+            ]
+
+            graphs.append(cyto.Cytoscape(
+                elements=elements,
+                style=style,
+                layout=layout,
+                stylesheet=stylesheet
+            ))
+
         super().__init__(children, id, title)
-        self.children = [RadioItems(id='select-graph-type', options=GRAPH_TYPES,
-                                    value=GRAPH_TYPES[0], inline=True),
-                         html.Div("TODO: add graph here")]
+        self.children = graphs
 
 
 class DistributionComponent(html.Div):

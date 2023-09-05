@@ -3,17 +3,17 @@
 # tab 1 -> type of network graph: chain, fork, collider
 # tab 2 -> distributions + sliders
 # tab 3 -> mechanism
-from dash.dcc import Tab, Tabs, Dropdown, Input, RadioItems
-from dash import html
+from dash.dcc import Tab, Tabs, Dropdown, Input 
+from dash import html, callback, Output, Input
 from dash.development._py_components_generation import Component
-from typing import List, Optional
+from typing import Dict, List, Optional
 from distributions import Distributions
 from graph_test import AdjecencyList
 import dash_cytoscape as cyto
 
 import numpy as np
 
-GRAPH_TYPES: List[str] = ['chain', 'fork', 'collider']
+GRAPH_TYPES: List[str] = ['chain', 'fork', 'collider', 'custom']
 
 
 class MenuComponent(html.Div):
@@ -23,10 +23,11 @@ class MenuComponent(html.Div):
         * distributions e.g. noise for each variable
         * mechanism e.g. x->y means y=f(x)
     """
-    def __init__(self, children: Optional[List[Component]]=None, id=None, className=None,
-                 contentEditable=None, style=None, title=None,*, distributions: Distributions):
+    def __init__(self, children: Optional[List[Component]]=None, id=None,
+                 className=None, contentEditable=None, style=None, title=None,
+                 *, distributions: Distributions):
         super().__init__(children, id, className, contentEditable, style, title)
-        self.tab_container = Tabs(id='tab-container', value='mechanisms')
+        self.tab_container = Tabs(id='tab-container', value='type')
         self.tab_graph_type = Tab(label='Type', value='type')
         self.tab_distributions = Tab(label='Distributions', value='distributions')
         self.tab_mechanisms = Tab(label='Mechanisms', value='mechanisms')
@@ -35,8 +36,10 @@ class MenuComponent(html.Div):
         self.init_distributions(distributions)
         self.init_mechanisms()
 
-        self.tab_container.children = [self.tab_graph_type, self.tab_distributions, self.tab_mechanisms]
-        self.children = [self.tab_container]
+        self.tab_container.children = [
+            self.tab_graph_type,self.tab_distributions, self.tab_mechanisms
+        ]
+        self.children = self.tab_container
 
     def init_graph_type(self):
         component = GraphComponent(id='graph-component')
@@ -54,19 +57,42 @@ class MenuComponent(html.Div):
 class GraphComponent(html.Div):
     # TODO: could also be arbitrary with adj mat
     def __init__(self, id, children=None, title=None):
-        chain = AdjecencyList([('x', 'y'), ('y', 'z'), ('z', 'a'), ('a', 'b'), ('b', 'c')])
+        # default choices
+
+        super().__init__(children, id, title)
+        self.children = [
+            html.Div(id='graph-type-selection', children=[
+                Dropdown(id='select-graph-type',
+                         options=GRAPH_TYPES, value=GRAPH_TYPES[0]),
+                html.Div(id='show-selected-graph', children=None)
+            ])
+        ]
+
+    @staticmethod
+    @callback(
+        Output(component_id='show-selected-graph', component_property='children'),
+        Input(component_id='select-graph-type', component_property='value')
+    )
+    def callback_graph_selection(selected_graph_type: str):
+        chain = AdjecencyList(
+            [('x', 'y'), ('y', 'z'), ('z', 'a'), ('a', 'b'), ('b', 'c')]
+        )
         fork = AdjecencyList([('y', 'x'), ('y', 'z'), ('y', 'a')])
         collider = AdjecencyList([('x', 'y'), ('z', 'y'), ('a', 'y')])
 
-        graphs: List[cyto.Cytoscape] = []
-        for adj_list in [chain, fork, collider]:
+        # TODO: add custom choice -> input=adj_list
+
+        graphs: Dict[str, cyto.Cytoscape] = dict()
+        for name, adj_list in zip(
+            ['chain', 'fork', 'collider'],[chain, fork, collider]
+        ):
             elements = adj_list.to_cyto()
             style = {
                 'width': '400px', 'height': '500px',
                 'border': '2px black solid',
                 'margin': '2px'
             }
-            layout = {'name': 'breadthfirst'}
+            layout = {'name': 'grid'}
             stylesheet = [
                 {
                     'selector': 'edge',
@@ -83,15 +109,22 @@ class GraphComponent(html.Div):
                 }
             ]
 
-            graphs.append(cyto.Cytoscape(
+            graphs.update({name: cyto.Cytoscape(
                 elements=elements,
                 style=style,
                 layout=layout,
                 stylesheet=stylesheet
-            ))
+            )})
 
-        super().__init__(children, id, title)
-        self.children = graphs
+        match selected_graph_type.lower():
+            case 'chain' | 'fork' | 'collider':
+                selected_graph = graphs[selected_graph_type]
+            case 'custom':
+                assert False, 'not implemented yet'
+            case _:
+                assert False, 'unknown type'
+
+        return selected_graph
 
 
 class DistributionComponent(html.Div):
@@ -121,12 +154,8 @@ class MechanismComponent(html.Div):
         res = op(x, y)
 
         self.children = [
-                Input(id="input-array-1", type="text",  placeholder="1, 2, 3"),
-                Input(id="input-array-2", type="text",  placeholder="2, 3, 4"),
-                Input(id="input-mechanism", type="text",  placeholder="3 * x"),
-                html.Div(id='result', children=[]),
-                html.P(str(type(res)))
-                ]
+            html.P("TODO: ...")
+        ]
 
 # graph -> width 49%
 # todo: more graphs e.g. tsne, histogram, corr mat

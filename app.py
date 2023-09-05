@@ -35,36 +35,6 @@ def create_data(distr_x: str, distr_y: str, distr_z: str,
     x = distr_gen_x.rvs(size=n)
     y = distr_gen_y.rvs(size=n)
     z = distr_gen_z.rvs(size=n)
-    # use this to distinguish between graph types, when implemented
-    graph_type = "collider"
-    match graph_type:
-        case "colider":
-            # x=x_n -> y=f(x, z, y_n) <- z=z_n
-            func = eval(f"lambda x, y, z: {mechanism}")
-            cause1 = x
-            cause2 = z
-            result_noise = y
-            result = func(cause1, cause2, result_noise)
-
-            pass
-        case "fork":
-            # x=f(y, x_n) <- y=y_n -> z=g(y, z_n)
-            func1 = eval(f"lambda x, y: {mechanism}")
-            func2 = eval(f"lambda y, z: {mechanism}")
-            cause1 = y
-            noise1 = x
-            noise2 = z
-            result1 = func1(cause1, noise1, noise2)
-            pass
-        case "chain":
-            # x=x_n -> y=f(x, y_n)=f(x_n, y_n) -> z=g(y, z_n)=g(f(x_n, y_n), z_n)
-            func1 = eval(f"lambda x, y: {mechanism}")
-            res_x = func1(x, y)
-            # eval func1
-            func2 = eval(f"lambda z: {mechanism}")
-            pass
-        case _:
-            pass
 
     color = np.random.uniform(low=0, high=1, size=n)
     func = eval(f"lambda x, y: {mechanism}")
@@ -95,33 +65,6 @@ app.layout = html.Div([
                  style={'width': '49%', 'display': 'inline-block'})
         ])
     ])
-
-@callback(
-        Output(component_id='result', component_property='children'),
-        Input(component_id='input-array-1', component_property='value'),
-        Input(component_id='input-array-2', component_property='value'),
-        Input(component_id='input-mechanism', component_property='value'),
-        )
-def test_mechansim(arr_1: str, arr_2: str, mech: str):
-    if arr_1 and arr_2:
-        arr_1_int = np.array(
-            [int(x) for x in arr_1.replace(' ', '').split(',')]
-        )
-        arr_2_int = np.array(
-            [int(x) for x in arr_2.replace(' ', '').split(',')]
-        )
-        if len(arr_1_int) != len(arr_2_int):
-            return ['len error']
-        try:
-            func_str = f"lambda x, y: {mech}"
-            print(f"{func_str=}")
-            func = eval(func_str)
-            res = func(arr_1_int, arr_2_int)
-            return [str(res)]
-        except Exception:
-            return ['mech error']
-
-    return ['error']
 
 @callback(
         Output(component_id='distr-slider-x', component_property='children'),
@@ -172,10 +115,13 @@ def update_distr_kwargs(distr_x, distr_y, distr_z):
         Input(component_id='distr-slider-y', component_property='children'),
         Input(component_id='distr-dropdown-z', component_property='value'),
         Input(component_id='distr-slider-z', component_property='children'),
-        Input(component_id='input-mechanism', component_property='value'),
         )
-def update_graph_and_table(n_clicks, distr_x, distr_x_kwargs, distr_y, distr_y_kwargs,
-                           distr_z, distr_z_kwargs, mechanism):
+def update_graph_and_table(
+    n_clicks,
+    distr_x, distr_x_kwargs,
+    distr_y, distr_y_kwargs,
+    distr_z, distr_z_kwargs
+    ):
     # TODO: cleaner version with auto update?
     kwargs_x = dict()
     for x in distr_x_kwargs:
@@ -199,6 +145,7 @@ def update_graph_and_table(n_clicks, distr_x, distr_x_kwargs, distr_y, distr_y_k
                 value = child['props']['value'] 
                 kwargs_z.update({key: value})
 
+    mechanism = 'x > y'
     df = create_data(distr_x=distr_x, distr_y=distr_y, distr_z=distr_z,
                      kwargs_x=kwargs_x, kwargs_y=kwargs_y, kwargs_z=kwargs_z,
                      mechanism=mechanism)

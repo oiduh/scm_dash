@@ -1,10 +1,5 @@
-# menu -> width 49%
-# tabs -> 3x tab width 32% each
-# tab 1 -> type of network graph: chain, fork, collider
-# tab 2 -> distributions + sliders
-# tab 3 -> mechanism
 from dash.dcc import Tab, Tabs, Dropdown, Input 
-from dash import html, callback, Output, Input
+from dash import html, callback, Output, Input, ctx
 from dash.development._py_components_generation import Component
 from typing import Dict, List, Optional
 from distributions import Distributions
@@ -39,7 +34,7 @@ class MenuComponent(html.Div):
         self.tab_container.children = [
             self.tab_graph_type,self.tab_distributions, self.tab_mechanisms
         ]
-        self.children = self.tab_container
+        self.children = [self.tab_container, html.Div(id='test', children='nothing yet')]
 
     def init_graph_type(self):
         component = GraphComponent(id='graph-component')
@@ -53,6 +48,22 @@ class MenuComponent(html.Div):
         component = MechanismComponent(id='mechanism-component')
         self.tab_mechanisms.children = component
 
+    @staticmethod
+    @callback(
+        Output(component_id='test', component_property='children'),
+        Input(component_id='confirm-graph-type', component_property='n_clicks'),
+        Input(component_id='select-graph-type', component_property='value'),
+    )
+    def confirm_graph_type(_, graph_type):
+        # TODO: 
+        #       - depending on choice -> mechanism
+        #       - use button to confirm choice
+        #       - if dropdown value changed -> reset all
+        if ctx.triggered_id == 'confirm-graph-type':
+            return f'clicked: {graph_type}'
+        return 'not clicked'
+        
+
 
 class GraphComponent(html.Div):
     # TODO: could also be arbitrary with adj mat
@@ -64,7 +75,8 @@ class GraphComponent(html.Div):
             html.Div(id='graph-type-selection', children=[
                 Dropdown(id='select-graph-type',
                          options=GRAPH_TYPES, value=GRAPH_TYPES[0]),
-                html.Div(id='show-selected-graph', children=None)
+                html.Div(id='show-selected-graph', children=None),
+                html.Button('Confirm', id='confirm-graph-type', n_clicks=0)
             ])
         ]
 
@@ -75,10 +87,10 @@ class GraphComponent(html.Div):
     )
     def callback_graph_selection(selected_graph_type: str):
         chain = AdjecencyList(
-            [('x', 'y'), ('y', 'z'), ('z', 'a'), ('a', 'b'), ('b', 'c')]
+            [('x', 'y'), ('y', 'z')]
         )
-        fork = AdjecencyList([('y', 'x'), ('y', 'z'), ('y', 'a')])
-        collider = AdjecencyList([('x', 'y'), ('z', 'y'), ('a', 'y')])
+        fork = AdjecencyList([('y', 'x'), ('y', 'z')])
+        collider = AdjecencyList([('x', 'y'), ('z', 'y')])
 
         # TODO: add custom choice -> input=adj_list
 
@@ -120,7 +132,7 @@ class GraphComponent(html.Div):
             case 'chain' | 'fork' | 'collider':
                 selected_graph = graphs[selected_graph_type]
             case 'custom':
-                assert False, 'not implemented yet'
+                selected_graph = html.Div("TODO: ...")
             case _:
                 assert False, 'unknown type'
 

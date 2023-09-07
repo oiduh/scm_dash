@@ -1,5 +1,5 @@
-from dash.dcc import Tab, Tabs, Dropdown, Input 
-from dash import html, callback, Output, Input, ctx
+from dash.dcc import Tab, Tabs, Dropdown, Input as InputText
+from dash import dcc, html, callback, Output, Input, ctx
 from dash.development._py_components_generation import Component
 from typing import Dict, List, Optional
 from distributions import Distributions
@@ -48,20 +48,6 @@ class MenuComponent(html.Div):
         component = MechanismComponent(id='mechanism-component')
         self.tab_mechanisms.children = component
 
-    @staticmethod
-    @callback(
-        Output(component_id='test', component_property='children'),
-        Input(component_id='confirm-graph-type', component_property='n_clicks'),
-        Input(component_id='select-graph-type', component_property='value'),
-    )
-    def confirm_graph_type(_, graph_type):
-        # TODO: 
-        #       - depending on choice -> mechanism
-        #       - use button to confirm choice
-        #       - if dropdown value changed -> reset all
-        if ctx.triggered_id == 'confirm-graph-type':
-            return f'clicked: {graph_type}'
-        return 'not clicked'
         
 
 
@@ -169,5 +155,43 @@ class MechanismComponent(html.Div):
             html.P("TODO: ...")
         ]
 
-# graph -> width 49%
-# todo: more graphs e.g. tsne, histogram, corr mat
+
+# CALLBACKS
+
+@callback(
+    Output(component_id='mechanism-component', component_property='children'),
+    Input(component_id='confirm-graph-type', component_property='n_clicks'),
+    Input(component_id='select-graph-type', component_property='value'),
+)
+def confirm_graph_type(_, graph_type):
+    # TODO: 
+    #       - depending on choice -> mechanism
+    #       - use button to confirm choice
+    #       - if dropdown value changed -> reset all
+    if ctx.triggered_id != 'confirm-graph-type':
+        return 'nothing selected'
+    
+    style = {
+        'width': '400px', 'height': '500px',
+        'border': '2px black solid',
+        'margin': '2px'
+    }
+    list_of_elements = []
+    list_of_elements.extend([
+        html.P(f"selected graph type: {graph_type}"),
+        html.Div(id='x_arg', children=[
+            html.P('x_arg'),
+            InputText(id='x_arg_input')
+        ], style=style),
+        html.Div(id='y_arg', children=[
+            html.P('y_arg'),
+            InputText(id='y_arg_input')
+        ], style=style),
+        html.Div(id='z_arg', children=[
+            html.P('z_arg'),
+            InputText(id='z_arg_input')
+        ], style=style),
+    ])
+
+    return list_of_elements
+

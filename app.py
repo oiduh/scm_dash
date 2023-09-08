@@ -49,6 +49,7 @@ def create_data(distr_x: str, distr_y: str, distr_z: str,
 
 # Initialize the app
 app = Dash(__name__)
+app.config.suppress_callback_exceptions = True
 
 # App layout
 app.layout = html.Div([

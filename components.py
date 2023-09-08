@@ -1,5 +1,5 @@
-from dash.dcc import Tab, Tabs, Dropdown, Input as InputText
-from dash import dcc, html, callback, Output, Input, ctx
+from dash.dcc import Tab, Tabs, Dropdown, Input as InputText, RadioItems
+from dash import html, callback, Output, Input, ctx
 from dash.development._py_components_generation import Component
 from typing import Dict, List, Optional
 from distributions import Distributions
@@ -172,26 +172,104 @@ def confirm_graph_type(_, graph_type):
         return 'nothing selected'
     
     style = {
-        'width': '400px', 'height': '500px',
+        'width': '400px', 'height': '100px',
         'border': '2px black solid',
         'margin': '2px'
     }
+    """
+    chain:
+        x = n_x, y = f(x, n_y), z = g(y, n_z)
+    fork:
+        x = f(y, n_x), y = n_y, z = g(y, n_z)
+    collider:
+        x = n_x, y = f(x, y, n_z), z = n_z
+    """
+    match graph_type:
+        case "chain":
+            x_mech = None
+            y_mech = "y = f(x, n_y)"
+            z_mech = "z = g(y, n_z)"
+        case "fork":
+            x_mech = "x = f(y, n_x)"
+            y_mech = None
+            z_mech = "z = g(y, n_z)"
+        case "collider":
+            x_mech = None
+            y_mech = "y = f(x, z, n_y)"
+            z_mech = None
+        case "custom":
+            x_mech = None
+            y_mech = None
+            z_mech = None
+        case _:
+            assert False, "unknown error"
+
+
+
     list_of_elements = []
-    list_of_elements.extend([
-        html.P(f"selected graph type: {graph_type}"),
-        html.Div(id='x_arg', children=[
-            html.P('x_arg'),
-            InputText(id='x_arg_input')
-        ], style=style),
-        html.Div(id='y_arg', children=[
-            html.P('y_arg'),
-            InputText(id='y_arg_input')
-        ], style=style),
-        html.Div(id='z_arg', children=[
-            html.P('z_arg'),
-            InputText(id='z_arg_input')
-        ], style=style),
-    ])
+    list_of_elements.append(html.P(f"selected graph type: {graph_type}"))
+    if x_mech:
+        list_of_elements.append(
+            html.Div(id='x_arg', children=[
+                html.P(x_mech),
+                RadioItems(options=['classification', 'regression'],
+                           value='classification', id='x_mech_type', inline=True),
+                html.Div(id='x_mech_input', children = [
+                    html.Label('[1 if '),
+                    InputText(id='x_arg_input', style={'display': 'inline-block'}),
+                    html.Label(' else 0]')
+                ])
+            ], style=style),
+        )
+    if y_mech:
+        list_of_elements.append(
+            html.Div(id='y_arg', children=[
+                html.P(y_mech),
+                RadioItems(options=['classification', 'regression'],
+                           value='classification', id='y_mech_type'),
+                html.Div(id='y_mech_input', children = [
+                    html.Label('[1 if '),
+                    InputText(id='y_arg_input', style={'display': 'inline-block'}),
+                    html.Label(' else 0]')
+                ])
+            ], style=style),
+        )
+    if z_mech:
+        list_of_elements.append(
+            html.Div(id='z_arg', children=[
+                html.P(z_mech),
+                RadioItems(options=['classification', 'regression'],
+                           value='classification', id='z_mech_type'),
+                html.Div(id='z_mech_input', children = [
+                    html.Label('[1 if '),
+                    InputText(id='z_arg_input', style={'display': 'inline-block'}),
+                    html.Label(' else 0]')
+                ])
+            ], style=style),
+        )
 
     return list_of_elements
+
+@callback(
+    Output(component_id='x_mech_input', component_property='children'),
+    Input(component_id='x_mech_type', component_property='value'),
+)
+def x_mech_type(type_):
+    ret = []
+    match type_:
+        case 'classification':
+            ret.extend([
+                html.Label('[1 if '),
+                InputText(id='x_arg_input', style={'display': 'inline-block'}),
+                html.Label(' else 0]')
+            ])
+        case 'regression':
+            ret.extend([
+                html.Label('f = '),
+                InputText(id='x_arg_input', style={'display': 'inline-block'}),
+            ])
+        case _:
+            ret.append(html.P('ERROR'))
+    return ret
+
 

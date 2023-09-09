@@ -164,10 +164,6 @@ class MechanismComponent(html.Div):
     Input(component_id='select-graph-type', component_property='value'),
 )
 def confirm_graph_type(_, graph_type):
-    # TODO: 
-    #       - depending on choice -> mechanism
-    #       - use button to confirm choice
-    #       - if dropdown value changed -> reset all
     if ctx.triggered_id != 'confirm-graph-type':
         return 'nothing selected'
     
@@ -176,14 +172,6 @@ def confirm_graph_type(_, graph_type):
         'border': '2px black solid',
         'margin': '2px'
     }
-    """
-    chain:
-        x = n_x, y = f(x, n_y), z = g(y, n_z)
-    fork:
-        x = f(y, n_x), y = n_y, z = g(y, n_z)
-    collider:
-        x = n_x, y = f(x, y, n_z), z = n_z
-    """
     match graph_type:
         case "chain":
             x_mech = None
@@ -272,4 +260,24 @@ def x_mech_type(type_):
             ret.append(html.P('ERROR'))
     return ret
 
+"""
+idea: for mechanism multiple callbacks 
+    - dropdown to select and preview graph types -> if predefined
+    - one custom option for interactive graph creation -> if components done
+        correctly, should be easy
+    - one button to confirm the choice -> save state and use in distributions
+        and mechanisms -> dependence on graph type
+    extra:
+    - custom variable lables -> easier to image actual scenario
+    - custom graph creation needs proper state management (nodes and edges)
 
+
+
+
+@callback(
+    Output(multiple components),
+    Input(button),
+    State(all states needed to confirm valid state)
+)
+def confirm_mechanism(all parameters to produce a valid graphs):
+"""

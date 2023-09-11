@@ -2,6 +2,8 @@ from sys import exception
 from dash import callback, Input, Output, Dash, html, State
 from dash import dcc
 from dash.dcc import Dropdown
+import dash_bootstrap_components as dbc
+
 
 
 GRAPH = {
@@ -76,45 +78,42 @@ class GraphBuilderComponent(html.Div):
                 html.P(f"effects: {', '.join(effects) if effects else 'None'}")
             ]
             self.children.append(variable_component)
-        self.children.extend([
-            html.P('select item to remove:'),
-            Dropdown(id='item-to-remove', options=list(self.graph_builder.graph.keys()),
-                     value='---'),
-            html.Button(id='remove-something', children='Remove'),
-            html.Hr(),
-            # dropdown to add available nodes as causes or effects
-            html.P('add new node:'),
-            dcc.Input(type='text', id='new-variable-name'),
-            html.Button(id='remove-something', children='Add'),
-            html.Hr(),
-            # dropdown to add link between 2 existing nodes
-            html.P('add new link:'),
-            html.P('cause:'),
-            Dropdown(id='cause-to-add', options=list(self.graph_builder.graph.keys()),
-                     value='---'),
-            html.P('effect:'),
-            Dropdown(id='effect-to-add', options=list(self.graph_builder.graph.keys()),
-                     value='---'),
-            html.Button(id='remove-something', children='Add')
-        ])
 
 
-app = Dash(__name__)
+app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 app.layout = html.Div([
     html.Div("graph builder"),
     html.Hr(),
-    GraphBuilderComponent(id='graph-builder-component')
+    html.Div([
+        dbc.Row([
+            dbc.Col(GraphBuilderComponent(id='graph-builder-component')),
+            dbc.Col(html.Div(children=['some text']))
+        ]),
+        dbc.Row([
+            dbc.Col(html.Div('123')),
+            dbc.Col(html.Div('456')),
+            dbc.Col(html.Div('789'))
+        ]),
+        dbc.Row([
+            dbc.Col(html.Div('123')),
+            dbc.Col(html.Div('456')),
+            dbc.Col(html.Div('789')),
+            dbc.Col(html.Div('123')),
+            dbc.Col(html.Div('456')),
+            dbc.Col(html.Div('789'))
+        ])
+    ])
 ])
 
-@callback(
-    Output(component_id='first', component_property='children'),
-    Output(component_id='second', component_property='children'),
-    Input(component_id='confirm-button', component_property='n_clicks'),
-    State(component_id='first-state', component_property='value'),
-    State(component_id='second-state', component_property='value')
-)
-def state_test(_, first_input, second_input):
-    return first_input, second_input
+# @callback(
+#     Output(component_id='first', component_property='children'),
+#     Output(component_id='second', component_property='children'),
+#     Input(component_id='confirm-button', component_property='n_clicks'),
+#     State(component_id='first-state', component_property='value'),
+#     State(component_id='second-state', component_property='value')
+# )
+# def state_test(_, first_input, second_input):
+#     return first_input, second_input
 
 
 if __name__ == '__main__':

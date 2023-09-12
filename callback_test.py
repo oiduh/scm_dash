@@ -1,5 +1,6 @@
+from hashlib import new
 from sys import exception
-from typing import Tuple
+from typing import Tuple, List
 from dash import callback, Input, Output, Dash, html, State
 from dash import dcc
 from dash.dcc import Dropdown
@@ -10,13 +11,12 @@ from pandas.core.internals.concat import cp
 
 GRAPH = {
     'a': ['b'],
-    'b': ['c'],
-    'c': []
+    'b': [],
 }
 
 INDEX = {
     '0': 'a',
-    '1': 'b'
+    '1': 'b',
 }
 
 class GraphBuilder:
@@ -26,8 +26,21 @@ class GraphBuilder:
         global GRAPH, INDEX
         self.graph = GRAPH
         self.index = INDEX
+        self.len = len(self.graph.keys())
 
     def add_edge(self, new_edge: Tuple[str, str]):
+        cause, _ = new_edge
+        can_add, new_graph = self.can_add_edge(new_edge)
+        if can_add:
+            self.graph = new_graph
+            next_index = list(self.index.keys())[-1]
+            next_index = int(next_index) + 1
+            self.index[str(next_index)] = cause
+            self.len += 1
+        else:
+            raise Exception("cannot add this edge -> no cycles allowed")
+
+    def can_add_edge(self, new_edge: Tuple[str, str]):
         cause, effect = new_edge
         graph_copy = self.graph.copy()
         if (g:=graph_copy.get(cause, None)) is not None:
@@ -38,13 +51,7 @@ class GraphBuilder:
         if (g:=graph_copy.get(effect, None)) is None:
             graph_copy.update({effect: []})
 
-        if GraphBuilder.is_cyclic(graph_copy):
-            raise Exception("cannot add this edge -> no cycles allowed")
-        else:
-            self.graph = graph_copy
-            next_index = list(self.index.keys())[-1]
-            next_index = int(next_index) + 1
-            self.index[str(next_index)] = cause
+        return GraphBuilder.is_cyclic(graph_copy), graph_copy
 
     @staticmethod
     def is_cyclic_util(node, visited, rec_stack, graph):
@@ -87,7 +94,8 @@ class GraphBuilderComponent(html.Div):
         global graph_builder
         super().__init__(id=id, style=style)
         self.graph_builder = graph_builder
-        self.children = []
+        self.children = [dbc.Row()]
+        self.children[0].children = []
         self.style = {
             'border': '2px black solid',
             'margin': '2px'
@@ -101,20 +109,42 @@ class GraphBuilderComponent(html.Div):
                 html.P(f"variable: {cause}"),
                 html.P(f"effects: {', '.join(effects) if effects else 'None'}")
             ]
-            self.children.append(variable_component)
+            self.children[0].children.append(dbc.Col(variable_component))
+        for _ in range(4 - self.graph_builder.len):
+            self.children[0].children.append(dbc.Col(""))
 
-    def add_node(self, node):
+    def add_node(self, index):
+        self.graph_builder.new_node(index)
+        var_name = list(self.graph_builder.graph.keys())[-1]
+        col = self.graph_builder.len % 4
+        variable_component = html.Div(id=f"{var_name}", style={
+            'border': '2px black solid',
+            'margin': '2px'
+        })
+        variable_component.children = [
+            html.P(f"variable: {var_name}"),
+            html.P(f"effects: None")
+        ]
+        if col == 3:
+            new_row = dbc.Row()
+            new_row.children = [] 
+            self.children.append(new_row)
+            new_row.children.append(dbc.Col(variable_component))
+        else:
+            current_row = self.children[-1]
+            current_row.children.append(dbc.Col(variable_component))
+            self.children[-1] = current_row
+
+    def add_edge(self):
         pass
 
-    def add_edge(self, source, target):
+    def remove_node(self):
         pass
 
-    def remove_node(self, node):
+    def remove_edge(self):
         pass
 
-    def remove_edge(self, source, target):
-        pass
-
+graph_builder_component = GraphBuilderComponent(id='graph-builder-component')
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 app.layout = html.Div([
@@ -124,10 +154,10 @@ app.layout = html.Div([
         dbc.Row([
             dbc.Col(
                 dbc.Row([
-                    GraphBuilderComponent(id='graph-builder-component'),
+                    graph_builder_component,
                     html.Label("Add Node"),
                     html.Button(id='add-node-button', children="Add Node",
-                                n_clicks=2)
+                                n_clicks=1)
                 ])
             ),
             dbc.Col(html.Div(children=['some text']))
@@ -154,11 +184,15 @@ app.layout = html.Div([
     State('graph-builder-component', 'children')
 )
 def add_new_node(index, current_state):
-    global graph_builder
-    graph_builder.new_node(str(index))
-    print(graph_builder.current_id)
-    print(graph_builder.index)
-    return current_state
+    if index == 1:
+        # dont fire on start
+        return current_state
+    global graph_builder_component
+    graph_builder_component.add_node(index)
+    # graph_builder.new_node(str(index))
+    # print(graph_builder.current_id)
+    # print(graph_builder.index)
+    return graph_builder_component.children
 
 # @callback(
 #     Output(component_id='first', component_property='children'),

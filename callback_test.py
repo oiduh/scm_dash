@@ -84,6 +84,7 @@ class GraphBuilder:
             last = cpy[-1]
             new = cpy[:-1] + chr(ord(last) + 1)
             GraphBuilder.current_id = new
+        self.graph[GraphBuilder.current_id] = []
         self.index[index] = GraphBuilder.current_id
             
 
@@ -97,17 +98,19 @@ class GraphBuilderComponent(html.Div):
         self.children = [dbc.Row()]
         self.children[0].children = []
         self.style = {
-            'border': '2px black solid',
-            'margin': '2px'
+            'border': '4px black solid',
+            'margin': '4px'
         }
         for cause, effects in self.graph_builder.graph.items():
             variable_component = html.Div(id=f"{cause}", style={
-                'border': '2px black solid',
-                'margin': '2px'
+                'border': '4px black solid',
+                'margin': '4px'
             })
             variable_component.children = [
                 html.P(f"variable: {cause}"),
-                html.P(f"effects: {', '.join(effects) if effects else 'None'}")
+                html.P(f"effects: {', '.join(effects) if effects else 'None'}"),
+                html.Button("remove", id=f"variable-remove-{cause}"),
+                html.Button("add edge", id=f"variable-add-edge-{cause}"),
             ]
             self.children[0].children.append(dbc.Col(variable_component))
         for _ in range(4 - self.graph_builder.len):
@@ -116,24 +119,45 @@ class GraphBuilderComponent(html.Div):
     def add_node(self, index):
         self.graph_builder.new_node(index)
         var_name = list(self.graph_builder.graph.keys())[-1]
-        col = self.graph_builder.len % 4
         variable_component = html.Div(id=f"{var_name}", style={
-            'border': '2px black solid',
-            'margin': '2px'
+            'border': '4px black solid',
+            'margin': '4px'
         })
         variable_component.children = [
             html.P(f"variable: {var_name}"),
-            html.P(f"effects: None")
+            html.P(f"effects: None"),
+            html.Button("remove", id=f"variable-remove-{var_name}"),
+            html.Button("add edge", id=f"variable-add-edge-{var_name}"),
         ]
-        if col == 3:
+        current_row = self.children[-1]
+        assert current_row.children is not None, ""
+        new_node_added = False
+        for col in current_row.children:
+            print(col.children)
+            if col.children is not None and col.children == "":
+                col.children = variable_component
+                new_node_added = True
+                break
+        if not new_node_added:
             new_row = dbc.Row()
-            new_row.children = [] 
-            self.children.append(new_row)
+            new_row.children = []
             new_row.children.append(dbc.Col(variable_component))
-        else:
-            current_row = self.children[-1]
-            current_row.children.append(dbc.Col(variable_component))
-            self.children[-1] = current_row
+            for _ in range(3):
+                new_row.children.append(dbc.Col(""))
+            self.children.append(new_row)
+
+        # col = self.graph_builder.len % 4
+        # if col == 0:
+        #     new_row = dbc.Row()
+        #     new_row.children = [] 
+        #     self.children.append(new_row)
+        #     new_row.children.append(dbc.Col(variable_component))
+        #     for _ in range(3):
+        #         new_row.children.append(dbc.Col(""))
+        # else:
+        #     current_row = self.children[-1]
+        #     current_row.children.append(dbc.Col(variable_component))
+        #     self.children[-1] = current_row
 
     def add_edge(self):
         pass

@@ -1,11 +1,8 @@
-from hashlib import new
-from sys import exception
-from typing import Tuple, List
-from dash import callback, Input, Output, Dash, html, State
-from dash import dcc
+from typing import Tuple
+from dash import ALL, MATCH, callback, Input, Output, Dash, html, State
 from dash.dcc import Dropdown
 import dash_bootstrap_components as dbc
-from pandas.core.internals.concat import cp
+from numpy import std
 
 
 
@@ -88,8 +85,33 @@ class GraphBuilder:
         self.index[index] = GraphBuilder.current_id
             
 
-graph_builder = GraphBuilder()
+class NodeComponent(html.Div):
+    def __init__(self, cause, effects):
+        super().__init__(id="", children=None)
+        self.id = {"type": "node", "index": cause} 
+        self.style = {
+            'border': '2px black solid',
+            'margin': '2px'
+        }
+        self.label = cause
+        self.children = [
+            html.Div([
+                html.P(f"variable: {cause}"),
+                html.P(f"effects: {', '.join(effects) if effects else 'None'}"),
+                html.P(id={"type": "textbox", "index": cause}),
+                html.Button("-node", id={"type": "rem-node", "index": cause},
+                            n_clicks=0),
+                html.Button("+edge", id={"type": "add-edge", "index": cause},
+                            n_clicks=0),
+                html.Button("-node", id={"type": "rem-edge", "index": cause},
+                            n_clicks=0),
+            ], style={'margin': '4px'})
+        ]
 
+
+
+
+graph_builder = GraphBuilder()
 class GraphBuilderComponent(html.Div):
     def __init__(self, id, style=None):
         global graph_builder
@@ -98,78 +120,66 @@ class GraphBuilderComponent(html.Div):
         self.children = [dbc.Row()]
         self.children[0].children = []
         self.style = {
-            'border': '4px black solid',
-            'margin': '4px'
+            'border': '2px black solid',
+            'margin': '2px'
         }
         for cause, effects in self.graph_builder.graph.items():
-            variable_component = html.Div(id=f"{cause}", style={
-                'border': '4px black solid',
-                'margin': '4px'
-            })
-            variable_component.children = [
-                html.P(f"variable: {cause}"),
-                html.P(f"effects: {', '.join(effects) if effects else 'None'}"),
-                html.Button("remove", id=f"variable-remove-{cause}"),
-                html.Button("add edge", id=f"variable-add-edge-{cause}"),
-            ]
-            self.children[0].children.append(dbc.Col(variable_component))
-        for _ in range(4 - self.graph_builder.len):
+            new_node = NodeComponent(cause, effects)
+            self.children[0].children.append(dbc.Col(new_node))
+        for _ in range(3 - self.graph_builder.len):
             self.children[0].children.append(dbc.Col(""))
 
     def add_node(self, index):
         self.graph_builder.new_node(index)
         var_name = list(self.graph_builder.graph.keys())[-1]
-        variable_component = html.Div(id=f"{var_name}", style={
-            'border': '4px black solid',
-            'margin': '4px'
-        })
-        variable_component.children = [
-            html.P(f"variable: {var_name}"),
-            html.P(f"effects: None"),
-            html.Button("remove", id=f"variable-remove-{var_name}"),
-            html.Button("add edge", id=f"variable-add-edge-{var_name}"),
-        ]
+        new_node = NodeComponent(var_name, [])
         current_row = self.children[-1]
         assert current_row.children is not None, ""
         new_node_added = False
         for col in current_row.children:
-            print(col.children)
             if col.children is not None and col.children == "":
-                col.children = variable_component
+                col.children = new_node
                 new_node_added = True
                 break
         if not new_node_added:
             new_row = dbc.Row()
             new_row.children = []
-            new_row.children.append(dbc.Col(variable_component))
-            for _ in range(3):
+            new_row.children.append(dbc.Col(new_node))
+            for _ in range(2):
                 new_row.children.append(dbc.Col(""))
             self.children.append(new_row)
-
-        # col = self.graph_builder.len % 4
-        # if col == 0:
-        #     new_row = dbc.Row()
-        #     new_row.children = [] 
-        #     self.children.append(new_row)
-        #     new_row.children.append(dbc.Col(variable_component))
-        #     for _ in range(3):
-        #         new_row.children.append(dbc.Col(""))
-        # else:
-        #     current_row = self.children[-1]
-        #     current_row.children.append(dbc.Col(variable_component))
-        #     self.children[-1] = current_row
 
     def add_edge(self):
         pass
 
-    def remove_node(self):
+    def remove_node(self, node):
+        print(f"removing: {node}")
         pass
 
     def remove_edge(self):
         pass
 
+
 graph_builder_component = GraphBuilderComponent(id='graph-builder-component')
 
+@callback(
+    Output({"type": "textbox", "index": MATCH}, "children"),
+    State({"type": "node", "index": MATCH}, "id"),
+    Input({"type": "rem-node", "index": MATCH}, "n_clicks")
+)
+def abc(state, n_clicks):
+    if n_clicks == 0:
+        return
+    global graph_builder_component
+    node = state.get("index", "ERROR")
+    graph_builder_component.remove_node(node)
+    return f"{node}: {n_clicks}"
+
+########################################
+#                                      #
+# HOW IT SHOULD BE USED IN A MAIN FILE #
+#                                      #
+########################################
 app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 app.layout = html.Div([
     html.Div("graph builder"),

@@ -1,8 +1,7 @@
-from typing import Tuple
-from dash import ALL, MATCH, callback, Input, Output, Dash, html, State
+from typing import Tuple, List
+from dash import ALL, MATCH, callback, Input, Output, Dash, html, State, ctx
 from dash.dcc import Dropdown
 import dash_bootstrap_components as dbc
-from numpy import std
 
 
 
@@ -103,7 +102,7 @@ class NodeComponent(html.Div):
                             n_clicks=0),
                 html.Button("+edge", id={"type": "add-edge", "index": cause},
                             n_clicks=0),
-                html.Button("-node", id={"type": "rem-edge", "index": cause},
+                html.Button("-edge", id={"type": "rem-edge", "index": cause},
                             n_clicks=0),
             ], style={'margin': '4px'})
         ]
@@ -117,44 +116,34 @@ class GraphBuilderComponent(html.Div):
         global graph_builder
         super().__init__(id=id, style=style)
         self.graph_builder = graph_builder
-        self.children = [dbc.Row()]
-        self.children[0].children = []
+        self.children = []
         self.style = {
             'border': '2px black solid',
             'margin': '2px'
         }
         for cause, effects in self.graph_builder.graph.items():
             new_node = NodeComponent(cause, effects)
-            self.children[0].children.append(dbc.Col(new_node))
-        for _ in range(3 - self.graph_builder.len):
-            self.children[0].children.append(dbc.Col(""))
+            self.children.append(new_node)
 
     def add_node(self, index):
         self.graph_builder.new_node(index)
         var_name = list(self.graph_builder.graph.keys())[-1]
         new_node = NodeComponent(var_name, [])
-        current_row = self.children[-1]
-        assert current_row.children is not None, ""
-        new_node_added = False
-        for col in current_row.children:
-            if col.children is not None and col.children == "":
-                col.children = new_node
-                new_node_added = True
-                break
-        if not new_node_added:
-            new_row = dbc.Row()
-            new_row.children = []
-            new_row.children.append(dbc.Col(new_node))
-            for _ in range(2):
-                new_row.children.append(dbc.Col(""))
-            self.children.append(new_row)
+        self.children.append(new_node)
 
     def add_edge(self):
         pass
 
-    def remove_node(self, node):
-        print(f"removing: {node}")
-        pass
+    def remove_node(self, node_to_remove):
+        for idx, node in enumerate(self.children):
+            assert isinstance(node, NodeComponent), "error"
+            print(f"{node.label} - {node_to_remove}")
+            if node.label == node_to_remove:
+                print(f"removing: {node.label}")
+                self.children[idx:] = self.children[(idx+1):]
+                break
+
+
 
     def remove_edge(self):
         pass
@@ -162,18 +151,6 @@ class GraphBuilderComponent(html.Div):
 
 graph_builder_component = GraphBuilderComponent(id='graph-builder-component')
 
-@callback(
-    Output({"type": "textbox", "index": MATCH}, "children"),
-    State({"type": "node", "index": MATCH}, "id"),
-    Input({"type": "rem-node", "index": MATCH}, "n_clicks")
-)
-def abc(state, n_clicks):
-    if n_clicks == 0:
-        return
-    global graph_builder_component
-    node = state.get("index", "ERROR")
-    graph_builder_component.remove_node(node)
-    return f"{node}: {n_clicks}"
 
 ########################################
 #                                      #
@@ -213,31 +190,38 @@ app.layout = html.Div([
 ])
 
 @callback(
-    Output('graph-builder-component', 'children'),
+    Output('graph-builder-component', 'children', allow_duplicate=True),
     Input('add-node-button', 'n_clicks'),
-    State('graph-builder-component', 'children')
+    State('graph-builder-component', 'children'),
+    prevent_initial_call=True
 )
 def add_new_node(index, current_state):
-    if index == 1:
-        # dont fire on start
-        return current_state
     global graph_builder_component
     graph_builder_component.add_node(index)
-    # graph_builder.new_node(str(index))
-    # print(graph_builder.current_id)
-    # print(graph_builder.index)
     return graph_builder_component.children
 
-# @callback(
-#     Output(component_id='first', component_property='children'),
-#     Output(component_id='second', component_property='children'),
-#     Input(component_id='confirm-button', component_property='n_clicks'),
-#     State(component_id='first-state', component_property='value'),
-#     State(component_id='second-state', component_property='value')
-# )
-# def state_test(_, first_input, second_input):
-#     return first_input, second_input
+@callback(
+    # Output({"type": "textbox", "index": MATCH}, "children"),
+    Output("graph-builder-component", "children", allow_duplicate=True),
+    Input({"type": "rem-node", "index": ALL}, "n_clicks"),
+    prevent_initial_call=True
+)
+def remove_node(x):
+    global graph_builder_component
+
+    if sum(x) == 0:
+        return graph_builder_component.children
+
+    triggered_node = ctx.triggered_id
+    if triggered_node and (node:=triggered_node.get("index", None)):
+        print(f"remove: {node}")
+        graph_builder_component.remove_node(node)
+
+
+    # node = state.get("index", "ERROR")
+    # graph_builder_component.remove_node(node_to_remove)
+    return graph_builder_component.children
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,)

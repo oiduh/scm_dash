@@ -116,13 +116,12 @@ class NodeComponent(html.Div):
         }
         self.label = cause
 
-        potential_effects = []
-        for node in self.graph_builder.graph.keys():
-            edge = cause, node
-            can_add_edge = graph_builder.can_add_edge(edge)[0]
-            if can_add_edge:
-                potential_effects.append(node)
-
+        # potential_effects = []
+        # for node in self.graph_builder.graph.keys():
+        #     edge = cause, node
+        #     can_add_edge = graph_builder.can_add_edge(edge)[0]
+        #     if can_add_edge:
+        #         potential_effects.append(node)
         self.children = [
             html.Div([
                 dbc.Row([
@@ -134,7 +133,7 @@ class NodeComponent(html.Div):
                                     n_clicks=0),
                     ]),
                     dbc.Col([
-                        Dropdown(options=potential_effects, value=None, id={"type": "valid-edges", "index": cause}),
+                        Dropdown(options=[], placeholder='some', id={"type": "valid-edges", "index": cause}),
                         html.Button("+edge", id={"type": "add-edge", "index": cause},
                                     n_clicks=0),
                     ]),
@@ -248,6 +247,30 @@ def remove_node(x):
     if sum(x) > 0 and triggered_node and (node:=triggered_node.get("index", None)):
         graph_builder_component.remove_node(node)
     return graph_builder_component.children
+
+@callback(
+    Output({"type": "valid-edges", "index": ALL}, "options"),
+    Input('graph-builder-component', 'children'),
+    State({"type": "node", "index": ALL}, "id"),
+    prevent_initial_call=True
+)
+def update_edges(_, ids):
+    global graph_builder_component
+    ids = list(map(lambda x: x["index"], ids))
+    print(ids)
+    x = len(graph_builder_component.graph_builder.graph.keys())
+
+    ret = []
+    all_nodes = graph_builder_component.graph_builder.graph.keys()
+    for current_node in ids:
+        ret.append([])
+        for potential_effect in all_nodes:
+            edge = current_node, potential_effect
+            can_add = graph_builder_component.graph_builder.can_add_edge(edge)[0]
+            effect = {"label": potential_effect, "value": potential_effect,
+                      "disabled": not can_add}
+            ret[-1].append(effect)
+    return ret
 
 
 if __name__ == '__main__':

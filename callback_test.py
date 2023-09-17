@@ -1,3 +1,4 @@
+from hashlib import new
 from typing import Tuple, List, Dict, Set
 from dash import ALL, MATCH, callback, Input, Output, Dash, html, State, ctx
 from dash.dcc import Dropdown
@@ -25,7 +26,7 @@ class GraphBuilder:
         self.index = INDEX
         self.len = len(self.graph.keys())
 
-    def add_edge(self, new_edge: Tuple[str, str]):
+    def add_edge(self, new_edge: Tuple[str, str]) -> bool:
         cause, _ = new_edge
         can_add, new_graph = self.can_add_edge(new_edge)
         if can_add:
@@ -34,8 +35,7 @@ class GraphBuilder:
             next_index = int(next_index) + 1
             self.index[str(next_index)] = cause
             self.len += 1
-        else:
-            raise Exception("cannot add this edge -> no cycles allowed")
+        return can_add
 
     def can_add_edge(self, new_edge: Tuple[str, str]):
         cause, effect = new_edge
@@ -115,25 +115,20 @@ class NodeComponent(html.Div):
             'margin': '2px'
         }
         self.label = cause
+        self.effects = html.P(f"effects: {', '.join(effects) if effects else 'None'}")
 
-        # potential_effects = []
-        # for node in self.graph_builder.graph.keys():
-        #     edge = cause, node
-        #     can_add_edge = graph_builder.can_add_edge(edge)[0]
-        #     if can_add_edge:
-        #         potential_effects.append(node)
         self.children = [
             html.Div([
                 dbc.Row([
                     dbc.Col([
                         html.P(f"variable: {cause}"),
-                        html.P(f"effects: {', '.join(effects) if effects else 'None'}"),
+                        self.effects,
                         html.P(id={"type": "textbox", "index": cause}),
                         html.Button("-node", id={"type": "rem-node", "index": cause},
                                     n_clicks=0),
                     ]),
                     dbc.Col([
-                        Dropdown(options=[], placeholder='some', id={"type": "valid-edges", "index": cause}),
+                        Dropdown(options=[], placeholder='select node', id={"type": "valid-edges", "index": cause}),
                         html.Button("+edge", id={"type": "add-edge", "index": cause},
                                     n_clicks=0),
                     ]),
@@ -146,23 +141,19 @@ class NodeComponent(html.Div):
         ]
 
 
-
-
 graph_builder = GraphBuilder()
 class GraphBuilderComponent(html.Div):
     def __init__(self, id, style=None):
         global graph_builder
         super().__init__(id=id, style=style)
         self.graph_builder = graph_builder
-        self.children = []
+        self.children: List[NodeComponent] = []
         self.style = {
             'border': '2px black solid',
             'margin': '2px'
         }
-        print(self.graph_builder.graph)
         for cause, effects in self.graph_builder.graph.items():
             new_node = NodeComponent(cause, effects)
-            print(new_node.graph_builder.graph)
             self.children.append(new_node)
 
     def add_node(self, index):
@@ -171,8 +162,14 @@ class GraphBuilderComponent(html.Div):
         new_node = NodeComponent(var_name, set())
         self.children.append(new_node)
 
-    def add_edge(self):
-        pass
+    def add_edge(self, source_node, target_node):
+        edge = source_node, target_node
+        assert self.graph_builder.add_edge(edge), "fatal error"
+        new_effects = self.graph_builder.graph.get(source_node)
+        assert new_effects is not None, "fatal error"
+        for idx, node_component in enumerate(self.children):
+            if node_component.label == source_node:
+                self.children[idx] = NodeComponent(source_node, new_effects)
 
     def remove_node(self, node_to_remove):
         for idx, node in enumerate(self.children):
@@ -233,7 +230,8 @@ app.layout = html.Div([
 )
 def add_new_node(index):
     global graph_builder_component
-    graph_builder_component.add_node(index)
+    if ctx.triggered_id == "add-node-button":
+        graph_builder_component.add_node(index)
     return graph_builder_component.children
 
 @callback(
@@ -244,8 +242,30 @@ def add_new_node(index):
 def remove_node(x):
     global graph_builder_component
     triggered_node = ctx.triggered_id
-    if sum(x) > 0 and triggered_node and (node:=triggered_node.get("index", None)):
-        graph_builder_component.remove_node(node)
+    triggered_node = triggered_node and triggered_node.get("index", None)
+    if sum(x) > 0 and triggered_node is not None:
+        graph_builder_component.remove_node(triggered_node)
+    return graph_builder_component.children
+
+@callback(
+    Output("graph-builder-component", "children", allow_duplicate=True),
+    State({"type": "valid-edges", "index": ALL}, "value"),
+    Input({"type": "add-edge", "index": ALL}, "n_clicks"),
+    prevent_initial_call=True
+)
+def add_edge_test(state, input):
+    if sum(input) == 0:
+        raise Exception
+
+    global graph_builder_component
+    triggered_node = ctx.triggered_id
+    if triggered_node and triggered_node["type"] == "add-edge":
+        source_node = triggered_node["index"]
+        target_node = list(filter(lambda x: x is not None, state))
+        target_node = target_node[0]
+        print(f"registering: source={source_node}, target={target_node}")
+        graph_builder_component.add_edge(source_node, target_node)
+
     return graph_builder_component.children
 
 @callback(
@@ -257,8 +277,6 @@ def remove_node(x):
 def update_edges(_, ids):
     global graph_builder_component
     ids = list(map(lambda x: x["index"], ids))
-    print(ids)
-    x = len(graph_builder_component.graph_builder.graph.keys())
 
     ret = []
     all_nodes = graph_builder_component.graph_builder.graph.keys()

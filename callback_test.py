@@ -93,6 +93,7 @@ class GraphBuilder:
     def remove_node(self, node_to_remove):
         assert node_to_remove in self.graph, "error"
         assert node_to_remove in self.index.values(), "error"
+        print(f"before: {self.graph}")
         self.graph.pop(node_to_remove, None)
         for _, effects in self.graph.items():
             if node_to_remove in effects:
@@ -101,8 +102,8 @@ class GraphBuilder:
             if node_to_remove == node:
                 self.index.pop(index, None)
                 break
+        print(f"after: {self.graph}")
 
-            
 
 class NodeComponent(html.Div):
     def __init__(self, cause: str, effects: Set[str]):
@@ -123,7 +124,6 @@ class NodeComponent(html.Div):
                     dbc.Col([
                         html.P(f"variable: {cause}"),
                         self.effects,
-                        html.P(id={"type": "textbox", "index": cause}),
                         html.Button("-node", id={"type": "rem-node", "index": cause},
                                     n_clicks=0),
                     ]),
@@ -178,6 +178,12 @@ class GraphBuilderComponent(html.Div):
                 self.graph_builder.remove_node(node_to_remove)
                 self.children[idx:] = self.children[(idx+1):]
                 break
+        for idx, node in enumerate(self.children):
+            assert isinstance(node, NodeComponent), "error"
+            updated_effects = self.graph_builder.graph.get(node.label)
+            assert updated_effects is not None, "error"
+            self.children[idx] = NodeComponent(node.label, updated_effects)
+
 
     def remove_edge(self):
         pass

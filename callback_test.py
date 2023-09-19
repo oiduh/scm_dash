@@ -104,6 +104,11 @@ class GraphBuilder:
                 break
         print(f"after: {self.graph}")
 
+    def remove_edge(self, source_node, target_node):
+        x = self.graph.get(source_node)
+        assert x is not None, "error"
+        x.discard(target_node)
+
 
 class NodeComponent(html.Div):
     def __init__(self, cause: str, effects: Set[str]):
@@ -128,11 +133,14 @@ class NodeComponent(html.Div):
                                     n_clicks=0),
                     ]),
                     dbc.Col([
-                        Dropdown(options=[], placeholder='select node', id={"type": "valid-edges", "index": cause}),
+                        Dropdown(options=[], placeholder='select node',
+                                 id={"type": "valid-edges-add", "index": cause}),
                         html.Button("+edge", id={"type": "add-edge", "index": cause},
                                     n_clicks=0),
                     ]),
                     dbc.Col([
+                        Dropdown(options=[], placeholder='select node',
+                                 id={"type": "valid-edges-rem", "index": cause}),
                         html.Button("-edge", id={"type": "rem-edge", "index": cause},
                                     n_clicks=0),
                     ])
@@ -184,9 +192,13 @@ class GraphBuilderComponent(html.Div):
             assert updated_effects is not None, "error"
             self.children[idx] = NodeComponent(node.label, updated_effects)
 
-
-    def remove_edge(self):
-        pass
+    def remove_edge(self, source_node, target_node):
+        self.graph_builder.remove_edge(source_node, target_node)
+        for idx, node in enumerate(self.children):
+            assert isinstance(node, NodeComponent), "error"
+            updated_effects = self.graph_builder.graph.get(node.label)
+            assert updated_effects is not None, "error"
+            self.children[idx] = NodeComponent(node.label, updated_effects)
 
 
 graph_builder_component = GraphBuilderComponent(id='graph-builder-component')
@@ -255,13 +267,13 @@ def remove_node(x):
 
 @callback(
     Output("graph-builder-component", "children", allow_duplicate=True),
-    State({"type": "valid-edges", "index": ALL}, "value"),
+    State({"type": "valid-edges-add", "index": ALL}, "value"),
     Input({"type": "add-edge", "index": ALL}, "n_clicks"),
     prevent_initial_call=True
 )
-def add_edge_test(state, input):
+def add_new_edge(state, input):
     if sum(input) == 0:
-        raise Exception
+        raise Exception("not clicked add edge")
 
     global graph_builder_component
     triggered_node = ctx.triggered_id
@@ -269,33 +281,59 @@ def add_edge_test(state, input):
         source_node = triggered_node["index"]
         target_node = list(filter(lambda x: x is not None, state))
         target_node = target_node[0]
-        print(f"registering: source={source_node}, target={target_node}")
+        print(f"registering add: source={source_node}, target={target_node}")
         graph_builder_component.add_edge(source_node, target_node)
 
     return graph_builder_component.children
 
 @callback(
-    Output({"type": "valid-edges", "index": ALL}, "options"),
-    Input('graph-builder-component', 'children'),
-    State({"type": "node", "index": ALL}, "id"),
+    Output("graph-builder-component", "children", allow_duplicate=True),
+    State({"type": "valid-edges-rem", "index": ALL}, "value"),
+    Input({"type": "rem-edge", "index": ALL}, "n_clicks"),
     prevent_initial_call=True
 )
-def update_edges(_, ids):
+def remove_edge(state, input):
+    if sum(input) == 0:
+        raise Exception("not clicked remove edge")
+
     global graph_builder_component
-    ids = list(map(lambda x: x["index"], ids))
+    triggered_node = ctx.triggered_id
+    if triggered_node and triggered_node["type"] == "rem-edge":
+        source_node = triggered_node["index"]
+        target_node = list(filter(lambda x: x is not None, state))
+        target_node = target_node[0] if target_node else None
+        if target_node is not None:
+            print(f"registering remove: source={source_node}, target={target_node}")
+            graph_builder_component.remove_edge(source_node, target_node)
 
-    ret = []
+    return graph_builder_component.children
+
+@callback(
+    Output({"type": "valid-edges-add", "index": ALL}, "options"),
+    Output({"type": "valid-edges-rem", "index": ALL}, "options"),
+    Input('graph-builder-component', 'children'),
+    prevent_initial_call=True
+)
+def update_edge_dropdowns(_):
+    global graph_builder_component
+    can_be_added = []
+    can_be_removed = []
     all_nodes = graph_builder_component.graph_builder.graph.keys()
-    for current_node in ids:
-        ret.append([])
-        for potential_effect in all_nodes:
-            edge = current_node, potential_effect
-            can_add = graph_builder_component.graph_builder.can_add_edge(edge)[0]
-            effect = {"label": potential_effect, "value": potential_effect,
-                      "disabled": not can_add}
-            ret[-1].append(effect)
-    return ret
+    for node_i in all_nodes:
+        can_be_added.append([])
+        for node_j in all_nodes:
+            edge = node_i, node_j
+            can_add, _ = graph_builder_component.graph_builder.can_add_edge(edge)
+            potential_effect = {"label": node_j, "value": node_j, "disabled": not can_add}
+            can_be_added[-1].append(potential_effect)
+        can_be_removed.append([])
+        effects = graph_builder_component.graph_builder.graph.get(node_i)
+        assert effects is not None, "error"
+        for effect in effects:
+            removable = {"label": effect, "value": effect}
+            can_be_removed[-1].append(removable)
 
+    return can_be_added, can_be_removed
 
 if __name__ == '__main__':
     app.run(debug=True,)

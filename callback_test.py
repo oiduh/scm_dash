@@ -1,9 +1,9 @@
-from hashlib import new
 from typing import Tuple, List, Dict, Set
 from dash import ALL, MATCH, callback, Input, Output, Dash, html, State, ctx
 from dash.dcc import Dropdown
 import dash_bootstrap_components as dbc
 from copy import deepcopy
+from dash_cytoscape import Cytoscape
 
 
 
@@ -223,7 +223,44 @@ app.layout = html.Div([
                                 n_clicks=1)
                 ])
             ),
-            dbc.Col(html.Div(children=['some text']))
+            dbc.Col(
+                html.Div(
+                    Cytoscape(id="network-graph", layout={"name": "grid"},
+                              # TODO: use stylesheets for arrows and style
+                              # give attributes to nodes (cause/effect)
+                              # assign actual mechanism to edges
+                              # different colors for special nodes/edges
+                              style={"width": "100%", "height": "400px"},
+                              elements=[
+                              # nodes
+                              {"data": {"id": "one", "label": "node1"}},
+                              {"data": {"id": "two", "label": "node2"}},
+                              {"data": {"id": "three", "label": "node3"}},
+                              {"data": {"id": "four", "label": "node4"}},
+                              # edges
+                              {"data": {"source": "one", "target": "two"}},
+                              {"data": {"source": "two", "target": "three"}},
+                              {"data": {"source": "three", "target": "four"}},
+                              {"data": {"source": "one", "target": "three"}},
+                              ],
+                              stylesheet=[
+                              {
+                              "selector": "node",
+                              "style": {
+                              "label": "data(label)"
+                              }
+                              },
+                              {
+                              "selector": "edge",
+                              "style": {
+                              "curve-style": "bezier",
+                              "target-arrow-shape": "triangle",
+                              "arrow-scale": 2
+                              }
+                              }
+                              ])
+                )
+            )
         ]),
         dbc.Row([
             dbc.Col(html.Div('123')),

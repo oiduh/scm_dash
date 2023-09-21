@@ -1,5 +1,5 @@
 from typing import Tuple, List, Dict, Set
-from dash import ALL, MATCH, callback, Input, Output, Dash, html, State, ctx
+from dash import ALL, callback, Input, Output, Dash, html, State, ctx
 from dash.dcc import Dropdown
 import dash_bootstrap_components as dbc
 from copy import deepcopy
@@ -225,12 +225,14 @@ app.layout = html.Div([
             ),
             dbc.Col(
                 html.Div(
-                    Cytoscape(id="network-graph", layout={"name": "grid"},
+                    Cytoscape(id="network-graph", layout={"name": "circle"},
+                              userPanningEnabled=False,
+                              zoomingEnabled=False,
                               # TODO: use stylesheets for arrows and style
                               # give attributes to nodes (cause/effect)
                               # assign actual mechanism to edges
                               # different colors for special nodes/edges
-                              style={"width": "100%", "height": "400px"},
+                              style={"width": "100%", "height": "800px"},
                               elements=[
                               # nodes
                               {"data": {"id": "one", "label": "node1"}},
@@ -258,7 +260,10 @@ app.layout = html.Div([
                               "arrow-scale": 2
                               }
                               }
-                              ])
+                              ]), style={
+                        'border': '2px black solid',
+                        'margin': '2px'
+                    }
                 )
             )
         ]),
@@ -371,6 +376,26 @@ def update_edge_dropdowns(_):
             can_be_removed[-1].append(removable)
 
     return can_be_added, can_be_removed
+
+
+@callback(
+    Output("network-graph", "elements"),
+    Input('graph-builder-component', 'children'),
+    prevent_initial_call=True
+)
+def update_graph(_):
+    global graph_builder
+    nodes = [
+        {"data": {"id": cause, "label": cause}}
+        for cause in graph_builder.graph.keys()
+    ]
+    edges = []
+    for cause, effects in graph_builder.graph.items():
+        for effect in effects:
+            edges.append(
+                {"data": {"source": cause, "target": effect}}
+            )
+    return nodes + edges
 
 if __name__ == '__main__':
     app.run(debug=True,)

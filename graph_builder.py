@@ -6,34 +6,24 @@ from copy import deepcopy
 from dash_cytoscape import Cytoscape
 
 
-
 GRAPH: Dict[str, Set[str]] = {
     'a': set('b'),
     'b': set(),
-}
-
-INDEX = {
-    '0': 'a',
-    '1': 'b',
 }
 
 class GraphBuilder:
     current_id = 'b'
 
     def __init__(self) -> None:
-        global GRAPH, INDEX
+        global GRAPH
         self.graph = GRAPH
-        self.index = INDEX
         self.len = len(self.graph.keys())
 
     def add_edge(self, new_edge: Tuple[str, str]) -> bool:
-        cause, _ = new_edge
+        # cause, _ = new_edge
         can_add, new_graph = self.can_add_edge(new_edge)
         if can_add:
             self.graph = new_graph
-            next_index = list(self.index.keys())[-1]
-            next_index = int(next_index) + 1
-            self.index[str(next_index)] = cause
             self.len += 1
         return can_add
 
@@ -79,7 +69,7 @@ class GraphBuilder:
                     return True
         return False
 
-    def new_node(self, index):
+    def new_node(self):
         if GraphBuilder.current_id[-1] == 'z':
             GraphBuilder.current_id += 'a'
         else:
@@ -88,20 +78,14 @@ class GraphBuilder:
             new = cpy[:-1] + chr(ord(last) + 1)
             GraphBuilder.current_id = new
         self.graph[GraphBuilder.current_id] = set()
-        self.index[index] = GraphBuilder.current_id
 
     def remove_node(self, node_to_remove):
         assert node_to_remove in self.graph, "error"
-        assert node_to_remove in self.index.values(), "error"
         print(f"before: {self.graph}")
         self.graph.pop(node_to_remove, None)
         for _, effects in self.graph.items():
             if node_to_remove in effects:
                 effects.discard(node_to_remove)
-        for index, node in self.index.items():
-            if node_to_remove == node:
-                self.index.pop(index, None)
-                break
         print(f"after: {self.graph}")
 
     def remove_edge(self, source_node, target_node):
@@ -158,7 +142,9 @@ class GraphBuilderComponent(html.Div):
         self.children = [
             html.Div([], id="node-container"),
             html.Button(id='add-node-button', children="Add Node",
-                        n_clicks=1)
+                        n_clicks=1),
+            html.Button(id='reset-graph-builder', children="Reset Graph Builder",
+                        n_clicks=1),
         ]
         self.style = {
             'border': '2px black solid',
@@ -168,8 +154,8 @@ class GraphBuilderComponent(html.Div):
             new_node = NodeComponent(cause, effects)
             self.children[0].children.append(new_node)
 
-    def add_node(self, index):
-        self.graph_builder.new_node(index)
+    def add_node(self):
+        self.graph_builder.new_node()
         var_name = list(self.graph_builder.graph.keys())[-1]
         new_node = NodeComponent(var_name, set())
         self.children[0].children.append(new_node)
@@ -184,13 +170,14 @@ class GraphBuilderComponent(html.Div):
                 self.children[0].children[idx] = NodeComponent(source_node, new_effects)
 
     def remove_node(self, node_to_remove):
+        print(self.children[0].children)
         for idx, node in enumerate(self.children[0].children):
             assert isinstance(node, NodeComponent), "error"
             if node.label == node_to_remove:
                 self.graph_builder.remove_node(node_to_remove)
                 self.children[0].children[idx:] = self.children[0].children[(idx+1):]
                 break
-        for idx, node in enumerate(self.children):
+        for idx, node in enumerate(self.children[0].children):
             assert isinstance(node, NodeComponent), "error"
             updated_effects = self.graph_builder.graph.get(node.label)
             assert updated_effects is not None, "error"
@@ -207,92 +194,61 @@ class GraphBuilderComponent(html.Div):
 
 graph_builder_component = GraphBuilderComponent(id='graph-builder-component')
 
-
-########################################
-#                                      #
-# HOW IT SHOULD BE USED IN A MAIN FILE #
-#                                      #
-########################################
-app = Dash(__name__, external_stylesheets=[dbc.themes.CERULEAN])
-app.layout = html.Div([
-    html.Div("graph builder"),
-    html.Hr(),
-    html.Div([
-        dbc.Row([
-            dbc.Col(
-                dbc.Row([
-                    graph_builder_component
-                ])
-            ),
-            dbc.Col(
-                html.Div(
-                    Cytoscape(id="network-graph", layout={"name": "circle"},
-                              userPanningEnabled=False,
-                              zoomingEnabled=False,
-                              # TODO: use stylesheets for arrows and style
-                              # give attributes to nodes (cause/effect)
-                              # assign actual mechanism to edges
-                              # different colors for special nodes/edges
-                              style={"width": "100%", "height": "800px"},
-                              elements=[
-                              # nodes
-                              {"data": {"id": "one", "label": "node1"}},
-                              {"data": {"id": "two", "label": "node2"}},
-                              {"data": {"id": "three", "label": "node3"}},
-                              {"data": {"id": "four", "label": "node4"}},
-                              # edges
-                              {"data": {"source": "one", "target": "two"}},
-                              {"data": {"source": "two", "target": "three"}},
-                              {"data": {"source": "three", "target": "four"}},
-                              {"data": {"source": "one", "target": "three"}},
-                              ],
-                              stylesheet=[
-                              {
-                              "selector": "node",
-                              "style": {
-                              "label": "data(label)"
-                              }
-                              },
-                              {
-                              "selector": "edge",
-                              "style": {
-                              "curve-style": "bezier",
-                              "target-arrow-shape": "triangle",
-                              "arrow-scale": 2
-                              }
-                              }
-                              ]), style={
-                        'border': '2px black solid',
-                        'margin': '2px'
+class GraphBuilderView(html.Div):
+    def __init__(self, id):
+        super().__init__(id)
+        self.style = {
+            'border': '2px black solid',
+            'margin': '2px'
+        }
+        self.children = [
+            Cytoscape(
+                id="network-graph", layout={"name": "circle"},
+                userPanningEnabled=False,
+                zoomingEnabled=False,
+                # TODO: use stylesheets for arrows and style
+                # give attributes to nodes (cause/effect)
+                # assign actual mechanism to edges
+                # different colors for special nodes/edges
+                style={"width": "100%", "height": "700px"},
+                elements=[],
+                stylesheet=[
+                    {
+                        "selector": "node",
+                        "style": {
+                            "label": "data(label)"
+                        }
+                    },
+                    {
+                        "selector": "edge",
+                        "style": {
+                            "curve-style": "bezier",
+                            "target-arrow-shape": "triangle",
+                            "arrow-scale": 2
+                        }
                     }
-                )
-            )
-        ]),
-        dbc.Row([
-            dbc.Col(html.Div('123')),
-            dbc.Col(html.Div('456')),
-            dbc.Col(html.Div('789'))
-        ]),
-        dbc.Row([
-            dbc.Col(html.Div('123')),
-            dbc.Col(html.Div('456')),
-            dbc.Col(html.Div('789')),
-            dbc.Col(html.Div('123')),
-            dbc.Col(html.Div('456')),
-            dbc.Col(html.Div('789'))
-        ])
-    ])
-])
+                ]
+            ),
+            html.Button("Reset View", id="graph-view-reset", n_clicks=0)
+        ]
+graph_builder_view = GraphBuilderView(id="graph-builder-view")
+
+
+#############
+#           #
+# callbacks #
+#           #
+#############
 
 @callback(
     Output('node-container', 'children', allow_duplicate=True),
     Input('add-node-button', 'n_clicks'),
     prevent_initial_call=True
 )
-def add_new_node(index):
+def add_new_node(_):
     global graph_builder_component
     if ctx.triggered_id == "add-node-button":
-        graph_builder_component.add_node(index)
+        graph_builder_component.add_node()
     return graph_builder_component.children[0].children
 
 @callback(
@@ -354,8 +310,7 @@ def remove_edge(state, input):
 @callback(
     Output({"type": "valid-edges-add", "index": ALL}, "options"),
     Output({"type": "valid-edges-rem", "index": ALL}, "options"),
-    Input("node-container", 'children'),
-    prevent_initial_call=True
+    Input("node-container", 'children')
 )
 def update_edge_dropdowns(_):
     global graph_builder_component
@@ -367,7 +322,10 @@ def update_edge_dropdowns(_):
         for node_j in all_nodes:
             edge = node_i, node_j
             can_add, _ = graph_builder_component.graph_builder.can_add_edge(edge)
-            potential_effect = {"label": node_j, "value": node_j, "disabled": not can_add}
+            potential_effect = {
+                "label": node_j + (" (cycle)" if not can_add else ""),
+                "value": node_j,
+                "disabled": not can_add}
             can_be_added[-1].append(potential_effect)
         can_be_removed.append([])
         effects = graph_builder_component.graph_builder.graph.get(node_i)
@@ -381,10 +339,10 @@ def update_edge_dropdowns(_):
 
 @callback(
     Output("network-graph", "elements"),
-    Input("node-container", 'children'),
-    prevent_initial_call=True
+    Input("graph-view-reset", "n_clicks"),
+    Input("node-container", 'children')
 )
-def update_graph(_):
+def update_graph(*_):
     global graph_builder
     nodes = [
         {"data": {"id": cause, "label": cause}}
@@ -399,4 +357,74 @@ def update_graph(_):
     return nodes + edges
 
 if __name__ == '__main__':
+    app = Dash(__name__, external_stylesheets=[dbc.themes.CERULEAN])
+    app.layout = html.Div([
+        html.Div("graph builder"),
+        html.Hr(),
+        html.Div([
+            dbc.Row([
+                dbc.Col(
+                    dbc.Row([
+                        graph_builder_component
+                    ])
+                ),
+                dbc.Col(
+                    html.Div(
+                        Cytoscape(id="network-graph", layout={"name": "circle"},
+                                  userPanningEnabled=False,
+                                  zoomingEnabled=False,
+                                  # TODO: use stylesheets for arrows and style
+                                  # give attributes to nodes (cause/effect)
+                                  # assign actual mechanism to edges
+                                  # different colors for special nodes/edges
+                                  style={"width": "100%", "height": "800px"},
+                                  elements=[
+                                  # nodes
+                                  {"data": {"id": "one", "label": "node1"}},
+                                  {"data": {"id": "two", "label": "node2"}},
+                                  {"data": {"id": "three", "label": "node3"}},
+                                  {"data": {"id": "four", "label": "node4"}},
+                                  # edges
+                                  {"data": {"source": "one", "target": "two"}},
+                                  {"data": {"source": "two", "target": "three"}},
+                                  {"data": {"source": "three", "target": "four"}},
+                                  {"data": {"source": "one", "target": "three"}},
+                                  ],
+                                  stylesheet=[
+                                  {
+                                  "selector": "node",
+                                  "style": {
+                                  "label": "data(label)"
+                                  }
+                                  },
+                                  {
+                                  "selector": "edge",
+                                  "style": {
+                                  "curve-style": "bezier",
+                                  "target-arrow-shape": "triangle",
+                                  "arrow-scale": 2
+                                  }
+                                  }
+                                  ]), style={
+                            'border': '2px black solid',
+                            'margin': '2px'
+                        }
+                    )
+                )
+            ]),
+            dbc.Row([
+                dbc.Col(html.Div('123')),
+                dbc.Col(html.Div('456')),
+                dbc.Col(html.Div('789'))
+            ]),
+            dbc.Row([
+                dbc.Col(html.Div('123')),
+                dbc.Col(html.Div('456')),
+                dbc.Col(html.Div('789')),
+                dbc.Col(html.Div('123')),
+                dbc.Col(html.Div('456')),
+                dbc.Col(html.Div('789'))
+            ])
+        ])
+    ])
     app.run(debug=True,)

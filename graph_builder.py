@@ -11,6 +11,7 @@ GRAPH: Dict[str, Set[str]] = {
     'b': set(),
 }
 
+
 class GraphBuilder:
     current_id = 'b'
 
@@ -20,7 +21,6 @@ class GraphBuilder:
         self.len = len(self.graph.keys())
 
     def add_edge(self, new_edge: Tuple[str, str]) -> bool:
-        # cause, _ = new_edge
         can_add, new_graph = self.can_add_edge(new_edge)
         if can_add:
             self.graph = new_graph

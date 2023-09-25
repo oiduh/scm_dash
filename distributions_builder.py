@@ -1,5 +1,5 @@
 from dash import html, callback, Input, Output, State, ALL, MATCH
-from dash.dcc import Dropdown, Graph
+from dash.dcc import Dropdown, Graph, Checklist
 import plotly.express as px
 
 from graph_builder import graph_builder_component
@@ -37,9 +37,19 @@ class DistributionComponent(html.Div):
                 options=list(DISTRIBUTION_MAPPING.keys()),
                 value="normal"
             ),
-            Graph(
-                figure={},
-                id={"type": "distribution-graph", "index": node},
+            Checklist(
+                id={"type": "show-distribution", "index": node},
+                options=["show"], value=[None]
+            ),
+            html.Div(
+                id={"type": "distribution-preview", "index": node},
+                children=[
+                    Graph(
+                        figure={},
+                        id={"type": "distribution-graph", "index": node},
+                    )
+                ],
+                style={"display": "none"}
             )
         ]
         self.style={
@@ -71,12 +81,25 @@ def add_node(_):
     ret = []
     nodes = graph_builder_component.graph_builder.graph.keys()
     for node in nodes:
+        print(node)
         new_component = DistributionComponent(
             id=f"distribution-node-{node}",
             node=node
         )
         ret.append(new_component)
     return ret
+
+@callback(
+    Output({"type": "distribution-preview", "index": MATCH}, "style"),
+    Input({"type": "show-distribution", "index": MATCH}, "value"),
+    prevent_initial_call=True
+)
+def preview_graph(input):
+    input = list(filter(lambda x: x is not None, input))
+    if not input:
+        return {"display": "none"}
+    else:
+        return {"display": "block"}
 
 @callback(
     Output({"type": "distribution-graph", "index": MATCH}, "figure"),
@@ -88,7 +111,6 @@ def test_abc(input):
     if not distr:
         raise Exception("wtf")
     assert distr is not None, "wtf"
-
 
     match input:
         case "normal":

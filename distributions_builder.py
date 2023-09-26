@@ -1,3 +1,5 @@
+from typing import Dict, Literal, NamedTuple, List
+
 from dash import html, callback, Input, Output, State, ALL, MATCH
 from dash.dcc import Dropdown, Graph, Checklist
 import plotly.express as px
@@ -5,14 +7,80 @@ import plotly.express as px
 from graph_builder import graph_builder_component
 
 import scipy.stats as stats
+from scipy.stats._distn_infrastructure import rv_frozen as RVFrozen
+from scipy.stats import rv_continuous as RVCont, rv_discrete as RVDisc
+
 import numpy as np
 
+KWARGS = Literal["loc", "scale", "s", "mu", "n", "p", "low", "high"]
 
-DISTRIBUTION_MAPPING = {
-    "normal": stats.norm,
-    "lognorm": stats.lognorm,
-    "binom": stats.binom,
+class DistributionsEntry(NamedTuple):
+    distribution_class: RVCont | RVDisc
+    # TODO: range mapping to replace list?
+    values: Dict[KWARGS, List]
+
+DISTRIBUTION_MAPPING: Dict[str, DistributionsEntry] = {
+    # continuous
+    "normal": DistributionsEntry(
+        distribution_class=stats.norm,
+        values={
+            "loc": [],
+            "scale": []
+        }
+    ),
+    "lognorm": DistributionsEntry(
+        distribution_class=stats.lognorm,
+        values={
+            "loc": [],
+            "scale": [],
+            "s": []
+        }
+    ),
+    "uniform": DistributionsEntry(
+        distribution_class=stats.uniform,
+        values={
+            "loc": [],
+            "scale": []
+        }
+    ),
+    "laplace": DistributionsEntry(
+        distribution_class=stats.laplace,
+        values={
+            "loc": [],
+            "scale": []
+        }
+    ),
+    # discrete
+    "poisson": DistributionsEntry(
+        distribution_class=stats.laplace,
+        values={
+            "mu": []
+        }
+    ),
+    "binom": DistributionsEntry(
+        distribution_class=stats.binom,
+        values={
+            "n": [],
+            "p": []
+        }
+    ),
+    "bernoulli": DistributionsEntry(
+        distribution_class=stats.bernoulli,
+        values={
+            "p": []
+        }
+    ),
+    "randint": DistributionsEntry(
+        distribution_class=stats.randint,
+        values={
+            "low": [],
+            "high": []
+        }
+    )
 }
+
+# TODO: dynamic sliders -> depending on variable continuous or discrete
+#       min and max of slider adjustable -> low range = more precision
 
 # df = create_data(distr_x=distr_x, distr_y=distr_y, distr_z=distr_z,
 #                  kwargs_x=kwargs_x, kwargs_y=kwargs_y, kwargs_z=kwargs_z,

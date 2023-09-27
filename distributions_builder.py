@@ -14,67 +14,71 @@ import numpy as np
 
 KWARGS = Literal["loc", "scale", "s", "mu", "n", "p", "low", "high"]
 
+class Range(NamedTuple):
+    min: int | float
+    max: int | float
+    step: int | float
+
 class DistributionsEntry(NamedTuple):
     distribution_class: RVCont | RVDisc
-    # TODO: range mapping to replace list?
-    values: Dict[KWARGS, List]
+    values: Dict[KWARGS, Range]
 
 DISTRIBUTION_MAPPING: Dict[str, DistributionsEntry] = {
     # continuous
     "normal": DistributionsEntry(
         distribution_class=stats.norm,
         values={
-            "loc": [],
-            "scale": []
+            "loc": Range(min=-10.0, max=10.0, step=0.5),
+            "scale": Range(min=0.0, max=5.0, step=0.1)
         }
     ),
     "lognorm": DistributionsEntry(
         distribution_class=stats.lognorm,
         values={
-            "loc": [],
-            "scale": [],
-            "s": []
+            "loc": Range(min=-10.0, max=10.0, step=0.5),
+            "scale": Range(min=0.0, max=5.0, step=0.1),
+            "s": Range(min=0.0, max=5.0, step=0.1)
         }
     ),
     "uniform": DistributionsEntry(
         distribution_class=stats.uniform,
         values={
-            "loc": [],
-            "scale": []
+            "loc": Range(min=-10.0, max=10.0, step=0.5),
+            "scale": Range(min=0.0, max=5.0, step=0.1)
         }
     ),
     "laplace": DistributionsEntry(
         distribution_class=stats.laplace,
         values={
-            "loc": [],
-            "scale": []
+            "loc": Range(min=-10.0, max=10.0, step=0.5),
+            "scale": Range(min=0.0, max=5.0, step=0.1)
         }
     ),
     # discrete
     "poisson": DistributionsEntry(
-        distribution_class=stats.laplace,
+        distribution_class=stats.poisson,
         values={
-            "mu": []
+            "mu": Range(min=0.0, max=10.0, step=0.1)
         }
     ),
     "binom": DistributionsEntry(
         distribution_class=stats.binom,
         values={
-            "n": [],
-            "p": []
+            "n": Range(min=2, max=10, step=1),
+            "p": Range(min=0.0, max=1.0, step=0.05)
         }
     ),
     "bernoulli": DistributionsEntry(
         distribution_class=stats.bernoulli,
         values={
-            "p": []
+            "p": Range(min=0.0, max=1.0, step=0.05)
         }
     ),
     "randint": DistributionsEntry(
         distribution_class=stats.randint,
         values={
-            "low": [],
-            "high": []
+            "low": Range(min=1, max=20, step=1),
+            "high": Range(min=2, max=21, step=1)
         }
     )
 }
@@ -128,7 +132,6 @@ class DistributionComponent(html.Div):
 
 class DistributionsBuilderComponent(html.Div):
     def __init__(self, id):
-        global distributions_builder
         super().__init__(id=id)
         self.style = {
             'border': '2px black solid',
@@ -180,28 +183,10 @@ def test_abc(input):
         raise Exception("wtf")
     assert distr is not None, "wtf"
 
-    match input:
-        case "normal":
-            x = distr(**{
-                "loc": 3.0,
-                "scale": 3.5
-            })
-        case "lognorm":
-            x = distr(**{
-                "loc": 3.0,
-                "scale": 2.0,
-                "s": 0.9
-            })
-        case "binom":
-            x = distr(**{
-                "loc": 3.0,
-                "p": 0.5,
-                "n": 3
-            })
-        case _:
-            raise Exception("wtf2")
+    c = {k: v.max for k, v in distr.values.items()}
+    d = distr.distribution_class(**c)
 
-    fig = px.histogram(x=x.rvs(size=300))
+    fig = px.histogram(x=d.rvs(size=300))
     return fig
 
 

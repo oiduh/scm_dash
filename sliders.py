@@ -1,4 +1,6 @@
-from dash import Dash, callback, html, Output, Input, ALL, MATCH
+# TODO: clean slider behavior, show min, max and actual
+
+from dash import Dash, callback, html, Output, Input, State, ALL, MATCH
 from dash.dcc import Slider, RangeSlider, Input as InputField
 import dash_bootstrap_components as dbc
 
@@ -6,11 +8,12 @@ import dash_bootstrap_components as dbc
 from distributions_builder import DISTRIBUTION_MAPPING
 
 @callback(
-    Output("slider-ouput", "children"),
+    Output({"type": "slider-output", "index": ALL}, "children"),
     Input({"type": "slider-norm", "index": ALL}, "value"),
+
 )
 def update_output(input_):
-    return f"You have selected: {input_}"
+    return input_
 
 @callback(
     Output("range-slider-ouput", "children"),
@@ -36,15 +39,23 @@ if __name__ == "__main__":
     sliders = []
     for kwarg, range_ in distr_range.items():
         sliders.append(html.H1(kwarg))
-        new_slider = Slider(
-            min=range_.min, max=range_.max, value=range_.max,
-            marks={
-                str(range_.min): str(range_.min),
-                str(range_.max): str(range_.max)
-            },
-            tooltip={"placement": "bottom", "always_visible": True},
-            id={"type": "slider-norm", "index": f"{kwarg}"}
-        )
+        new_slider = dbc.Row([
+                dbc.Col(
+                    Slider(
+                        min=range_.min, max=range_.max, value=range_.max,
+                        marks={
+                            str(range_.min): str(range_.min),
+                            str(range_.max): str(range_.max)
+                            },
+                        # tooltip={"placement": "bottom", "always_visible": True},
+                        id={"type": "slider-norm", "index": f"{kwarg}"}
+                        )
+                    ),
+                dbc.Col(
+                    html.Div(id={"type": "slider-output", "index": kwarg},
+                             children=[])
+                    )
+                ])
         sliders.append(new_slider)
         min_field = InputField(
             id={"type": "input-slider-min", "index": f"{kwarg}"},
@@ -65,10 +76,6 @@ if __name__ == "__main__":
         html.Div([
             html.P("sliders"),
             html.Div(children=sliders),
-            html.Div(
-                children=[],
-                id="slider-ouput"
-            ),
             RangeSlider(
                 0, 20,
                 value=[5, 15],

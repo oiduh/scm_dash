@@ -1,4 +1,6 @@
-from dash import Dash, callback, html, Output, Input, ALL, MATCH
+# TODO: clean slider behavior, show min, max and actual
+
+from dash import Dash, callback, html, Output, Input, State, ALL, MATCH
 from dash.dcc import Slider, RangeSlider, Input as InputField
 import dash_bootstrap_components as dbc
 
@@ -6,11 +8,12 @@ import dash_bootstrap_components as dbc
 from distributions_builder import DISTRIBUTION_MAPPING
 
 @callback(
-    Output("slider-ouput", "children"),
+    Output({"type": "slider-output", "index": ALL}, "children"),
     Input({"type": "slider-norm", "index": ALL}, "value"),
+
 )
 def update_output(input_):
-    return f"You have selected: {input_}"
+    return input_
 
 @callback(
     Output("range-slider-ouput", "children"),

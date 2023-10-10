@@ -3,9 +3,72 @@
 from dash import Dash, callback, html, Output, Input, State, ALL, MATCH
 from dash.dcc import Slider, RangeSlider, Input as InputField
 import dash_bootstrap_components as dbc
+from distributions_builder import DistributionsEntry
+from typing import Tuple
 
 
 from distributions_builder import DISTRIBUTION_MAPPING
+
+
+class DistributionSlider(html.Div):
+    def __init__(self, id, distribution: Tuple[str, DistributionsEntry]):
+        super().__init__(id=id)
+        self.distribution = distribution
+        distribution_type = self.distribution[0]
+        distribution_values = self.distribution[1].values
+        sliders = dict()
+        for param, initial_values in distribution_values.items():
+            slider_content = dbc.Col()
+            slider_content.children = []
+            slider_content.children.append(dbc.Row(distribution_type))
+
+            sliders = dbc.Row()
+            sliders.children = []
+
+            # TODO: proper id for mixture models e.g. many gaussians, same name
+            # min input field
+            min_field = InputField(
+                id={
+                    "type": "input-slider-min",
+                    "index": f"{distribution_type}-{param}"
+                },
+                type="number", min=-100, max=100, value=initial_values.min,
+                style={"width": "99%"}
+            )
+            sliders.children.append(dbc.Col(html.Label("min_field"), width=1))
+            sliders.children.append(dbc.Col(min_field, width=1))
+
+            # actual slider
+            step = 1 if initial_values.num_type == "int" else 0.01
+            new_slider = Slider(
+                min=initial_values.min, max=initial_values.max,
+                value=initial_values.max, step=step,
+                # marks={
+                #     str(range_.min): str(range_.min),
+                #     str(range_.max): str(range_.max)
+                # },
+                marks=None,
+                tooltip={"placement": "bottom", "always_visible": True},
+                id={
+                    "type": "slider-norm",
+                    "index": f"{distribution_type}-{param}"
+                }
+            )
+            sliders.children.append(dbc.Col(new_slider))
+
+            # max input field
+            max_field = InputField(
+                id={
+                    "type": "input-slider-max",
+                    "index": f"{distribution_type}-{param}"
+                },
+                type="number", min=-100, max=100, value=initial_values.max,
+                style={"width": "99%"}
+            )
+            sliders.children.append(dbc.Col(html.Label("max_field"), width=1))
+            sliders.children.append(dbc.Col(max_field, width=1))
+
+            slider_content.children.append(sliders)
 
 @callback(
     Output({"type": "slider-output", "index": ALL}, "children"),
@@ -35,38 +98,40 @@ def slider_sync(input1, input2, tt):
 
 
 if __name__ == "__main__":
-    norm_distr = DISTRIBUTION_MAPPING.get("randint")
+    norm_distr = DISTRIBUTION_MAPPING.get("normal")
     assert norm_distr is not None, "False"
-    distr_range = norm_distr.values
-    sliders = []
-    for kwarg, range_ in distr_range.items():
-        sliders.append(dbc.Row([]))
-        # sliders.append(html.H1(kwarg))
-        min_field = InputField(
-            id={"type": "input-slider-min", "index": f"{kwarg}"},
-            type="number", min=-100, max=100, value=range_.min,
-            style={"width": "99%"}
-        )
-        sliders[-1].children.extend([dbc.Col(html.Label("min_field"), width=1), dbc.Col(min_field, width=1)])
-        step = 1 if range_.num_type == "int" else 0.01
-        new_slider = Slider(
-            min=range_.min, max=range_.max, value=range_.max, step=step,
-            # marks={
-            #     str(range_.min): str(range_.min),
-            #     str(range_.max): str(range_.max)
-            # },
-            marks=None,
-            tooltip={"placement": "bottom", "always_visible": True},
-            id={"type": "slider-norm", "index": f"{kwarg}"}
-        )
-        sliders[-1].children.append(dbc.Col(new_slider))
-        max_field = InputField(
-            id={"type": "input-slider-max", "index": f"{kwarg}"},
-            type="number", min=-100, max=100, value=range_.max,
-            style={"width": "99%"}
-        )
-        sliders[-1].children.extend([dbc.Col(html.Label("max_field"), width=1), dbc.Col(max_field, width=1)])
+    # distr_range = norm_distr.values
+    # sliders = []
+    # for kwarg, range_ in distr_range.items():
+    #     sliders.append(dbc.Row([]))
+    #     # sliders.append(html.H1(kwarg))
+    #     min_field = InputField(
+    #         id={"type": "input-slider-min", "index": f"{kwarg}"},
+    #         type="number", min=-100, max=100, value=range_.min,
+    #         style={"width": "99%"}
+    #     )
+    #     sliders[-1].children.extend([dbc.Col(html.Label("min_field"), width=1), dbc.Col(min_field, width=1)])
+    #     step = 1 if range_.num_type == "int" else 0.01
+    #     new_slider = Slider(
+    #         min=range_.min, max=range_.max, value=range_.max, step=step,
+    #         # marks={
+    #         #     str(range_.min): str(range_.min),
+    #         #     str(range_.max): str(range_.max)
+    #         # },
+    #         marks=None,
+    #         tooltip={"placement": "bottom", "always_visible": True},
+    #         id={"type": "slider-norm", "index": f"{kwarg}"}
+    #     )
+    #     sliders[-1].children.append(dbc.Col(new_slider))
+    #     max_field = InputField(
+    #         id={"type": "input-slider-max", "index": f"{kwarg}"},
+    #         type="number", min=-100, max=100, value=range_.max,
+    #         style={"width": "99%"}
+    #     )
+    #     sliders[-1].children.extend([dbc.Col(html.Label("max_field"), width=1), dbc.Col(max_field, width=1)])
+    #
 
+    sliders = DistributionSlider(id="test", distribution=("normal", norm_distr))
 
     app = Dash(__name__, external_stylesheets=[dbc.themes.CERULEAN])
     app.layout = html.Div([

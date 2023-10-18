@@ -1,7 +1,7 @@
 # TODO: clean slider behavior, show min, max and actual
 
 from dash import Dash, callback, html, Output, Input, State, ALL, MATCH
-from dash.dcc import Slider, RangeSlider, Input as InputField
+from dash.dcc import Slider, RangeSlider, Input as InputField, Dropdown
 import dash_bootstrap_components as dbc
 from distributions_builder import DistributionsEntry
 from typing import Tuple
@@ -13,14 +13,20 @@ from distributions_builder import DISTRIBUTION_MAPPING
 class DistributionSlider(html.Div):
     def __init__(self, id, distribution: Tuple[str, DistributionsEntry]):
         super().__init__(id=id)
+        self.style = {
+            "border": "2px black solid",
+            "margin": "2px",
+        }
         self.distribution = distribution
         distribution_type = self.distribution[0]
         distribution_values = self.distribution[1].values
         self.children = []
+        self.children.append(dbc.Row(dbc.Col(html.H1(distribution_type))))
+        self.children.append(html.Hr())
         for param, initial_values in distribution_values.items():
             slider_content = dbc.Col()
             slider_content.children = []
-            slider_content.children.append(dbc.Row(param, align="center"))
+            slider_content.children.append(dbc.Row(dbc.Col(html.H2(param)), align="center"))
 
             sliders = dbc.Row()
             sliders.children = []
@@ -71,6 +77,32 @@ class DistributionSlider(html.Div):
             slider_content.children.append(sliders)
             self.children.append(slider_content)
 
+
+class DistributionComponent(html.Div):
+    def __init__(self, id):
+        super().__init__(id=id)
+        self.style = {
+            "border": "2px black solid",
+            "margin": "2px",
+        }
+        self.children = []
+        self.children.extend([
+            dbc.Row(
+                dbc.Col(
+                    Dropdown(
+                        options=list(DISTRIBUTION_MAPPING.keys()),
+                        value=list(DISTRIBUTION_MAPPING.keys())[0]
+                    )
+                )
+            ),
+            dbc.Row(
+                dbc.Col(
+                    DistributionSlider(id="1234", distribution=list(DISTRIBUTION_MAPPING.items())[0])
+                )
+            )
+        ])
+
+
 @callback(
     Output({"type": "slider-output", "index": ALL}, "children"),
     Input({"type": "slider-norm", "index": ALL}, "value"),
@@ -110,7 +142,17 @@ if __name__ == "__main__":
         html.Hr(),
         html.Div([
             html.P("sliders"),
-            html.Div(children=dbc.Row([dbc.Col(sliders), dbc.Col(html.Div("abc"))])),
+            html.Div(
+                children=dbc.Row(
+                    [
+                        dbc.Col([
+                            DistributionComponent(id="abcd"),
+                            DistributionComponent(id="efgh")
+                        ]),
+                        dbc.Col(html.Div("abc"))
+                    ]
+                )
+            ),
         #     html.Div(
         #         children=[],
         #         id="slider-ouput"

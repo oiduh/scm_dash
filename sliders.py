@@ -36,7 +36,7 @@ class DistributionSlider(html.Div):
             min_field = InputField(
                 id={
                     "type": "input-slider-min",
-                    "index": f"{distribution_type}-{param}"
+                    "index": f"{id}-{param}"
                 },
                 type="number", min=-100, max=100, value=initial_values.min,
                 style={"width": "99%"}
@@ -57,7 +57,7 @@ class DistributionSlider(html.Div):
                 tooltip={"placement": "top", "always_visible": True},
                 id={
                     "type": "slider-norm",
-                    "index": f"{distribution_type}-{param}"
+                    "index": f"{id}-{param}"
                 }
             )
             sliders.children.append(dbc.Col(new_slider))
@@ -66,7 +66,7 @@ class DistributionSlider(html.Div):
             max_field = InputField(
                 id={
                     "type": "input-slider-max",
-                    "index": f"{distribution_type}-{param}"
+                    "index": f"{id}-{param}"
                 },
                 type="number", min=-100, max=100, value=initial_values.max,
                 style={"width": "99%"}
@@ -90,6 +90,10 @@ class DistributionComponent(html.Div):
             dbc.Row(
                 dbc.Col(
                     Dropdown(
+                        id={
+                            "type": "distribution-options",
+                            "index": id
+                        },
                         options=list(DISTRIBUTION_MAPPING.keys()),
                         value=list(DISTRIBUTION_MAPPING.keys())[0]
                     )
@@ -97,7 +101,19 @@ class DistributionComponent(html.Div):
             ),
             dbc.Row(
                 dbc.Col(
-                    DistributionSlider(id="1234", distribution=list(DISTRIBUTION_MAPPING.items())[0])
+                    html.Div(
+                        id={
+                            "type": "distribution-slider",
+                            "index": id,
+                        },
+                        children=DistributionSlider(
+                            id= {
+                                "type": "slider-content",
+                                "index": id
+                            },
+                            distribution=list(DISTRIBUTION_MAPPING.items())[0]
+                        )
+                    )
                 )
             )
         ])
@@ -106,17 +122,9 @@ class DistributionComponent(html.Div):
 @callback(
     Output({"type": "slider-output", "index": ALL}, "children"),
     Input({"type": "slider-norm", "index": ALL}, "value"),
-
 )
 def update_output(input_):
     return input_
-
-@callback(
-    Output("range-slider-ouput", "children"),
-    Input("my-range-slider", "value"),
-)
-def update_output_range(input_):
-    return f"You have selected: {input_}"
 
 @callback(
     Output({"type": "slider-norm", "index": MATCH}, "min"),
@@ -129,13 +137,23 @@ def update_output_range(input_):
 def slider_sync(input1, input2, tt):
     return input1, input2, tt
 
+@callback(
+    Output({"type": "distribution-slider", "index": MATCH}, "children"),
+    Input({"type": "distribution-options", "index": MATCH}, "value"),
+    Input({"type": "slider-content", "index": MATCH}, "id"),
+    prevent_initial_call=True
+)
+def distribution_update(choice: str, id_: str):
+    global DISTRIBUTION_MAPPING
+    distribution = DISTRIBUTION_MAPPING.get(choice)
+    assert distribution, "distr not found"
+    ret = choice, distribution
+    new_comp = DistributionSlider(id_, ret)
+    return new_comp
+
+
 
 if __name__ == "__main__":
-    norm_distr = DISTRIBUTION_MAPPING.get("lognorm")
-    assert norm_distr is not None, "False"
-
-    sliders = DistributionSlider(id="abc_test", distribution=("normal", norm_distr))
-
     app = Dash(__name__, external_stylesheets=[dbc.themes.CERULEAN])
     app.layout = html.Div([
         html.Div("causality app"),
@@ -146,30 +164,13 @@ if __name__ == "__main__":
                 children=dbc.Row(
                     [
                         dbc.Col([
-                            DistributionComponent(id="abcd"),
-                            DistributionComponent(id="efgh")
+                            DistributionComponent(id="var-a"),
+                            DistributionComponent(id="var-b")
                         ]),
                         dbc.Col(html.Div("abc"))
                     ]
                 )
             ),
-        #     html.Div(
-        #         children=[],
-        #         id="slider-ouput"
-        #     ),
-        #     RangeSlider(
-        #         0, 20,
-        #         value=[5, 15],
-        #         marks={"0": "0", "20": "20"},
-        #         tooltip={"placement": "bottom", "always_visible": True},
-        #         # TODO: initially 'mouseup' -> intervention mode with 'drag'?
-        #         # updatemode="drag",
-        #         id="my-range-slider"
-        #     ),
-        #     html.Div(
-        #         children=[],
-        #         id="range-slider-ouput"
-        #     )
         ])
     ])
     app.run(debug=True)

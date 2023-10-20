@@ -4,20 +4,20 @@ from dash import Dash, callback, html, Output, Input, State, ALL, MATCH
 from dash.dcc import Slider, RangeSlider, Input as InputField, Dropdown
 import dash_bootstrap_components as dbc
 from distributions_builder import DistributionsEntry
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 from distributions_builder import DISTRIBUTION_MAPPING
 
 
 class DistributionSlider(html.Div):
-    def __init__(self, id, distribution: Tuple[str, DistributionsEntry]):
+    def __init__(self, id, distribution: Optional[Tuple[str, DistributionsEntry]] = None):
         super().__init__(id=id)
         self.style = {
             "border": "2px black solid",
             "margin": "2px",
         }
-        self.distribution = distribution
+        self.distribution = distribution or list(DISTRIBUTION_MAPPING.items())[0]
         distribution_type = self.distribution[0]
         distribution_values = self.distribution[1].values
         self.children = []
@@ -110,13 +110,21 @@ class DistributionComponent(html.Div):
                             id= {
                                 "type": "slider-content",
                                 "index": id
-                            },
-                            distribution=list(DISTRIBUTION_MAPPING.items())[0]
+                            }
                         )
                     )
                 )
             )
         ])
+
+
+class DistributionBuilderComponent(html.Div):
+    def __init__(self, id):
+        super().__init__(id=id)
+        # TODO: this singleton controls all distribution components; like graph
+        self.distribution_builder = ...
+        self.children = []
+        
 
 
 @callback(

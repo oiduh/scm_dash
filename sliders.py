@@ -5,6 +5,7 @@ from dash.dcc import Slider, RangeSlider, Input as InputField, Dropdown
 import dash_bootstrap_components as dbc
 from distributions_builder import DistributionsEntry
 from typing import Tuple, Optional
+from graph_builder import graph_builder_component
 
 
 from distributions_builder import DISTRIBUTION_MAPPING
@@ -87,7 +88,10 @@ class DistributionComponent(html.Div):
         }
         self.children = []
         self.children.extend([
-            dbc.Row(
+            dbc.Row(html.Label(f"Variable: {id}")),
+            html.Hr(),
+            dbc.Row([
+                dbc.Col(html.Label("Distribution: "), width="auto"),
                 dbc.Col(
                     Dropdown(
                         id={
@@ -98,7 +102,7 @@ class DistributionComponent(html.Div):
                         value=list(DISTRIBUTION_MAPPING.keys())[0]
                     )
                 )
-            ),
+            ]),
             dbc.Row(
                 dbc.Col(
                     html.Div(
@@ -122,9 +126,12 @@ class DistributionBuilderComponent(html.Div):
     def __init__(self, id):
         super().__init__(id=id)
         # TODO: this singleton controls all distribution components; like graph
-        self.distribution_builder = ...
         self.children = []
-        
+        graph = graph_builder_component.graph_builder.graph
+        for node, _ in graph.items():
+            self.children.append(DistributionComponent(node))
+
+                
 
 
 @callback(
@@ -172,8 +179,9 @@ if __name__ == "__main__":
                 children=dbc.Row(
                     [
                         dbc.Col([
-                            DistributionComponent(id="var-a"),
-                            DistributionComponent(id="var-b")
+                            DistributionBuilderComponent(id="distribution-builder-component")
+                            # DistributionComponent(id="var-a"),
+                            # DistributionComponent(id="var-b")
                         ]),
                         dbc.Col(html.Div("abc"))
                     ]

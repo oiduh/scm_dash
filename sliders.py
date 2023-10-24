@@ -5,7 +5,7 @@ from dash.dcc import Slider, RangeSlider, Input as InputField, Dropdown
 import dash_bootstrap_components as dbc
 from distributions_builder import DistributionsEntry
 from typing import Tuple, Optional
-from graph_builder import graph_builder_component
+from graph_builder import GraphBuilderComponent
 
 
 from distributions_builder import DISTRIBUTION_MAPPING
@@ -123,15 +123,14 @@ class DistributionComponent(html.Div):
 
 
 class DistributionBuilderComponent(html.Div):
-    def __init__(self, id):
+    # TODO: this class needs a callback -> when nodes added/deleted/updated
+    def __init__(self, id, graph_builder_comp: GraphBuilderComponent):
         super().__init__(id=id)
         # TODO: this singleton controls all distribution components; like graph
         self.children = []
-        graph = graph_builder_component.graph_builder.graph
+        graph = graph_builder_comp.graph_builder.graph
         for node, _ in graph.items():
             self.children.append(DistributionComponent(node))
-
-                
 
 
 @callback(
@@ -159,34 +158,9 @@ def slider_sync(input1, input2, tt):
     prevent_initial_call=True
 )
 def distribution_update(choice: str, id_: str):
-    global DISTRIBUTION_MAPPING
     distribution = DISTRIBUTION_MAPPING.get(choice)
     assert distribution, "distr not found"
     ret = choice, distribution
     new_comp = DistributionSlider(id_, ret)
     return new_comp
 
-
-
-if __name__ == "__main__":
-    app = Dash(__name__, external_stylesheets=[dbc.themes.CERULEAN])
-    app.layout = html.Div([
-        html.Div("causality app"),
-        html.Hr(),
-        html.Div([
-            html.P("sliders"),
-            html.Div(
-                children=dbc.Row(
-                    [
-                        dbc.Col([
-                            DistributionBuilderComponent(id="distribution-builder-component")
-                            # DistributionComponent(id="var-a"),
-                            # DistributionComponent(id="var-b")
-                        ]),
-                        dbc.Col(html.Div("abc"))
-                    ]
-                )
-            ),
-        ])
-    ])
-    app.run(debug=True)

@@ -2,9 +2,12 @@ from dash import Dash, html
 import dash_bootstrap_components as dbc
 from dash.dcc import Tabs, Tab
 
-from graph_builder import graph_builder_component, graph_builder_view
-from distributions_builder import distributions_builder_component
+from graph_builder import GraphBuilderComponent, GraphBuilderView
+from sliders import DistributionBuilderComponent
 
+graph_builder_component = GraphBuilderComponent(id="graph-builder-component")
+graph_builder_view = GraphBuilderView(id="graph-builder-view")
+distr_comp = DistributionBuilderComponent("distr-comp", graph_builder_component)
 
 class MenuComponent(html.Div):
     def __init__(self, id):
@@ -16,7 +19,7 @@ class MenuComponent(html.Div):
                 Tab(id="graph-builder-menu", label="Graph Builder",
                     children=graph_builder_component),
                 Tab(id="distributions-menu", label="Distributions",
-                    children=distributions_builder_component),
+                    children=distr_comp),
                 Tab(id="mechanisms-menu", label="Mechanisms"),
             ])
         ]

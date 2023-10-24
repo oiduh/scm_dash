@@ -71,7 +71,7 @@ class Distributions:
         values = {k: v for k, v in sliders.items() if k in self.get_param_names(key)}
         return values
 
-    def get_generator(self, key: str, sliders: Dict[str, int | float]) -> RVFrozen:
+   def get_generator(self, key: str, sliders: Dict[str, int | float]) -> RVFrozen:
         distribution_class = self.get_class(key)
         kwargs = self.filter_kwargs(key, sliders)
         distribution_generator = distribution_class(**kwargs)

@@ -1,11 +1,11 @@
 # TODO: clean slider behavior, show min, max and actual
 
-from dash import Dash, callback, html, Output, Input, State, ALL, MATCH
-from dash.dcc import Slider, RangeSlider, Input as InputField, Dropdown
+from dash import Dash, callback, html, Output, Input, State, ALL, MATCH, ctx
+from dash.dcc import Slider, Input as InputField, Dropdown
 import dash_bootstrap_components as dbc
 from distributions_builder import DistributionsEntry
 from typing import Tuple, Optional
-from graph_builder import GraphBuilderComponent
+from graph_builder import GraphBuilderComponent, graph_builder_component
 
 
 from distributions_builder import DISTRIBUTION_MAPPING
@@ -128,10 +128,22 @@ class DistributionBuilderComponent(html.Div):
         super().__init__(id=id)
         # TODO: this singleton controls all distribution components; like graph
         self.children = []
-        graph = graph_builder_comp.graph_builder.graph
-        for node, _ in graph.items():
+        self.graph = graph_builder_comp.graph_builder.graph
+        self.add_node()
+
+    def add_node(self):
+        self.children = []
+        for node, _ in self.graph.items():
             self.children.append(DistributionComponent(node))
 
+
+distribution_builder_component = DistributionBuilderComponent(
+    id="distribution-builder-component",
+    graph_builder_comp=graph_builder_component
+)
+
+
+# slider specific callbacks
 
 @callback(
     Output({"type": "slider-output", "index": ALL}, "children"),
@@ -163,4 +175,18 @@ def distribution_update(choice: str, id_: str):
     ret = choice, distribution
     new_comp = DistributionSlider(id_, ret)
     return new_comp
+
+
+# graph structure update related callbacks e.g. add new node = add distribution
+
+@callback(
+    Output('distribution-builder-component', 'children', allow_duplicate=True),
+    Input('add-node-button', 'n_clicks'),
+    prevent_initial_call=True, 
+)
+def add_new_node(_):
+    global distribution_builder_component
+    if ctx.triggered_id == "add-node-button":
+        distribution_builder_component.add_node()
+    return distribution_builder_component.children
 

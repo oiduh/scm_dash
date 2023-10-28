@@ -13,7 +13,7 @@ def setup_callbacks(gbc, dbc):
     def add_new_node(_):
         if ctx.triggered_id == "add-node-button":
             graph_builder_component.add_node()
-            distribution_builder_component.update_nodes()
+            distribution_builder_component.add_node()
         return (
             graph_builder_component.children[0].children,
             distribution_builder_component.children
@@ -30,7 +30,7 @@ def setup_callbacks(gbc, dbc):
         triggered_node = triggered_node and triggered_node.get("index", None)
         if sum(x) > 0 and triggered_node is not None:
             graph_builder_component.remove_node(triggered_node)
-            distribution_builder_component.update_nodes()
+            distribution_builder_component.remove_node(triggered_node)
         return (
             graph_builder_component.children[0].children,
             distribution_builder_component.children
@@ -51,7 +51,7 @@ def setup_callbacks(gbc, dbc):
             source_node = triggered_node["index"]
             target_node = list(filter(lambda x: x is not None, state))
             target_node = target_node[0]
-            print(f"registering add: source={source_node}, target={target_node}")
+            # print(f"registering add: source={source_node}, target={target_node}")
             graph_builder_component.add_edge(source_node, target_node)
 
         return graph_builder_component.children[0].children
@@ -72,7 +72,7 @@ def setup_callbacks(gbc, dbc):
             target_node = list(filter(lambda x: x is not None, state))
             target_node = target_node[0] if target_node else None
             if target_node is not None:
-                print(f"registering remove: source={source_node}, target={target_node}")
+                # print(f"registering remove: source={source_node}, target={target_node}")
                 graph_builder_component.remove_edge(source_node, target_node)
 
         return graph_builder_component.children[0].children

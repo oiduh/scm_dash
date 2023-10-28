@@ -1,14 +1,12 @@
 from dash import Dash, callback, html, Output, Input, State, ALL, MATCH, ctx
 from dash.dcc import Slider, Input as InputField, Dropdown, Graph
 import dash_bootstrap_components as dbc
-from distributions_builder import DistributionsEntry
+from distributions_builder import DistributionsEntry, DISTRIBUTION_MAPPING
 from typing import Tuple, Optional, List
 from graph_builder import GraphBuilderComponent, graph_builder_component
 import plotly.figure_factory as ff
 import numpy as np
 
-
-from distributions_builder import DISTRIBUTION_MAPPING
 
 
 class DistributionSlider(html.Div):
@@ -78,14 +76,15 @@ class DistributionSlider(html.Div):
 
 
 class DistributionComponent(html.Div):
-    def __init__(self, id):
+    def __init__(self, id, distribution: Optional[Tuple[str, DistributionsEntry]] = None):
         super().__init__(id=id)
         self.style = {
             "border": "2px black solid",
             "margin": "2px",
         }
+        self.id = id
         self.children = []
-        self.distribution = list(DISTRIBUTION_MAPPING.items())[0]
+        self.distribution = distribution or list(DISTRIBUTION_MAPPING.items())[0]
         self.children.extend([
             dbc.Row(html.Label(f"Variable: {id}")),
             html.Hr(),
@@ -98,7 +97,7 @@ class DistributionComponent(html.Div):
                             "index": id
                         },
                         options=list(DISTRIBUTION_MAPPING.keys()),
-                        value=self.distribution
+                        value=self.distribution[0]
                     )
                 )
             ]),
@@ -113,7 +112,8 @@ class DistributionComponent(html.Div):
                             id= {
                                 "type": "slider-content",
                                 "index": id
-                            }
+                            },
+                            distribution=self.distribution
                         )
                     )
                 )
@@ -126,19 +126,21 @@ class DistributionBuilderComponent(html.Div):
     def __init__(self, id, graph_builder_comp: GraphBuilderComponent):
         super().__init__(id=id)
         # TODO: this singleton controls all distribution components; like graph
-        self.children = []
-        self.graph = graph_builder_comp.graph_builder.graph
-        self.nodes: List[DistributionComponent] = []
-        self.update_nodes()
+        self.children: List[DistributionComponent] = []
+        self.nodes = graph_builder_comp.graph_builder.graph
+        for node in self.nodes.keys():
+            self.children.append(DistributionComponent(node))
 
-    def update_nodes(self):
-        self.children = []
-        self.nodes = []
-        for node, _ in self.graph.items():
-            node_comp = DistributionComponent(node)
-            print(node_comp)
-            self.children.append(node_comp)
-            self.nodes.append(node_comp)
+    def add_node(self):
+        new_node = list(self.nodes.keys())[-1]
+        self.children.append(DistributionComponent(new_node))
+
+    def remove_node(self, node):
+        for idx, x in enumerate(self.children):
+            if x.id == node:
+                self.children[idx:] = self.children[idx+1:]
+                break
+
 
 
 distribution_builder_component = DistributionBuilderComponent(
@@ -151,16 +153,14 @@ class DistributionView(html.Div):
     def __init__(self, id):
         super().__init__(id=id)
         self.children = []
-        data = np.random.normal(0, 1, size=5000)
-        fig = ff.create_distplot([data], bin_size=0.2, group_labels=["a"], show_rug=False)
+        data = np.random.normal(0, 1, size=500)
+        fig = ff.create_distplot([data], group_labels=["a"], show_rug=False)
         graph = Graph(id="some_graph", figure=fig)
         self.children.append(
             graph
         )
 
-distribution_view = DistributionView(
-    id="distr_view",
-)
+distribution_view = DistributionView(id="distr_view")
 
 
 # slider specific callbacks

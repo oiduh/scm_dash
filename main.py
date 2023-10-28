@@ -33,7 +33,7 @@ class GraphComponent(html.Div):
                 Tab(id="graph-builder-graph", label="Graph Builder",
                     children=graph_builder_view),
                 Tab(id="distributions-graph", label="Distributions",
-                    children=distribution_view),
+                    children=None),
             ])
         ]
 

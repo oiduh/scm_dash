@@ -3,10 +3,9 @@ import dash_bootstrap_components as dbc
 from dash.dcc import Tabs, Tab
 
 from graph_builder import graph_builder_component, graph_builder_view
-from sliders import distribution_builder_component
-#
-# graph_builder_component = GraphBuilderComponent(id="graph-builder-component")
-# graph_builder_view = GraphBuilderView(id="graph-builder-view")
+from sliders import distribution_builder_component, distribution_view
+
+from dash_callbacks import setup_callbacks
 
 
 class MenuComponent(html.Div):
@@ -33,7 +32,8 @@ class GraphComponent(html.Div):
             Tabs(id="graph-tab", children=[
                 Tab(id="graph-builder-graph", label="Graph Builder",
                     children=graph_builder_view),
-                Tab(id="distributions-graph", label="Distributions"),
+                Tab(id="distributions-graph", label="Distributions",
+                    children=distribution_view),
             ])
         ]
 
@@ -55,4 +55,5 @@ if __name__ == "__main__":
             ])
         ])
     ])
+    setup_callbacks(graph_builder_component, distribution_builder_component)
     app.run(debug=True,)

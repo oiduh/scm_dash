@@ -1,12 +1,14 @@
 from dash import Dash, callback, html, Output, Input, State, ALL, MATCH, ctx
 from dash.dcc import Slider, Input as InputField, Dropdown, Graph
 import dash_bootstrap_components as dbc
-from distributions_builder import DistributionsEntry, DISTRIBUTION_MAPPING
-from typing import Tuple, Optional, List
+from distributions_builder import DistributionsEntry, DISTRIBUTION_MAPPING, Range
+from typing import Tuple, Optional, List, Dict
 from graph_builder import GraphBuilderComponent, graph_builder_component
 import plotly.figure_factory as ff
 import numpy as np
 
+
+DISTRIBUTION_VALUES_TRACKER: Dict[str, Dict[str, float]] = {}
 
 
 class DistributionSlider(html.Div):
@@ -15,6 +17,10 @@ class DistributionSlider(html.Div):
         self.style = {
             "border": "2px black solid",
             "margin": "2px",
+        }
+        self.id = {
+            "type": "slider-content",
+            "index": id
         }
         self.distribution = distribution or list(DISTRIBUTION_MAPPING.items())[0]
         # distribution_type = self.distribution[0]
@@ -28,14 +34,22 @@ class DistributionSlider(html.Div):
             sliders = dbc.Row()
             sliders.children = []
 
-            # TODO: proper id for mixture models e.g. many gaussians, same name
-            # min input field
+            values = DISTRIBUTION_VALUES_TRACKER.get(f"{id}-{param}")
+            if values:
+                min_ = values.get("min")
+                max_ = values.get("max")
+                value_ = values.get("value")
+            else:
+                min_ = initial_values.min
+                max_ = initial_values.max
+                value_ = initial_values.max
+                
             min_field = InputField(
                 id={
                     "type": "input-slider-min",
                     "index": f"{id}-{param}"
                 },
-                type="number", min=-100, max=100, value=initial_values.min,
+                type="number", min=-100, max=100, value=min_,
                 style={"width": "99%"}
             )
             sliders.children.append(dbc.Col(html.Label("min_field"), width=1))
@@ -44,8 +58,7 @@ class DistributionSlider(html.Div):
             # actual slider
             step = 1 if initial_values.num_type == "int" else 0.01
             new_slider = Slider(
-                min=initial_values.min, max=initial_values.max,
-                value=initial_values.max, step=step,
+                min=min_, max=max_, value=value_, step=step,
                 # marks={
                 #     str(range_.min): str(range_.min),
                 #     str(range_.max): str(range_.max)
@@ -65,7 +78,7 @@ class DistributionSlider(html.Div):
                     "type": "input-slider-max",
                     "index": f"{id}-{param}"
                 },
-                type="number", min=-100, max=100, value=initial_values.max,
+                type="number", min=-100, max=100, value=max_,
                 style={"width": "99%"}
             )
             sliders.children.append(dbc.Col(html.Label("max_field"), width=1))
@@ -105,14 +118,11 @@ class DistributionComponent(html.Div):
                 dbc.Col(
                     html.Div(
                         id={
-                            "type": "distribution-slider",
+                            "type": "slider-div",
                             "index": id,
                         },
                         children=DistributionSlider(
-                            id= {
-                                "type": "slider-content",
-                                "index": id
-                            },
+                            id=id,
                             distribution=self.distribution
                         )
                     )
@@ -132,15 +142,14 @@ class DistributionBuilderComponent(html.Div):
             self.children.append(DistributionComponent(node))
 
     def add_node(self):
-        new_node = list(self.nodes.keys())[-1]
-        self.children.append(DistributionComponent(new_node))
+        self.children = []
+        for x in self.nodes.keys():
+            self.children.append(DistributionComponent(x))
 
     def remove_node(self, node):
-        for idx, x in enumerate(self.children):
-            if x.id == node:
-                self.children[idx:] = self.children[idx+1:]
-                break
-
+        self.children = []
+        for x in self.nodes.keys():
+            self.children.append(DistributionComponent(x))
 
 
 distribution_builder_component = DistributionBuilderComponent(
@@ -166,25 +175,31 @@ distribution_view = DistributionView(id="distr_view")
 # slider specific callbacks
 
 @callback(
-    Output({"type": "slider-output", "index": ALL}, "children"),
-    Input({"type": "slider-norm", "index": ALL}, "value"),
-)
-def update_output(input_):
-    return input_
-
-@callback(
     Output({"type": "slider-norm", "index": MATCH}, "min"),
     Output({"type": "slider-norm", "index": MATCH}, "max"),
     Output({"type": "slider-norm", "index": MATCH}, "tooltip"),
     Input({"type": "input-slider-min", "index": MATCH}, "value"),
     Input({"type": "input-slider-max", "index": MATCH}, "value"),
-    Input({"type": "slider-norm", "index": MATCH}, "tooltip")
+    Input({"type": "slider-norm", "index": MATCH}, "value"),
+    Input({"type": "slider-norm", "index": MATCH}, "tooltip"),
+    State({"type": "slider-norm", "index": MATCH}, "id")
 )
-def slider_sync(input1, input2, tt):
+def slider_sync(input1, input2, input3, tt, id_):
+    print(f"<{input1}>-<{input2}>-<{input3}>")
+    print(id_)
+    DISTRIBUTION_VALUES_TRACKER.update({
+        id_.get("index"): {
+            "min": input1,
+            "max": input2,
+            "value": input3,
+        }
+    })
+    import json
+    print(json.dumps(DISTRIBUTION_VALUES_TRACKER, indent=2))
     return input1, input2, tt
 
 @callback(
-    Output({"type": "distribution-slider", "index": MATCH}, "children"),
+    Output({"type": "slider-div", "index": MATCH}, "children"),
     Input({"type": "distribution-options", "index": MATCH}, "value"),
     Input({"type": "slider-content", "index": MATCH}, "id"),
     prevent_initial_call=True

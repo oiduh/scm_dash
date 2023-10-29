@@ -30,7 +30,7 @@ def setup_callbacks(gbc, dbc):
         triggered_node = triggered_node and triggered_node.get("index", None)
         if sum(x) > 0 and triggered_node is not None:
             graph_builder_component.remove_node(triggered_node)
-            distribution_builder_component.remove_node(triggered_node)
+            distribution_builder_component.remove_node()
         return (
             graph_builder_component.children[0].children,
             distribution_builder_component.children

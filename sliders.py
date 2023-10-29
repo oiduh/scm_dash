@@ -8,11 +8,12 @@ import plotly.figure_factory as ff
 import numpy as np
 
 
-DISTRIBUTION_VALUES_TRACKER: Dict[str, Dict[str, float]] = {}
+DISTRIBUTION_VALUES_TRACKER: Dict[str, Dict[str, float | str]] = {}
+DISTRIBUTION_CHOICE_TRACKER: Dict[str, Tuple[str, DistributionsEntry]] = {}
 
 
 class DistributionSlider(html.Div):
-    def __init__(self, id, distribution: Optional[Tuple[str, DistributionsEntry]] = None):
+    def __init__(self, id):
         super().__init__(id=id)
         self.style = {
             "border": "2px black solid",
@@ -22,7 +23,7 @@ class DistributionSlider(html.Div):
             "type": "slider-content",
             "index": id
         }
-        self.distribution = distribution or list(DISTRIBUTION_MAPPING.items())[0]
+        self.distribution = DISTRIBUTION_CHOICE_TRACKER.get(id) or list(DISTRIBUTION_MAPPING.items())[0]
         # distribution_type = self.distribution[0]
         distribution_values = self.distribution[1].values
         self.children = []
@@ -89,7 +90,7 @@ class DistributionSlider(html.Div):
 
 
 class DistributionComponent(html.Div):
-    def __init__(self, id, distribution: Optional[Tuple[str, DistributionsEntry]] = None):
+    def __init__(self, id):
         super().__init__(id=id)
         self.style = {
             "border": "2px black solid",
@@ -97,7 +98,8 @@ class DistributionComponent(html.Div):
         }
         self.id = id
         self.children = []
-        self.distribution = distribution or list(DISTRIBUTION_MAPPING.items())[0]
+        updated_distribution = DISTRIBUTION_CHOICE_TRACKER.get(id)
+        self.distribution = updated_distribution or list(DISTRIBUTION_MAPPING.items())[0]
         self.children.extend([
             dbc.Row(html.Label(f"Variable: {id}")),
             html.Hr(),
@@ -121,10 +123,7 @@ class DistributionComponent(html.Div):
                             "type": "slider-div",
                             "index": id,
                         },
-                        children=DistributionSlider(
-                            id=id,
-                            distribution=self.distribution
-                        )
+                        children=DistributionSlider(id=id)
                     )
                 )
             )
@@ -143,13 +142,13 @@ class DistributionBuilderComponent(html.Div):
 
     def add_node(self):
         self.children = []
-        for x in self.nodes.keys():
-            self.children.append(DistributionComponent(x))
+        for node in self.nodes.keys():
+            self.children.append(DistributionComponent(node))
 
-    def remove_node(self, node):
+    def remove_node(self):
         self.children = []
-        for x in self.nodes.keys():
-            self.children.append(DistributionComponent(x))
+        for node in self.nodes.keys():
+            self.children.append(DistributionComponent(node))
 
 
 distribution_builder_component = DistributionBuilderComponent(
@@ -182,11 +181,10 @@ distribution_view = DistributionView(id="distr_view")
     Input({"type": "input-slider-max", "index": MATCH}, "value"),
     Input({"type": "slider-norm", "index": MATCH}, "value"),
     Input({"type": "slider-norm", "index": MATCH}, "tooltip"),
-    State({"type": "slider-norm", "index": MATCH}, "id")
+    State({"type": "slider-norm", "index": MATCH}, "id"),
 )
 def slider_sync(input1, input2, input3, tt, id_):
-    print(f"<{input1}>-<{input2}>-<{input3}>")
-    print(id_)
+    print("syncing")
     DISTRIBUTION_VALUES_TRACKER.update({
         id_.get("index"): {
             "min": input1,
@@ -194,8 +192,6 @@ def slider_sync(input1, input2, input3, tt, id_):
             "value": input3,
         }
     })
-    import json
-    print(json.dumps(DISTRIBUTION_VALUES_TRACKER, indent=2))
     return input1, input2, tt
 
 @callback(
@@ -204,9 +200,13 @@ def slider_sync(input1, input2, input3, tt, id_):
     Input({"type": "slider-content", "index": MATCH}, "id"),
     prevent_initial_call=True
 )
-def distribution_update(choice: str, id_: str):
+def distribution_update(choice: str, id_: dict):
     distribution = DISTRIBUTION_MAPPING.get(choice)
     assert distribution, "distr not found"
-    ret = choice, distribution
-    new_comp = DistributionSlider(id_, ret)
+    var_name = id_.get("index")
+    assert var_name, "no varname"
+    DISTRIBUTION_CHOICE_TRACKER.update({var_name: (choice, distribution)})
+    # print(DISTRIBUTION_CHOICE_TRACKER)
+    new_comp = DistributionSlider(var_name)
+    print(new_comp)
     return new_comp

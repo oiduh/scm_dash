@@ -1,5 +1,5 @@
-from dash import Dash, Input, Output, callback, html
-from dash.dcc import Dropdown, Graph
+from dash import Dash, Input, Output, callback, callback_context, html, State
+from dash.dcc import Dropdown, Graph, Checklist
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -29,23 +29,49 @@ df = pd.DataFrame(
 )
 fig_4 = ff.create_scatterplotmatrix(df, width=1200, height=1200, diag="histogram")
 
-@callback(
-    Output("graph4", "figure"),
-    Input("dropdown", "value")
-)
-def scatter(values):
-    if len(values) < 2:
-        raise PreventUpdate
-    choices = []
-    for value in values:
-        choices.append(dist_map.get(value))
-    df_ = pd.DataFrame(
-        np.array(choices).T,
-        columns=values
-    )
-    fig_ = ff.create_scatterplotmatrix(df_, width=1200, height=1200, diag="histogram")
 
-    return fig_
+@callback(
+    Output("distr-checklist", "value"),
+    Output("all-checklist", "value"),
+    Output("graph4", "figure"),
+    Input("distr-checklist", "value"),
+    Input("all-checklist", "value"),
+    State("graph4", "figure")
+)
+def checklist(distrs, all, fig):
+    ctx = callback_context
+    input_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if input_id == "distr-checklist":
+        all = ["All"] if set(distrs) == set(dist_map.keys()) else []
+    else:
+        distrs = list(dist_map.keys()) if all else []
+
+    print(set(distrs).intersection(set(dist_map.keys())))
+    selected = list(set(distrs).intersection(set(dist_map.keys())))
+    if len(selected) == 1:
+        [value] = selected
+        fig = ff.create_distplot(
+            hist_data=[dist_map.get(value)],
+            group_labels=[value],
+            show_rug=False,
+            bin_size=0.2
+        )
+    elif len(selected) > 1:
+        choices = []
+        for value in selected:
+            choices.append(dist_map.get(value))
+        df_ = pd.DataFrame(
+            np.array(choices).T,
+            columns=selected
+        )
+        fig = ff.create_scatterplotmatrix(
+            df=df_,
+            diag="histogram",
+            width=1200,
+            height=1200
+        )
+
+    return distrs, all, fig
 
 
 if __name__ == "__main__":
@@ -56,12 +82,9 @@ if __name__ == "__main__":
         Graph(id="graph2", figure=fig_2),
         Graph(id="graph3", figure=fig_3),
         Graph(id="graph4", figure=fig_4),
-        Dropdown(
-            id="dropdown",
-            options=["norm", "log_norm", "laplace", "uniform"],
-            value=["norm", "log_norm"],
-            multi=True
-        )
+        Checklist(["All"], ["All"],  id="all-checklist", inline=True),
+        Checklist(list(dist_map.keys()), [], id="distr-checklist", inline=True),
+
     ])
     app.run(debug=True)
 

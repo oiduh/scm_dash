@@ -1,3 +1,4 @@
+from math import dist
 from dash import Dash, callback, html, Output, Input, State, ALL, MATCH, ctx
 from dash.dcc import Slider, Input as InputField, Dropdown, Graph
 import dash_bootstrap_components as dbc
@@ -8,7 +9,7 @@ import plotly.figure_factory as ff
 import numpy as np
 
 
-DISTRIBUTION_VALUES_TRACKER: Dict[str, Dict[str, float | str]] = {}
+DISTRIBUTION_VALUES_TRACKER: Dict[str, Dict[str, Dict[str, float | str]]] = {}
 DISTRIBUTION_CHOICE_TRACKER: Dict[str, Tuple[str, DistributionsEntry]] = {}
 
 
@@ -43,7 +44,7 @@ class DistributionSlider(html.Div):
             else:
                 min_ = initial_values.min
                 max_ = initial_values.max
-                value_ = initial_values.max
+                value_ = initial_values.init
                 
             min_field = InputField(
                 id={
@@ -60,10 +61,6 @@ class DistributionSlider(html.Div):
             step = 1 if initial_values.num_type == "int" else 0.01
             new_slider = Slider(
                 min=min_, max=max_, value=value_, step=step,
-                # marks={
-                #     str(range_.min): str(range_.min),
-                #     str(range_.max): str(range_.max)
-                # },
                 marks=None,
                 tooltip={"placement": "top", "always_visible": True},
                 id={
@@ -139,6 +136,32 @@ class DistributionBuilderComponent(html.Div):
         self.nodes = graph_builder_comp.graph_builder.graph
         for node in self.nodes.keys():
             self.children.append(DistributionComponent(node))
+            choice = "normal"
+            distr = DISTRIBUTION_MAPPING.get("normal")
+            assert distr, "error"
+            DISTRIBUTION_CHOICE_TRACKER.update({node: (choice, distr)})
+            for kwargs, range in distr.values.items():
+                if m:=DISTRIBUTION_VALUES_TRACKER.get(node):
+                    assert m, "error"
+                    m.update({
+                        kwargs: {
+                            "min": range.min,
+                            "max": range.max,
+                            "value": range.init
+                        }
+                    })
+                else:
+                    DISTRIBUTION_VALUES_TRACKER.update({
+                        node: {
+                            kwargs: {
+                                "min": range.min,
+                                "max": range.max,
+                                "value": range.init
+                            }
+                        }
+                    })
+        print(DISTRIBUTION_CHOICE_TRACKER)
+        print(DISTRIBUTION_VALUES_TRACKER)
 
     def add_node(self):
         self.children = []
@@ -149,6 +172,14 @@ class DistributionBuilderComponent(html.Div):
         self.children = []
         for node in self.nodes.keys():
             self.children.append(DistributionComponent(node))
+        # TODO: naming
+        x = list(set(DISTRIBUTION_VALUES_TRACKER.keys()).difference(
+            set(self.nodes.keys())
+        ))
+        assert len(x) == 1, "error"
+        [x] = x
+        DISTRIBUTION_VALUES_TRACKER.pop(x, None)
+        print(DISTRIBUTION_VALUES_TRACKER)
 
 
 distribution_builder_component = DistributionBuilderComponent(
@@ -157,18 +188,21 @@ distribution_builder_component = DistributionBuilderComponent(
 )
 
 
-class DistributionView(html.Div):
+class DistributionViewComponent(html.Div):
+    def __init__(self, id, var):
+        super().__init__(id=id)
+        values = DISTRIBUTION_VALUES_TRACKER.get(var)
+
+
+class DistributionViewContainer(html.Div):
     def __init__(self, id):
         super().__init__(id=id)
         self.children = []
-        data = np.random.normal(0, 1, size=500)
-        fig = ff.create_distplot([data], group_labels=["a"], show_rug=False)
-        graph = Graph(id="some_graph", figure=fig)
-        self.children.append(
-            graph
+        self.children.extend(
+            [html.P(x) for x in DISTRIBUTION_CHOICE_TRACKER.keys()]
         )
 
-distribution_view = DistributionView(id="distr_view")
+distribution_view = DistributionViewContainer(id="distr_view")
 
 
 # slider specific callbacks
@@ -185,13 +219,27 @@ distribution_view = DistributionView(id="distr_view")
 )
 def slider_sync(input1, input2, input3, tt, id_):
     print("syncing")
-    DISTRIBUTION_VALUES_TRACKER.update({
-        id_.get("index"): {
-            "min": input1,
-            "max": input2,
-            "value": input3,
-        }
-    })
+    node, kwarg = id_.get("index").split("-")
+    if m:=DISTRIBUTION_VALUES_TRACKER.get(node):
+        assert m, "error"
+        m.update({
+            kwarg: {
+                "min": input1,
+                "max": input2,
+                "value": input3,
+            }
+        })
+    else:
+        DISTRIBUTION_VALUES_TRACKER.update({
+            node: {
+                kwarg: {
+                    "min": input1,
+                    "max": input2,
+                    "value": input3,
+                }
+            }
+        })
+    print(DISTRIBUTION_VALUES_TRACKER)
     return input1, input2, tt
 
 @callback(
@@ -206,7 +254,12 @@ def distribution_update(choice: str, id_: dict):
     var_name = id_.get("index")
     assert var_name, "no varname"
     DISTRIBUTION_CHOICE_TRACKER.update({var_name: (choice, distribution)})
-    # print(DISTRIBUTION_CHOICE_TRACKER)
+    DISTRIBUTION_VALUES_TRACKER.update({
+        var_name: {}
+    })
     new_comp = DistributionSlider(var_name)
     print(new_comp)
     return new_comp
+
+
+# TODO: adding nodes resets values -> fix it

@@ -45,13 +45,12 @@ class DistributionSlider(html.Div):
                 max_ = values.get("max") or initial_values.max
                 value_ = values.get("value") or initial_values.init
             else:
-                DISTRIBUTION_VALUES_TRACKER.update({
-                    id: {
-                        param: {
-                            "min": initial_values.min,
-                            "max": initial_values.max,
-                            "value": initial_values.init,
-                        }
+                _ = DISTRIBUTION_VALUES_TRACKER.get(id) or DISTRIBUTION_VALUES_TRACKER.update({id: {}})
+                DISTRIBUTION_VALUES_TRACKER.get(id).update({
+                    param: {
+                        "min": initial_values.min,
+                        "max": initial_values.max,
+                        "value": initial_values.init,
                     }
                 })
                 min_ = initial_values.min

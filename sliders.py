@@ -36,12 +36,24 @@ class DistributionSlider(html.Div):
             sliders = dbc.Row()
             sliders.children = []
 
-            values = DISTRIBUTION_VALUES_TRACKER.get(f"{id}-{param}")
+            values = DISTRIBUTION_VALUES_TRACKER.get(id)
             if values:
-                min_ = values.get("min")
-                max_ = values.get("max")
-                value_ = values.get("value")
+                values = values.get(param)
+            if values:
+                assert values, "error"
+                min_ = values.get("min") or initial_values.min
+                max_ = values.get("max") or initial_values.max
+                value_ = values.get("value") or initial_values.init
             else:
+                DISTRIBUTION_VALUES_TRACKER.update({
+                    id: {
+                        param: {
+                            "min": initial_values.min,
+                            "max": initial_values.max,
+                            "value": initial_values.init,
+                        }
+                    }
+                })
                 min_ = initial_values.min
                 max_ = initial_values.max
                 value_ = initial_values.init
@@ -140,26 +152,16 @@ class DistributionBuilderComponent(html.Div):
             distr = DISTRIBUTION_MAPPING.get("normal")
             assert distr, "error"
             DISTRIBUTION_CHOICE_TRACKER.update({node: (choice, distr)})
-            for kwargs, range in distr.values.items():
-                if m:=DISTRIBUTION_VALUES_TRACKER.get(node):
-                    assert m, "error"
-                    m.update({
-                        kwargs: {
-                            "min": range.min,
-                            "max": range.max,
-                            "value": range.init
-                        }
-                    })
-                else:
-                    DISTRIBUTION_VALUES_TRACKER.update({
-                        node: {
-                            kwargs: {
-                                "min": range.min,
-                                "max": range.max,
-                                "value": range.init
-                            }
-                        }
-                    })
+            if not DISTRIBUTION_VALUES_TRACKER.get(node):
+                DISTRIBUTION_VALUES_TRACKER.update({node: {}})
+            for kwargs_, range_ in distr.values.items():
+                DISTRIBUTION_VALUES_TRACKER.get(node).update({
+                    kwargs_: {
+                        "min": range_.min,
+                        "max": range_.max,
+                        "value": range_.init
+                    }
+                })
         print(DISTRIBUTION_CHOICE_TRACKER)
         print(DISTRIBUTION_VALUES_TRACKER)
 
@@ -219,25 +221,14 @@ distribution_view = DistributionViewContainer(id="distr_view")
 )
 def slider_sync(input1, input2, input3, tt, id_):
     print("syncing")
+    print(f">> {input1} - {input2} - {input3} - {id_} <<")
     node, kwarg = id_.get("index").split("-")
-    if m:=DISTRIBUTION_VALUES_TRACKER.get(node):
-        assert m, "error"
-        m.update({
-            kwarg: {
+    
+    if DISTRIBUTION_VALUES_TRACKER.get(node) and DISTRIBUTION_VALUES_TRACKER.get(node).get(kwarg):
+        DISTRIBUTION_VALUES_TRACKER.get(node).get(kwarg).update({
                 "min": input1,
                 "max": input2,
                 "value": input3,
-            }
-        })
-    else:
-        DISTRIBUTION_VALUES_TRACKER.update({
-            node: {
-                kwarg: {
-                    "min": input1,
-                    "max": input2,
-                    "value": input3,
-                }
-            }
         })
     print(DISTRIBUTION_VALUES_TRACKER)
     return input1, input2, tt
@@ -257,6 +248,14 @@ def distribution_update(choice: str, id_: dict):
     DISTRIBUTION_VALUES_TRACKER.update({
         var_name: {}
     })
+    for kwargs_, range_ in distribution.values.items():
+        DISTRIBUTION_VALUES_TRACKER.get(var_name).update({
+            kwargs_: {
+                "min": range_.min,
+                "max": range_.max,
+                "value": range_.init
+            }
+        })
     new_comp = DistributionSlider(var_name)
     print(new_comp)
     return new_comp

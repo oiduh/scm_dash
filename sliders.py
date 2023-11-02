@@ -161,8 +161,6 @@ class DistributionBuilderComponent(html.Div):
                         "value": range_.init
                     }
                 })
-        print(DISTRIBUTION_CHOICE_TRACKER)
-        print(DISTRIBUTION_VALUES_TRACKER)
 
     def add_node(self):
         self.children = []
@@ -180,7 +178,6 @@ class DistributionBuilderComponent(html.Div):
         assert len(x) == 1, "error"
         [x] = x
         DISTRIBUTION_VALUES_TRACKER.pop(x, None)
-        print(DISTRIBUTION_VALUES_TRACKER)
 
 
 distribution_builder_component = DistributionBuilderComponent(
@@ -190,17 +187,47 @@ distribution_builder_component = DistributionBuilderComponent(
 
 
 class DistributionViewComponent(html.Div):
+    NR_POINTS = 100
     def __init__(self, id, var):
+        # TODO: naming
         super().__init__(id=id)
         values = DISTRIBUTION_VALUES_TRACKER.get(var)
+        assert values, "error"
+        value_dict = dict(map(lambda y: (y[0], y[1].get("value")), values.items()))
+        distribution_info = DISTRIBUTION_CHOICE_TRACKER.get(var)
+        assert distribution_info, "error"
+        distribution_class = distribution_info[1]
+        assert distribution_class, "error"
+        distribution_class = distribution_class.distribution_class
+        data = distribution_class.rvs(**value_dict, size=DistributionViewComponent.NR_POINTS)
+        fig = ff.create_distplot([data], [id])
+        self.children = Graph(id=f"graph-{id}", figure=fig)
+        self.style = {
+            "border": "2px black solid",
+            "margin": "2px",
+        }
 
 
 class DistributionViewContainer(html.Div):
     def __init__(self, id):
         super().__init__(id=id)
         self.children = []
+        self.children.append(
+            html.Button(id="update_button", children="update")
+        )
         self.children.extend(
-            [html.P(x) for x in DISTRIBUTION_CHOICE_TRACKER.keys()]
+            [DistributionViewComponent(id=f"test-graph-{x}", var=x)
+                for x in DISTRIBUTION_CHOICE_TRACKER.keys()]
+        )
+
+    def update(self):
+        self.children = []
+        self.children.append(
+            html.Button(id="update_button", children="update")
+        )
+        self.children.extend(
+            [DistributionViewComponent(id=f"test-graph-{x}", var=x)
+                for x in DISTRIBUTION_CHOICE_TRACKER.keys()]
         )
 
 distribution_view = DistributionViewContainer(id="distr_view")
@@ -219,8 +246,6 @@ distribution_view = DistributionViewContainer(id="distr_view")
     State({"type": "slider-norm", "index": MATCH}, "id"),
 )
 def slider_sync(input1, input2, input3, tt, id_):
-    print("syncing")
-    print(f">> {input1} - {input2} - {input3} - {id_} <<")
     node, kwarg = id_.get("index").split("-")
     
     if DISTRIBUTION_VALUES_TRACKER.get(node) and DISTRIBUTION_VALUES_TRACKER.get(node).get(kwarg):
@@ -229,7 +254,6 @@ def slider_sync(input1, input2, input3, tt, id_):
                 "max": input2,
                 "value": input3,
         })
-    print(DISTRIBUTION_VALUES_TRACKER)
     return input1, input2, tt
 
 @callback(
@@ -256,8 +280,17 @@ def distribution_update(choice: str, id_: dict):
             }
         })
     new_comp = DistributionSlider(var_name)
-    print(new_comp)
     return new_comp
 
+@callback(
+    Output("distr_view", "children", allow_duplicate=True),
+    Input("update_button", "n_clicks"),
+    prevent_initial_call=True
+)
+def udpate_view(_):
+    if ctx.triggered_id == "update_button":
+        distribution_view.update()
+    return distribution_view.children
 
-# TODO: adding nodes resets values -> fix it
+# TODO: adding new variable does not set one of the global dicts -> cannot create new graph
+#       via update -> fix

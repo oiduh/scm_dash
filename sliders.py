@@ -1,4 +1,3 @@
-from math import dist
 from dash import Dash, callback, html, Output, Input, State, ALL, MATCH, ctx
 from dash.dcc import Slider, Input as InputField, Dropdown, Graph
 import dash_bootstrap_components as dbc
@@ -24,9 +23,9 @@ class DistributionSlider(html.Div):
             "type": "slider-content",
             "index": id
         }
-        self.distribution = DISTRIBUTION_CHOICE_TRACKER.get(id) or list(DISTRIBUTION_MAPPING.items())[0]
+        distribution = DISTRIBUTION_CHOICE_TRACKER.get(id) or list(DISTRIBUTION_MAPPING.items())[0]
         # distribution_type = self.distribution[0]
-        distribution_values = self.distribution[1].values
+        distribution_values = distribution[1].values
         self.children = []
         for param, initial_values in distribution_values.items():
             slider_content = dbc.Col()
@@ -106,8 +105,11 @@ class DistributionComponent(html.Div):
         }
         self.id = id
         self.children = []
-        updated_distribution = DISTRIBUTION_CHOICE_TRACKER.get(id)
-        self.distribution = updated_distribution or list(DISTRIBUTION_MAPPING.items())[0]
+        distribution = DISTRIBUTION_CHOICE_TRACKER.get(id) or list(DISTRIBUTION_MAPPING.items())[0]
+        # updated_distribution = DISTRIBUTION_CHOICE_TRACKER.get(id)
+        # self.distribution = updated_distribution or list(DISTRIBUTION_MAPPING.items())[0]
+        self.distribution = DISTRIBUTION_CHOICE_TRACKER.get(id) or list(DISTRIBUTION_MAPPING.items())[0]
+        DISTRIBUTION_CHOICE_TRACKER.update({id: self.distribution})
         self.children.extend([
             dbc.Row(html.Label(f"Variable: {id}")),
             html.Hr(),
@@ -178,6 +180,7 @@ class DistributionBuilderComponent(html.Div):
         assert len(x) == 1, "error"
         [x] = x
         DISTRIBUTION_VALUES_TRACKER.pop(x, None)
+        DISTRIBUTION_CHOICE_TRACKER.pop(x, None)
 
 
 distribution_builder_component = DistributionBuilderComponent(
@@ -189,6 +192,8 @@ distribution_builder_component = DistributionBuilderComponent(
 class DistributionViewComponent(html.Div):
     NR_POINTS = 100
     def __init__(self, id, var):
+        # TODO: seed set via input
+        np.random.seed(0)
         # TODO: naming
         super().__init__(id=id)
         values = DISTRIBUTION_VALUES_TRACKER.get(var)
@@ -200,7 +205,7 @@ class DistributionViewComponent(html.Div):
         assert distribution_class, "error"
         distribution_class = distribution_class.distribution_class
         data = distribution_class.rvs(**value_dict, size=DistributionViewComponent.NR_POINTS)
-        fig = ff.create_distplot([data], [id])
+        fig = ff.create_distplot([data], [id], show_rug=False, curve_type="kde")
         self.children = Graph(id=f"graph-{id}", figure=fig)
         self.style = {
             "border": "2px black solid",
@@ -291,6 +296,18 @@ def udpate_view(_):
     if ctx.triggered_id == "update_button":
         distribution_view.update()
     return distribution_view.children
+
+@callback(
+    Output("distr_view", "children", allow_duplicate=True),
+    Input("distribution-builder-component", "children"),
+    prevent_initial_call=True
+)
+def udpate_view_2(_):
+    print(DISTRIBUTION_VALUES_TRACKER)
+    print(DISTRIBUTION_CHOICE_TRACKER)
+
+    return distribution_view.children
+
 
 # TODO: adding new variable does not set one of the global dicts -> cannot create new graph
 #       via update -> fix

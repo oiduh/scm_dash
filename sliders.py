@@ -38,8 +38,9 @@ class ParameterTracker:
             parameter: ranges
         })
 
+
 class SliderValueTracker:
-    variable_names: Dict[str, ParameterTracker]
+    variable_names: Dict[str, ParameterTracker] = {}
 
     @staticmethod
     def get_parameters(variable: str):
@@ -51,8 +52,22 @@ class SliderValueTracker:
             variable: parameters
         })
 
+    @staticmethod
+    def remove_variable(variable: str):
+        assert SliderValueTracker.variable_names.get(variable) is not None, "error"
+        SliderValueTracker.variable_names.pop(variable)
 
-DISTRIBUTION_VALUES_TRACKER: Dict[str, Dict[str, Dict[str, float]]] = {}
+    @staticmethod
+    def show():
+        for x, y in SliderValueTracker.variable_names.items():
+            print(f"{x}:")
+            for z, a in y.parameter_names.items():
+                print(f"  {z}:")
+                print(f"     {a.min}")
+                print(f"     {a.max}")
+                print(f"     {a.value}")
+
+
 DISTRIBUTION_CHOICE_TRACKER: Dict[str, Tuple[str, DistributionsEntry]] = {}
 
 
@@ -80,9 +95,6 @@ class DistributionSlider(html.Div):
             sliders = dbc.Row()
             sliders.children = []
 
-
-
-            # NEW: replace dicts with classes
             parmeter_values = SliderValueTracker.get_parameters(id)
             if parmeter_values and (ranges:=parmeter_values.get_parameter(param)):
                 min_ = ranges.min
@@ -93,36 +105,13 @@ class DistributionSlider(html.Div):
                 max_ = initial_values.max
                 value_ = initial_values.init
                 ranges = RangeTracker(min_, max_, value_)
-                new_param = ParameterTracker()
-                new_param.set_parameter(param, ranges)
-                SliderValueTracker.set_value_parameters(id, new_param)
+                if m:=SliderValueTracker.get_parameters(id):
+                    m.set_parameter(param, ranges)
+                else:
+                    new_param = ParameterTracker()
+                    new_param.set_parameter(param, ranges)
+                    SliderValueTracker.set_value_parameters(id, new_param)
 
-
-
-                
-
-
-            values = DISTRIBUTION_VALUES_TRACKER.get(id)
-            if values:
-                values = values.get(param)
-            if values:
-                assert values, "error"
-                min_ = values.get("min") or initial_values.min
-                max_ = values.get("max") or initial_values.max
-                value_ = values.get("value") or initial_values.init
-            else:
-                _ = DISTRIBUTION_VALUES_TRACKER.get(id) or DISTRIBUTION_VALUES_TRACKER.update({id: {}})
-                DISTRIBUTION_VALUES_TRACKER.get(id).update({
-                    param: {
-                        "min": initial_values.min,
-                        "max": initial_values.max,
-                        "value": initial_values.init,
-                    }
-                })
-                min_ = initial_values.min
-                max_ = initial_values.max
-                value_ = initial_values.init
-                
             min_field = InputField(
                 id={
                     "type": "input-slider-min",
@@ -172,9 +161,6 @@ class DistributionComponent(html.Div):
         }
         self.id = id
         self.children = []
-        distribution = DISTRIBUTION_CHOICE_TRACKER.get(id) or list(DISTRIBUTION_MAPPING.items())[0]
-        # updated_distribution = DISTRIBUTION_CHOICE_TRACKER.get(id)
-        # self.distribution = updated_distribution or list(DISTRIBUTION_MAPPING.items())[0]
         self.distribution = DISTRIBUTION_CHOICE_TRACKER.get(id) or list(DISTRIBUTION_MAPPING.items())[0]
         DISTRIBUTION_CHOICE_TRACKER.update({id: self.distribution})
         self.children.extend([
@@ -220,16 +206,15 @@ class DistributionBuilderComponent(html.Div):
             distr = DISTRIBUTION_MAPPING.get("normal")
             assert distr, "error"
             DISTRIBUTION_CHOICE_TRACKER.update({node: (choice, distr)})
-            if not DISTRIBUTION_VALUES_TRACKER.get(node):
-                DISTRIBUTION_VALUES_TRACKER.update({node: {}})
             for kwargs_, range_ in distr.values.items():
-                DISTRIBUTION_VALUES_TRACKER.get(node).update({
-                    kwargs_: {
-                        "min": range_.min,
-                        "max": range_.max,
-                        "value": range_.init
-                    }
-                })
+                new_range = RangeTracker(range_.min, range_.max, range_.init)
+                if m:=SliderValueTracker.get_parameters(node):
+                    m.set_parameter(kwargs_, new_range)
+                else:
+                    new_param = ParameterTracker()
+                    new_param.set_parameter(kwargs_, new_range)
+                    SliderValueTracker.set_value_parameters(node, new_param)
+
 
     def add_node(self):
         self.children = []
@@ -241,13 +226,13 @@ class DistributionBuilderComponent(html.Div):
         for node in self.nodes.keys():
             self.children.append(DistributionComponent(node))
         # TODO: naming
-        x = list(set(DISTRIBUTION_VALUES_TRACKER.keys()).difference(
+        x = list(set(DISTRIBUTION_CHOICE_TRACKER.keys()).difference(
             set(self.nodes.keys())
         ))
         assert len(x) == 1, "error"
         [x] = x
-        DISTRIBUTION_VALUES_TRACKER.pop(x, None)
         DISTRIBUTION_CHOICE_TRACKER.pop(x, None)
+        SliderValueTracker.remove_variable(x)
 
 
 distribution_builder_component = DistributionBuilderComponent(
@@ -264,9 +249,10 @@ class DistributionViewComponent(html.Div):
         # TODO: naming
         super().__init__()
         self.id = {"type": "distr_graph", "index": id}
-        values = DISTRIBUTION_VALUES_TRACKER.get(var)
+        # values = DISTRIBUTION_VALUES_TRACKER.get(var)
+        values = SliderValueTracker.get_parameters(var)
         assert values, "error"
-        value_dict = dict(map(lambda y: (y[0], y[1].get("value")), values.items()))
+        value_dict = dict(map(lambda y: (y[0], y[1].value), values.parameter_names.items()))
         distribution_info = DISTRIBUTION_CHOICE_TRACKER.get(var)
         assert distribution_info, "error"
         distribution_class = distribution_info[1]
@@ -321,15 +307,9 @@ distribution_view = DistributionViewContainer(id="distr_view")
 )
 def slider_sync(input1, input2, input3, tt, id_):
     node, kwarg = id_.get("index").split("-")
-    
-    if DISTRIBUTION_VALUES_TRACKER.get(node) and DISTRIBUTION_VALUES_TRACKER.get(node).get(kwarg):
-        DISTRIBUTION_VALUES_TRACKER.get(node).get(kwarg).update({
-                "min": input1,
-                "max": input2,
-                "value": input3,
-        })
-
-
+    if (m:=SliderValueTracker.get_parameters(node)) and m.get_parameter(kwarg):
+        new_range = RangeTracker(input1, input2, input3)
+        m.set_parameter(kwarg, new_range)
     return input1, input2, tt
 
 @callback(
@@ -352,18 +332,13 @@ def distribution_update(choice: str, id_: dict):
     var_name = id_.get("index")
     assert var_name, "no varname"
     DISTRIBUTION_CHOICE_TRACKER.update({var_name: (choice, distribution)})
-    DISTRIBUTION_VALUES_TRACKER.update({var_name: {}})
+    SliderValueTracker.remove_variable(var_name)
+    new_params = ParameterTracker()
     for kwargs_, range_ in distribution.values.items():
-        DISTRIBUTION_VALUES_TRACKER.get(var_name).update({
-            kwargs_: {
-                "min": range_.min,
-                "max": range_.max,
-                "value": range_.init
-            }
-        })
+        new_range = RangeTracker(range_.min, range_.max, range_.init)
+        new_params.set_parameter(kwargs_, new_range)
+    SliderValueTracker.set_value_parameters(var_name, new_params)
     new_comp = DistributionSlider(var_name)
-    print(DISTRIBUTION_VALUES_TRACKER)
-    print(DISTRIBUTION_CHOICE_TRACKER)
     return new_comp
 
 @callback(

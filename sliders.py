@@ -1,15 +1,60 @@
 from dash import Dash, callback, html, Output, Input, State, ALL, MATCH, ctx
 from dash.dcc import Slider, Input as InputField, Dropdown, Graph
+from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from distributions_builder import DistributionsEntry, DISTRIBUTION_MAPPING, Range
-from typing import Tuple, Optional, List, Dict
+from typing import Any, Tuple, Optional, List, Dict
 from graph_builder import GraphBuilderComponent, graph_builder_component
 import plotly.figure_factory as ff
 import numpy as np
+from enum import Enum
 
 
-DISTRIBUTION_VALUES_TRACKER: Dict[str, Dict[str, Dict[str, float | str]]] = {}
+class DistributionType(str, Enum):
+    simple = "simple"
+    mixture = "mixture"
+
+
+# values tracker
+# var_name -> kwargs
+# kwargs -> min, max, value
+
+class RangeTracker:
+    def __init__(self, min: float, max: float, value: float) -> None:
+        self.min = min
+        self.max = max
+        self.value = value
+
+
+class ParameterTracker:
+    def __init__(self) -> None:
+        self.parameter_names: Dict[str, RangeTracker] = dict()
+
+    def get_parameter(self, parameter: str):
+        return self.parameter_names.get(parameter)
+
+    def set_parameter(self, parameter: str, ranges: RangeTracker):
+        self.parameter_names.update({
+            parameter: ranges
+        })
+
+class SliderValueTracker:
+    variable_names: Dict[str, ParameterTracker]
+
+    @staticmethod
+    def get_parameters(variable: str):
+        return SliderValueTracker.variable_names.get(variable)
+
+    @staticmethod
+    def set_value_parameters(variable: str, parameters: ParameterTracker):
+        SliderValueTracker.variable_names.update({
+            variable: parameters
+        })
+
+
+DISTRIBUTION_VALUES_TRACKER: Dict[str, Dict[str, Dict[str, float]]] = {}
 DISTRIBUTION_CHOICE_TRACKER: Dict[str, Tuple[str, DistributionsEntry]] = {}
+
 
 
 class DistributionSlider(html.Div):
@@ -34,6 +79,28 @@ class DistributionSlider(html.Div):
 
             sliders = dbc.Row()
             sliders.children = []
+
+
+
+            # NEW: replace dicts with classes
+            parmeter_values = SliderValueTracker.get_parameters(id)
+            if parmeter_values and (ranges:=parmeter_values.get_parameter(param)):
+                min_ = ranges.min
+                max_ = ranges.max
+                value_ = ranges.value
+            else:
+                min_ = initial_values.min
+                max_ = initial_values.max
+                value_ = initial_values.init
+                ranges = RangeTracker(min_, max_, value_)
+                new_param = ParameterTracker()
+                new_param.set_parameter(param, ranges)
+                SliderValueTracker.set_value_parameters(id, new_param)
+
+
+
+                
+
 
             values = DISTRIBUTION_VALUES_TRACKER.get(id)
             if values:
@@ -190,12 +257,13 @@ distribution_builder_component = DistributionBuilderComponent(
 
 
 class DistributionViewComponent(html.Div):
-    NR_POINTS = 100
+    NR_POINTS = 300
     def __init__(self, id, var):
         # TODO: seed set via input
         np.random.seed(0)
         # TODO: naming
-        super().__init__(id=id)
+        super().__init__()
+        self.id = {"type": "distr_graph", "index": id}
         values = DISTRIBUTION_VALUES_TRACKER.get(var)
         assert values, "error"
         value_dict = dict(map(lambda y: (y[0], y[1].get("value")), values.items()))
@@ -221,7 +289,7 @@ class DistributionViewContainer(html.Div):
             html.Button(id="update_button", children="update")
         )
         self.children.extend(
-            [DistributionViewComponent(id=f"test-graph-{x}", var=x)
+            [DistributionViewComponent(id=x, var=x)
                 for x in DISTRIBUTION_CHOICE_TRACKER.keys()]
         )
 
@@ -231,7 +299,7 @@ class DistributionViewContainer(html.Div):
             html.Button(id="update_button", children="update")
         )
         self.children.extend(
-            [DistributionViewComponent(id=f"test-graph-{x}", var=x)
+            [DistributionViewComponent(id=x, var=x)
                 for x in DISTRIBUTION_CHOICE_TRACKER.keys()]
         )
 
@@ -249,6 +317,7 @@ distribution_view = DistributionViewContainer(id="distr_view")
     Input({"type": "slider-norm", "index": MATCH}, "value"),
     Input({"type": "slider-norm", "index": MATCH}, "tooltip"),
     State({"type": "slider-norm", "index": MATCH}, "id"),
+    prevent_initial_call=True
 )
 def slider_sync(input1, input2, input3, tt, id_):
     node, kwarg = id_.get("index").split("-")
@@ -259,7 +328,17 @@ def slider_sync(input1, input2, input3, tt, id_):
                 "max": input2,
                 "value": input3,
         })
+
+
     return input1, input2, tt
+
+@callback(
+    Output({"type": "distr_graph", "index": ALL}, "children"),
+    Input({"type": "slider-norm", "index": ALL}, "value")
+)
+def check(input_1):
+    print(input_1)
+    raise PreventUpdate
 
 @callback(
     Output({"type": "slider-div", "index": MATCH}, "children"),
@@ -273,9 +352,7 @@ def distribution_update(choice: str, id_: dict):
     var_name = id_.get("index")
     assert var_name, "no varname"
     DISTRIBUTION_CHOICE_TRACKER.update({var_name: (choice, distribution)})
-    DISTRIBUTION_VALUES_TRACKER.update({
-        var_name: {}
-    })
+    DISTRIBUTION_VALUES_TRACKER.update({var_name: {}})
     for kwargs_, range_ in distribution.values.items():
         DISTRIBUTION_VALUES_TRACKER.get(var_name).update({
             kwargs_: {
@@ -285,6 +362,8 @@ def distribution_update(choice: str, id_: dict):
             }
         })
     new_comp = DistributionSlider(var_name)
+    print(DISTRIBUTION_VALUES_TRACKER)
+    print(DISTRIBUTION_CHOICE_TRACKER)
     return new_comp
 
 @callback(
@@ -303,11 +382,5 @@ def udpate_view(_):
     prevent_initial_call=True
 )
 def udpate_view_2(_):
-    print(DISTRIBUTION_VALUES_TRACKER)
-    print(DISTRIBUTION_CHOICE_TRACKER)
-
     return distribution_view.children
 
-
-# TODO: adding new variable does not set one of the global dicts -> cannot create new graph
-#       via update -> fix

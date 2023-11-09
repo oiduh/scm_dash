@@ -13,6 +13,7 @@ from scipy.stats import rv_continuous as RVCont, rv_discrete as RVDisc
 import numpy as np
 
 KWARGS = Literal["loc", "scale", "s", "mu", "n", "p", "low", "high"]
+Generator = RVCont | RVDisc
 
 class Range(NamedTuple):
     min: int | float
@@ -22,20 +23,31 @@ class Range(NamedTuple):
     num_type: Literal["int", "float"]
 
 class DistributionsEntry(NamedTuple):
-    distribution_class: RVCont | RVDisc
+    generator: Generator
     values: Dict[KWARGS, Range]
+
+DEFAULT_DISTRIBUTION = (
+    "normal",
+    DistributionsEntry(
+        generator=stats.norm,
+        values={
+            "loc": Range(min=-10.0, max=10.0, init=0.0, step=0.5, num_type="float"),
+            "scale": Range(min=0.0, max=5.0, init=1.0, step=0.1, num_type="float")
+        }
+    )
+)
 
 DISTRIBUTION_MAPPING: Dict[str, DistributionsEntry] = {
     # continuous
     "normal": DistributionsEntry(
-        distribution_class=stats.norm,
+        generator=stats.norm,
         values={
             "loc": Range(min=-10.0, max=10.0, init=0.0, step=0.5, num_type="float"),
             "scale": Range(min=0.0, max=5.0, init=1.0, step=0.1, num_type="float")
         },
     ),
     "lognorm": DistributionsEntry(
-        distribution_class=stats.lognorm,
+        generator=stats.lognorm,
         values={
             "loc": Range(min=-10.0, max=10.0, init=1.0, step=0.5, num_type="float"),
             "scale": Range(min=0.0, max=5.0, init=1.0, step=0.1, num_type="float"),
@@ -43,14 +55,14 @@ DISTRIBUTION_MAPPING: Dict[str, DistributionsEntry] = {
         }
     ),
     "uniform": DistributionsEntry(
-        distribution_class=stats.uniform,
+        generator=stats.uniform,
         values={
             "loc": Range(min=-10.0, max=10.0, init=0.0, step=0.5, num_type="float"),
             "scale": Range(min=0.0, max=5.0, init=1.0, step=0.1, num_type="float")
         }
     ),
     "laplace": DistributionsEntry(
-        distribution_class=stats.laplace,
+        generator=stats.laplace,
         values={
             "loc": Range(min=-10.0, max=10.0, init=0.0, step=0.5, num_type="float"),
             "scale": Range(min=0.0, max=5.0, init=1.0, step=0.1, num_type="float")
@@ -59,26 +71,26 @@ DISTRIBUTION_MAPPING: Dict[str, DistributionsEntry] = {
 
     # discrete
     "poisson": DistributionsEntry(
-        distribution_class=stats.poisson,
+        generator=stats.poisson,
         values={
             "mu": Range(min=0.0, max=10.0, init=1.0, step=0.1, num_type="float")
         }
     ),
     "binom": DistributionsEntry(
-        distribution_class=stats.binom,
+        generator=stats.binom,
         values={
             "n": Range(min=2, max=10, init=2, step=1, num_type="int"),
             "p": Range(min=0.0, max=1.0, init=0.5, step=0.05, num_type="float")
         }
     ),
     "bernoulli": DistributionsEntry(
-        distribution_class=stats.bernoulli,
+        generator=stats.bernoulli,
         values={
             "p": Range(min=0.0, max=1.0, init=0.5, step=0.05, num_type="float")
         }
     ),
     "randint": DistributionsEntry(
-        distribution_class=stats.randint,
+        generator=stats.randint,
         values={
             "low": Range(min=1, max=20, init=1, step=1, num_type="int"),
             "high": Range(min=2, max=21, init=5, step=1, num_type="int")

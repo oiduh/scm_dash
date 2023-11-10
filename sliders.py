@@ -2,7 +2,6 @@ from dash import Dash, callback, html, Output, Input, State, ALL, MATCH, ctx
 from dash.dcc import Slider, Input as InputField, Dropdown, Graph
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
-from distributions import KWARGS
 from distributions_builder import(
     DistributionsEntry, DISTRIBUTION_MAPPING, Range, Generator,
     DEFAULT_DISTRIBUTION
@@ -74,26 +73,22 @@ class DistributionGenerator:
         self.generator = generator
 
 
-class DistritbutionModelTracker:
-    variables: Dict[str, DistributionGenerator]
+class DistributionModelTracker:
+    variables: Dict[str, DistributionGenerator] = dict()
 
     @staticmethod
     def get_variable(variable: str):
-        return DistritbutionModelTracker.variables.get(variable)
+        return DistributionModelTracker.variables.get(variable)
 
     @staticmethod
     def update_distribution(variable: str, generator: DistributionGenerator):
-        DistritbutionModelTracker.variables.update({
+        DistributionModelTracker.variables.update({
             variable: generator
         })
 
     @staticmethod
     def remove_distribution(variable: str):
-        DistritbutionModelTracker.variables.pop(variable, None)
-
-
-DISTRIBUTION_CHOICE_TRACKER: Dict[str, Tuple[str, DistributionsEntry]] = {}
-
+        DistributionModelTracker.variables.pop(variable, None)
 
 
 class DistributionSlider(html.Div):
@@ -109,10 +104,10 @@ class DistributionSlider(html.Div):
             "index": id
         }
 
-        if m:=DistritbutionModelTracker.get_variable(id):
-            generator = m.generator
+        if m:=DistributionModelTracker.get_variable(id):
+            distr_name = m.name
         else:
-            generator = DEFAULT_DISTRIBUTION[1].generator
+            distr_name = DEFAULT_DISTRIBUTION[0]
         if m:=SliderValueTracker.get_parameters(id):
             values = m
         else:
@@ -121,10 +116,6 @@ class DistributionSlider(html.Div):
                 ranges = RangeTracker(ranges_.min, ranges_.max, ranges_.init)
                 values.set_parameter(kwargs_, ranges)
 
-
-        # distribution = DISTRIBUTION_CHOICE_TRACKER.get(id) or list(DISTRIBUTION_MAPPING.items())[0]
-        # distribution_type = self.distribution[0]
-        # distribution_values = distribution[1].values
         self.children = []
         for param, initial_values in values.parameter_names.items():
         # for param, initial_values in distribution_values.items():
@@ -164,12 +155,12 @@ class DistributionSlider(html.Div):
             sliders.children.append(dbc.Col(min_field, width=1))
 
             # actual slider
-            distr_entry = DISTRIBUTION_MAPPING.get(generator.name)
-            assert distr_entry, "error"
             # TODO: error should vanish once DISTRIBUTION_MAPPING reworked to model
-            distr_range = distr_entry.values.get(param)
-            assert distr_range, "error"
-            num_type = distr_range.num_type
+            num_type = DISTRIBUTION_MAPPING.get(distr_name)
+            assert num_type, "error"
+            num_type = num_type.values.get(param)
+            assert num_type, "error"
+            num_type = num_type.num_type
 
             step = 1 if num_type == "int" else 0.01
             new_slider = Slider(
@@ -208,15 +199,13 @@ class DistributionComponent(html.Div):
         }
         self.id = id
         self.children = []
-        if m:=DistritbutionModelTracker.get_variable(id):
+        if m:=DistributionModelTracker.get_variable(id):
             gen = m.generator
             name = m.name
         else:
             gen = DEFAULT_DISTRIBUTION[1].generator
             name = DEFAULT_DISTRIBUTION[0]
-        # self.distribution = DISTRIBUTION_CHOICE_TRACKER.get(id) or list(DISTRIBUTION_MAPPING.items())[0]
-        # DISTRIBUTION_CHOICE_TRACKER.update({id: self.distribution})
-        DistritbutionModelTracker.update_distribution(
+        DistributionModelTracker.update_distribution(
             id, DistributionGenerator(name, gen)
         )
         self.children.extend([
@@ -249,9 +238,6 @@ class DistributionComponent(html.Div):
         ])
 
 
-assert False, "please"
-# TODO: CONTINUE HERE
-
 class DistributionBuilderComponent(html.Div):
     # TODO: this class needs a callback -> when nodes added/deleted/updated
     def __init__(self, id, graph_builder_comp: GraphBuilderComponent):
@@ -261,19 +247,23 @@ class DistributionBuilderComponent(html.Div):
         self.nodes = graph_builder_comp.graph_builder.graph
         for node in self.nodes.keys():
             self.children.append(DistributionComponent(node))
-            choice = "normal"
-            distr = DISTRIBUTION_MAPPING.get("normal")
-            assert distr, "error"
-            DISTRIBUTION_CHOICE_TRACKER.update({node: (choice, distr)})
-            for kwargs_, range_ in distr.values.items():
-                new_range = RangeTracker(range_.min, range_.max, range_.init)
-                if m:=SliderValueTracker.get_parameters(node):
-                    m.set_parameter(kwargs_, new_range)
-                else:
-                    new_param = ParameterTracker()
-                    new_param.set_parameter(kwargs_, new_range)
-                    SliderValueTracker.set_value_parameters(node, new_param)
-
+            # choice = "normal"
+            # distr = DISTRIBUTION_MAPPING.get("normal")
+            # assert distr, "error"
+            # name = DEFAULT_DISTRIBUTION[0]
+            # generator = DEFAULT_DISTRIBUTION[1].generator
+            # DISTRIBUTION_CHOICE_TRACKER.update({node: (choice, distr)})
+            # DistritbutionModelTracker.update_distribution(
+            #     node, DistributionGenerator(name, generator)
+            # )
+            # for kwargs_, range_ in distr.values.items():
+            #     new_range = RangeTracker(range_.min, range_.max, range_.init)
+            #     if m:=SliderValueTracker.get_parameters(node):
+            #         m.set_parameter(kwargs_, new_range)
+            #     else:
+            #         new_param = ParameterTracker()
+            #         new_param.set_parameter(kwargs_, new_range)
+            #         SliderValueTracker.set_value_parameters(node, new_param)
 
     def add_node(self):
         self.children = []
@@ -284,14 +274,22 @@ class DistributionBuilderComponent(html.Div):
         self.children = []
         for node in self.nodes.keys():
             self.children.append(DistributionComponent(node))
+
+
+        vars = DistributionModelTracker.variables.keys()
+        diff = set(vars).difference(set(self.nodes.keys()))
+        assert len(diff) == 1, "error"
+        to_remove = list(diff)[0]
+        DistributionModelTracker.remove_distribution(to_remove)
+
         # TODO: naming
-        x = list(set(DISTRIBUTION_CHOICE_TRACKER.keys()).difference(
-            set(self.nodes.keys())
-        ))
-        assert len(x) == 1, "error"
-        [x] = x
-        DISTRIBUTION_CHOICE_TRACKER.pop(x, None)
-        SliderValueTracker.remove_variable(x)
+        # x = list(set(DISTRIBUTION_CHOICE_TRACKER.keys()).difference(
+        #     set(self.nodes.keys())
+        # ))
+        # assert len(x) == 1, "error"
+        # [x] = x
+        # DISTRIBUTION_CHOICE_TRACKER.pop(x, None)
+        SliderValueTracker.remove_variable(to_remove)
 
 
 distribution_builder_component = DistributionBuilderComponent(
@@ -312,12 +310,24 @@ class DistributionViewComponent(html.Div):
         values = SliderValueTracker.get_parameters(var)
         assert values, "error"
         value_dict = dict(map(lambda y: (y[0], y[1].value), values.parameter_names.items()))
-        distribution_info = DISTRIBUTION_CHOICE_TRACKER.get(var)
+
+        # distribution_info = DISTRIBUTION_CHOICE_TRACKER.get(var)
+        # assert distribution_info, "error"
+        # distribution_class = distribution_info[1]
+        # assert distribution_class, "error"
+        # distribution_class = distribution_class.generator
+        # data = distribution_class.rvs(**value_dict, size=DistributionViewComponent.NR_POINTS)
+        # fig = ff.create_distplot([data], [id], show_rug=False, curve_type="kde")
+        # self.children = Graph(id=f"graph-{id}", figure=fig)
+        # self.style = {
+        #     "border": "2px black solid",
+        #     "margin": "2px",
+        # }
+
+        distribution_info = DistributionModelTracker.get_variable(var)
         assert distribution_info, "error"
-        distribution_class = distribution_info[1]
-        assert distribution_class, "error"
-        distribution_class = distribution_class.generator
-        data = distribution_class.rvs(**value_dict, size=DistributionViewComponent.NR_POINTS)
+        generator = distribution_info.generator
+        data = generator.rvs(**value_dict, size=DistributionViewComponent.NR_POINTS)
         fig = ff.create_distplot([data], [id], show_rug=False, curve_type="kde")
         self.children = Graph(id=f"graph-{id}", figure=fig)
         self.style = {
@@ -335,7 +345,8 @@ class DistributionViewContainer(html.Div):
         )
         self.children.extend(
             [DistributionViewComponent(id=x, var=x)
-                for x in DISTRIBUTION_CHOICE_TRACKER.keys()]
+                # for x in DISTRIBUTION_CHOICE_TRACKER.keys()]
+                for x in DistributionModelTracker.variables.keys()]
         )
 
     def update(self):
@@ -345,7 +356,8 @@ class DistributionViewContainer(html.Div):
         )
         self.children.extend(
             [DistributionViewComponent(id=x, var=x)
-                for x in DISTRIBUTION_CHOICE_TRACKER.keys()]
+                # for x in DISTRIBUTION_CHOICE_TRACKER.keys()]
+                for x in DistributionModelTracker.variables.keys()]
         )
 
 distribution_view = DistributionViewContainer(id="distr_view")
@@ -390,7 +402,13 @@ def distribution_update(choice: str, id_: dict):
     assert distribution, "distr not found"
     var_name = id_.get("index")
     assert var_name, "no varname"
-    DISTRIBUTION_CHOICE_TRACKER.update({var_name: (choice, distribution)})
+
+    # DISTRIBUTION_CHOICE_TRACKER.update({var_name: (choice, distribution)})
+
+    DistributionModelTracker.update_distribution(
+        var_name, DistributionGenerator(choice, distribution.generator)
+    )
+
     SliderValueTracker.remove_variable(var_name)
     new_params = ParameterTracker()
     for kwargs_, range_ in distribution.values.items():

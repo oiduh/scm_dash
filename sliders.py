@@ -10,12 +10,6 @@ from typing import Any, Tuple, Optional, List, Dict, get_args
 from graph_builder import GraphBuilderComponent, graph_builder_component
 import plotly.figure_factory as ff
 import numpy as np
-from enum import Enum
-
-
-class DistributionType(str, Enum):
-    simple = "simple"
-    mixture = "mixture"
 
 
 class RangeTracker:
@@ -26,8 +20,15 @@ class RangeTracker:
 
 
 class ParameterTracker:
-    def __init__(self) -> None:
+    def __init__(self, distribution_type: str) -> None:
+        self.distribution_type = distribution_type
         self.parameter_names: Dict[str, RangeTracker] = dict()
+        distribution = DISTRIBUTION_MAPPING.get(distribution_type)
+        assert distribution, "error"
+        self.generator: Generator = distribution.generator
+
+    def get_distribution_type(self):
+        return self.distribution_type
 
     def get_parameter(self, parameter: str):
         return self.parameter_names.get(parameter)
@@ -38,57 +39,57 @@ class ParameterTracker:
         })
 
 
-class SliderValueTracker:
-    variable_names: Dict[str, ParameterTracker] = {}
+class DistributionTracker:
+    def __init__(self) -> None:
+        self.distributions: Dict[str, ParameterTracker] = {}
+
+    def get_parameters(self):
+        return self.distributions
+
+    def get_parameter(self, param: str):
+        return self.distributions.get(param)
+
+    def set_distribution(self, var_name: str, params: ParameterTracker):
+        self.distributions.update({var_name: params})
+
+
+class SliderTracker:
+    variable_names: Dict[str, DistributionTracker] = {}
 
     @staticmethod
-    def get_parameters(variable: str):
-        return SliderValueTracker.variable_names.get(variable)
+    def get_distributions():
+        return SliderTracker.variable_names
 
     @staticmethod
-    def set_value_parameters(variable: str, parameters: ParameterTracker):
-        SliderValueTracker.variable_names.update({
-            variable: parameters
-        })
+    def get_distribution(variable: str):
+        return SliderTracker.variable_names.get(variable)
+
+    @staticmethod
+    def add_new_variable(variable: str):
+        new_distr = DistributionTracker()
+        new_params = ParameterTracker(DEFAULT_DISTRIBUTION[0])
+        for param, ranges in DEFAULT_DISTRIBUTION[1].values.items():
+            new_range = RangeTracker(ranges.min, ranges.max, ranges.init)
+            new_params.set_parameter(param, new_range)
+        new_distr.set_distribution(f"{variable}_1", new_params)
+        SliderTracker.variable_names.update({variable: new_distr})
 
     @staticmethod
     def remove_variable(variable: str):
-        assert SliderValueTracker.variable_names.get(variable) is not None, "error"
-        SliderValueTracker.variable_names.pop(variable)
+        assert SliderTracker.variable_names.get(variable) is not None, "error"
+        SliderTracker.variable_names.pop(variable)
 
     @staticmethod
     def show():
-        for x, y in SliderValueTracker.variable_names.items():
+        for x, y in SliderTracker.variable_names.items():
             print(f"{x}:")
-            for z, a in y.parameter_names.items():
-                print(f"  {z}:")
-                print(f"     {a.min}")
-                print(f"     {a.max}")
-                print(f"     {a.value}")
-
-
-class DistributionGenerator:
-    def __init__(self, name: str, generator: Generator) -> None:
-        self.name = name
-        self.generator = generator
-
-
-class DistributionModelTracker:
-    variables: Dict[str, DistributionGenerator] = dict()
-
-    @staticmethod
-    def get_variable(variable: str):
-        return DistributionModelTracker.variables.get(variable)
-
-    @staticmethod
-    def update_distribution(variable: str, generator: DistributionGenerator):
-        DistributionModelTracker.variables.update({
-            variable: generator
-        })
-
-    @staticmethod
-    def remove_distribution(variable: str):
-        DistributionModelTracker.variables.pop(variable, None)
+            for a, b in y.get_parameters().items():
+                print(f"  {a} ({b.distribution_type}):")
+                for c, d in b.parameter_names.items():
+                    print(f"    {c}")
+                    print(f"      {d.min}")
+                    print(f"      {d.max}")
+                    print(f"      {d.value}")
 
 
 class DistributionSlider(html.Div):
@@ -99,22 +100,38 @@ class DistributionSlider(html.Div):
             "border": "2px black solid",
             "margin": "2px",
         }
+        self.variable_name = id
         self.id = {
             "type": "slider-content",
             "index": id
         }
+        # TODO: proper layout -> 
+        # need:
+        #       div for variable
+        #       div for each part of the mixture mode
+        #       button to add another mixture model
+        self.children = []
 
-        if m:=DistributionModelTracker.get_variable(id):
-            distr_name = m.name
+    def update(self):
+        self.children = []
+        if not SliderTracker.variable_names:
+            self.children.append("empty")
+            return
+
+
+
+        if (m:=SliderTracker.get_distributions(self.variable_name)) and (n:=m.get_parameters()):
+            distr_names = [o.distribution_type for o in n.values()]
+            values = [o.parameter_names for o in n.values()]
         else:
             distr_name = DEFAULT_DISTRIBUTION[0]
-        if m:=SliderValueTracker.get_parameters(id):
-            values = m
-        else:
-            values = ParameterTracker()
+            values = ParameterTracker(distr_name)
             for kwargs_, ranges_ in DEFAULT_DISTRIBUTION[1].values.items():
                 ranges = RangeTracker(ranges_.min, ranges_.max, ranges_.init)
                 values.set_parameter(kwargs_, ranges)
+            distr_names = [distr_name]
+            values = [values]
+
 
         self.children = []
         for param, initial_values in values.parameter_names.items():
@@ -126,7 +143,7 @@ class DistributionSlider(html.Div):
             sliders = dbc.Row()
             sliders.children = []
 
-            parmeter_values = SliderValueTracker.get_parameters(id)
+            parmeter_values = SliderTracker.get_parameters(id)
             if parmeter_values and (ranges:=parmeter_values.get_parameter(param)):
                 min_ = ranges.min
                 max_ = ranges.max
@@ -136,12 +153,12 @@ class DistributionSlider(html.Div):
                 max_ = initial_values.max
                 value_ = initial_values.value
                 ranges = RangeTracker(min_, max_, value_)
-                if m:=SliderValueTracker.get_parameters(id):
+                if m:=SliderTracker.get_parameters(id):
                     m.set_parameter(param, ranges)
                 else:
-                    new_param = ParameterTracker()
+                    new_param = ParameterTracker(distr_name)
                     new_param.set_parameter(param, ranges)
-                    SliderValueTracker.set_value_parameters(id, new_param)
+                    SliderTracker.set_value_parameters(id, new_param)
 
             min_field = InputField(
                 id={
@@ -211,6 +228,7 @@ class DistributionComponent(html.Div):
         self.children.extend([
             dbc.Row(html.Label(f"Variable: {id}")),
             html.Hr(),
+            # TODO: make new component here
             dbc.Row([
                 dbc.Col(html.Label("Distribution: "), width="auto"),
                 dbc.Col(
@@ -234,7 +252,8 @@ class DistributionComponent(html.Div):
                         children=DistributionSlider(id=id)
                     )
                 )
-            )
+            ),
+            html.Button(children="aaaa", id={"type": "some-button", "index": id})
         ])
 
 
@@ -245,51 +264,32 @@ class DistributionBuilderComponent(html.Div):
         # TODO: this singleton controls all distribution components; like graph
         self.children: List[DistributionComponent] = []
         self.nodes = graph_builder_comp.graph_builder.graph
-        for node in self.nodes.keys():
-            self.children.append(DistributionComponent(node))
-            # choice = "normal"
-            # distr = DISTRIBUTION_MAPPING.get("normal")
-            # assert distr, "error"
-            # name = DEFAULT_DISTRIBUTION[0]
-            # generator = DEFAULT_DISTRIBUTION[1].generator
-            # DISTRIBUTION_CHOICE_TRACKER.update({node: (choice, distr)})
-            # DistritbutionModelTracker.update_distribution(
-            #     node, DistributionGenerator(name, generator)
-            # )
-            # for kwargs_, range_ in distr.values.items():
-            #     new_range = RangeTracker(range_.min, range_.max, range_.init)
-            #     if m:=SliderValueTracker.get_parameters(node):
-            #         m.set_parameter(kwargs_, new_range)
-            #     else:
-            #         new_param = ParameterTracker()
-            #         new_param.set_parameter(kwargs_, new_range)
-            #         SliderValueTracker.set_value_parameters(node, new_param)
+        self.update()
 
     def add_node(self):
-        self.children = []
+        variables = SliderTracker.get_distributions().keys()
+        diff = set(self.nodes.keys()).difference(variables)
+        assert diff and len(diff) == 1, "error"
+        to_add = list(diff)[0]
+        SliderTracker.add_new_variable(to_add)
+        self.update()
+        
         for node in self.nodes.keys():
             self.children.append(DistributionComponent(node))
 
     def remove_node(self):
+        variables = SliderTracker.get_distributions().keys()
+        diff = set(variables).difference(set(self.nodes.keys()))
+        assert diff and len(diff) == 1, "error"
+        to_remove = list(diff)[0]
+        SliderTracker.remove_variable(to_remove)
+        self.update()
+
+    def update(self):
         self.children = []
         for node in self.nodes.keys():
             self.children.append(DistributionComponent(node))
 
-
-        vars = DistributionModelTracker.variables.keys()
-        diff = set(vars).difference(set(self.nodes.keys()))
-        assert len(diff) == 1, "error"
-        to_remove = list(diff)[0]
-        DistributionModelTracker.remove_distribution(to_remove)
-
-        # TODO: naming
-        # x = list(set(DISTRIBUTION_CHOICE_TRACKER.keys()).difference(
-        #     set(self.nodes.keys())
-        # ))
-        # assert len(x) == 1, "error"
-        # [x] = x
-        # DISTRIBUTION_CHOICE_TRACKER.pop(x, None)
-        SliderValueTracker.remove_variable(to_remove)
 
 
 distribution_builder_component = DistributionBuilderComponent(
@@ -306,24 +306,9 @@ class DistributionViewComponent(html.Div):
         # TODO: naming
         super().__init__()
         self.id = {"type": "distr_graph", "index": id}
-        # values = DISTRIBUTION_VALUES_TRACKER.get(var)
-        values = SliderValueTracker.get_parameters(var)
+        values = SliderTracker.get_parameters(var)
         assert values, "error"
         value_dict = dict(map(lambda y: (y[0], y[1].value), values.parameter_names.items()))
-
-        # distribution_info = DISTRIBUTION_CHOICE_TRACKER.get(var)
-        # assert distribution_info, "error"
-        # distribution_class = distribution_info[1]
-        # assert distribution_class, "error"
-        # distribution_class = distribution_class.generator
-        # data = distribution_class.rvs(**value_dict, size=DistributionViewComponent.NR_POINTS)
-        # fig = ff.create_distplot([data], [id], show_rug=False, curve_type="kde")
-        # self.children = Graph(id=f"graph-{id}", figure=fig)
-        # self.style = {
-        #     "border": "2px black solid",
-        #     "margin": "2px",
-        # }
-
         distribution_info = DistributionModelTracker.get_variable(var)
         assert distribution_info, "error"
         generator = distribution_info.generator
@@ -356,7 +341,6 @@ class DistributionViewContainer(html.Div):
         )
         self.children.extend(
             [DistributionViewComponent(id=x, var=x)
-                # for x in DISTRIBUTION_CHOICE_TRACKER.keys()]
                 for x in DistributionModelTracker.variables.keys()]
         )
 
@@ -374,11 +358,11 @@ distribution_view = DistributionViewContainer(id="distr_view")
     Input({"type": "slider-norm", "index": MATCH}, "value"),
     Input({"type": "slider-norm", "index": MATCH}, "tooltip"),
     State({"type": "slider-norm", "index": MATCH}, "id"),
-    prevent_initial_call=True
+    # prevent_initial_call=True
 )
 def slider_sync(input1, input2, input3, tt, id_):
     node, kwarg = id_.get("index").split("-")
-    if (m:=SliderValueTracker.get_parameters(node)) and m.get_parameter(kwarg):
+    if (m:=SliderTracker.get_parameters(node)) and m.get_parameter(kwarg):
         new_range = RangeTracker(input1, input2, input3)
         m.set_parameter(kwarg, new_range)
     return input1, input2, tt
@@ -395,33 +379,31 @@ def check(input_1):
     Output({"type": "slider-div", "index": MATCH}, "children"),
     Input({"type": "distribution-options", "index": MATCH}, "value"),
     Input({"type": "slider-content", "index": MATCH}, "id"),
-    prevent_initial_call=True
+    # prevent_initial_call=True
 )
 def distribution_update(choice: str, id_: dict):
     distribution = DISTRIBUTION_MAPPING.get(choice)
     assert distribution, "distr not found"
     var_name = id_.get("index")
     assert var_name, "no varname"
-
-    # DISTRIBUTION_CHOICE_TRACKER.update({var_name: (choice, distribution)})
-
     DistributionModelTracker.update_distribution(
         var_name, DistributionGenerator(choice, distribution.generator)
     )
 
-    SliderValueTracker.remove_variable(var_name)
-    new_params = ParameterTracker()
+    SliderTracker.remove_variable(var_name)
+    new_params = ParameterTracker(choice)
     for kwargs_, range_ in distribution.values.items():
         new_range = RangeTracker(range_.min, range_.max, range_.init)
         new_params.set_parameter(kwargs_, new_range)
-    SliderValueTracker.set_value_parameters(var_name, new_params)
+    SliderTracker.set_value_parameters(var_name, new_params)
+    SliderTracker.show()
     new_comp = DistributionSlider(var_name)
     return new_comp
 
 @callback(
     Output("distr_view", "children", allow_duplicate=True),
     Input("update_button", "n_clicks"),
-    prevent_initial_call=True
+    # prevent_initial_call=True
 )
 def udpate_view(_):
     if ctx.triggered_id == "update_button":
@@ -431,7 +413,7 @@ def udpate_view(_):
 @callback(
     Output("distr_view", "children", allow_duplicate=True),
     Input("distribution-builder-component", "children"),
-    prevent_initial_call=True
+    # prevent_initial_call=True
 )
 def udpate_view_2(_):
     return distribution_view.children

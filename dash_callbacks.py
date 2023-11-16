@@ -1,6 +1,8 @@
 from dash import callback, ctx,  Output, Input, State, ALL
+from graph_builder import GraphBuilderComponent
+from sliders import DistributionBuilderComponent
 
-def setup_callbacks(gbc, dbc):
+def setup_callbacks(gbc: GraphBuilderComponent, dbc: DistributionBuilderComponent):
     graph_builder_component = gbc
     distribution_builder_component = dbc
 

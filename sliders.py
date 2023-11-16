@@ -30,63 +30,63 @@ class ParameterTracker:
     def get_distribution_type(self):
         return self.distribution_type
 
-    def get_parameters(self):
+    def get_ranges(self):
         return self.parameter_names
 
-    def get_parameter(self, parameter: str):
+    def get_range(self, parameter: str):
         return self.parameter_names.get(parameter)
 
-    def set_parameter(self, parameter: str, ranges: RangeTracker):
+    def set_range(self, parameter: str, ranges: RangeTracker):
         self.parameter_names.update({
             parameter: ranges
         })
 
 
-class DistributionTracker:
+class SubVariableTracker:
     def __init__(self) -> None:
-        self.distributions: Dict[str, ParameterTracker] = {}
+        self.sub_variables: Dict[str, ParameterTracker] = {}
 
-    def get_parameters(self):
-        return self.distributions
+    def get_sub_variables(self):
+        return self.sub_variables
 
-    def get_parameter(self, param: str):
-        return self.distributions.get(param)
+    def get_parameters(self, param: str):
+        return self.sub_variables.get(param)
 
     def set_distribution(self, var_name: str, params: ParameterTracker):
-        self.distributions.update({var_name: params})
+        self.sub_variables.update({var_name: params})
 
 
 class SliderTracker:
-    variable_names: Dict[str, DistributionTracker] = {}
+    variables: Dict[str, SubVariableTracker] = {}
 
     @staticmethod
-    def get_distributions():
-        return SliderTracker.variable_names
+    def get_variables():
+        return SliderTracker.variables
 
     @staticmethod
-    def get_distribution(variable: str):
-        return SliderTracker.variable_names.get(variable)
+    def get_sub_variables(variable: str):
+        return SliderTracker.variables.get(variable)
 
     @staticmethod
     def add_new_variable(variable: str):
-        new_distr = DistributionTracker()
+        new_distr = SubVariableTracker()
         new_params = ParameterTracker(DEFAULT_DISTRIBUTION[0])
         for param, ranges in DEFAULT_DISTRIBUTION[1].values.items():
             new_range = RangeTracker(ranges.min, ranges.max, ranges.init)
-            new_params.set_parameter(param, new_range)
+            new_params.set_range(param, new_range)
         new_distr.set_distribution(f"{variable}_1", new_params)
-        SliderTracker.variable_names.update({variable: new_distr})
+        SliderTracker.variables.update({variable: new_distr})
 
     @staticmethod
     def remove_variable(variable: str):
-        assert SliderTracker.variable_names.get(variable) is not None, "error"
-        SliderTracker.variable_names.pop(variable)
+        assert SliderTracker.variables.get(variable) is not None, "error"
+        SliderTracker.variables.pop(variable)
 
     @staticmethod
     def show():
-        for x, y in SliderTracker.variable_names.items():
+        for x, y in SliderTracker.variables.items():
             print(f"{x}:")
-            for a, b in y.get_parameters().items():
+            for a, b in y.get_sub_variables().items():
                 print(f"  {a} ({b.distribution_type}):")
                 for c, d in b.parameter_names.items():
                     print(f"    {c}")
@@ -105,17 +105,17 @@ class DistributionSlider(html.Div):
         }
         self.variable_name = variable
         self.id = {
-            "type": "slider-content",
+            "type": "distribution-slider",
             "index": sub_variable
         }
         self.children = []
 
-        variable_info = SliderTracker.get_distribution(variable) 
-        assert variable_info, "error"
-        sub_variable_info = variable_info.get_parameter(sub_variable)
-        assert sub_variable_info, "error"
+        sub_variables = SliderTracker.get_sub_variables(variable) 
+        assert sub_variables, "error"
+        parameters = sub_variables.get_parameters(sub_variable)
+        assert parameters, "error"
 
-        for param, ranges in sub_variable_info.get_parameters().items():
+        for param, ranges in parameters.get_ranges().items():
             self.children.append(html.Label(param))
 
             min_field = InputField(
@@ -140,8 +140,7 @@ class DistributionSlider(html.Div):
                 marks=None,
                 tooltip={"placement": "top", "always_visible": True},
                 id={
-                    # TODO: rename "type"
-                    "type": "slider-norm",
+                    "type": "slider-value",
                     "index": f"{sub_variable}-{param}"
                 }
             )
@@ -164,13 +163,13 @@ class DistributionComponent(html.Div):
         self.id = variable
         self.children = []
 
-        distribution = SliderTracker.get_distribution(variable)
-        assert distribution, "error"
+        sub_variables = SliderTracker.get_sub_variables(variable)
+        assert sub_variables, "error"
         self.children.extend([
             dbc.Row(html.Label(f"{variable}")),
             html.Hr()
         ])
-        for sub_variable, parameters in distribution.get_parameters().items():
+        for sub_variable, parameters in sub_variables.get_sub_variables().items():
             self.children.extend([
                 dbc.Row([
                     dbc.Col(html.Label("Distribution: "), width="auto"),
@@ -188,10 +187,6 @@ class DistributionComponent(html.Div):
                 dbc.Row(
                     dbc.Col(
                         html.Div(
-                            id={
-                                "type": "slider-div",
-                                "index": sub_variable,
-                            },
                             children=DistributionSlider(
                                 variable=variable, sub_variable=sub_variable
                             )
@@ -202,8 +197,8 @@ class DistributionComponent(html.Div):
             ])
         self.children.append(
             html.Button(
-                children="aaaa",
-                id={"type": "some-button", "index": variable}
+                children="mixture",
+                id={"type": "mixture-button", "index": variable}
             )
         )
 
@@ -222,7 +217,7 @@ class DistributionBuilderComponent(html.Div):
 
 
     def add_node(self):
-        variables = SliderTracker.get_distributions().keys()
+        variables = SliderTracker.get_variables().keys()
         diff = set(self.nodes.keys()).difference(variables)
         assert diff and len(diff) == 1, "error"
         to_add = list(diff)[0]
@@ -230,7 +225,7 @@ class DistributionBuilderComponent(html.Div):
         self.update()
 
     def remove_node(self):
-        variables = SliderTracker.get_distributions().keys()
+        variables = SliderTracker.get_variables().keys()
         diff = set(variables).difference(set(self.nodes.keys()))
         assert diff and len(diff) == 1, "error"
         to_remove = list(diff)[0]
@@ -299,6 +294,40 @@ distribution_builder_component = DistributionBuilderComponent(
 
 
 # slider specific callbacks
+
+@callback(
+    Output({"type": "slider-value", "index": MATCH}, "min"),
+    Output({"type": "slider-value", "index": MATCH}, "max"),
+    Output({"type": "slider-value", "index": MATCH}, "value"),
+    Output({"type": "slider-value", "index": MATCH}, "tooltip"),
+    Output({"type": "input-slider-min", "index": MATCH}, "value"),
+    Output({"type": "input-slider-max", "index": MATCH}, "value"),
+    Input({"type": "slider-value", "index": MATCH}, "value"),
+    Input({"type": "input-slider-min", "index": MATCH}, "value"),
+    Input({"type": "input-slider-max", "index": MATCH}, "value"),
+    State({"type": "slider-value", "index": MATCH}, "id"),
+    State({"type": "slider-value", "index": MATCH}, "tooltip"),
+    prevent_initial_call=True
+)
+def slider_update(value_, min_, max_, id_, tooltip_):
+    sub_variable, param = id_.get("index").split("-")
+    variable = sub_variable.split("_")[0]
+
+    sub_variables = SliderTracker.get_sub_variables(variable)
+    assert sub_variables, "error1"
+    parameters = sub_variables.get_parameters(sub_variable)
+    assert parameters, "error2"
+    ranges = parameters.get_range(param)
+    assert ranges, "error3"
+    min_ = min(min_, max_-1)
+    value_ = max(value_, min_)
+    value_ = min(value_, max_)
+    ranges.value = value_
+    ranges.min = min_
+    ranges.max = max_
+    print(value_)
+
+    return min_, max_, value_, tooltip_, min_, max_
 
 # @callback(
 #     Output({"type": "slider-norm", "index": MATCH}, "min"),

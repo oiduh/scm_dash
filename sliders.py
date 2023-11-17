@@ -22,10 +22,13 @@ class RangeTracker:
 class ParameterTracker:
     def __init__(self, distribution_type: str) -> None:
         self.distribution_type = distribution_type
-        self.parameter_names: Dict[str, RangeTracker] = dict()
         distribution = DISTRIBUTION_MAPPING.get(distribution_type)
         assert distribution, "error"
         self.generator: Generator = distribution.generator
+        self.parameter_names: Dict[str, RangeTracker] = dict()
+        for param_, range_ in distribution.values.items():
+            default_range = RangeTracker(range_.min, range_.max, range_.init)
+            self.parameter_names.update({param_: default_range})
 
     def get_distribution_type(self):
         return self.distribution_type
@@ -170,31 +173,47 @@ class DistributionComponent(html.Div):
             html.Hr()
         ])
         for sub_variable, parameters in sub_variables.get_sub_variables().items():
-            self.children.extend([
-                dbc.Row([
-                    dbc.Col(html.Label("Distribution: "), width="auto"),
-                    dbc.Col(
-                        Dropdown(
-                            id={
-                                "type": "distribution-options",
-                                "index": sub_variable
-                            },
-                            options=list(DISTRIBUTION_MAPPING.keys()),
-                            value=parameters.distribution_type
-                        )
-                    )
-                ]),
-                dbc.Row(
-                    dbc.Col(
-                        html.Div(
-                            children=DistributionSlider(
-                                variable=variable, sub_variable=sub_variable
+            self.children.append(
+                html.Div(
+                    style={
+                        "border": "2px black solid",
+                        "margin": "2px",
+                    },
+                    children=[
+                        html.Label(sub_variable),
+                        html.Hr(),
+                        dbc.Row([
+                            dbc.Col(html.Label("Distribution: "), width="auto"),
+                            dbc.Col(
+                                Dropdown(
+                                    id={
+                                        "type": "distribution-options",
+                                        "index": sub_variable
+                                    },
+                                    options=list(DISTRIBUTION_MAPPING.keys()),
+                                    value=parameters.distribution_type
+                                )
                             )
+                        ]),
+                        dbc.Row(
+                            dbc.Col(
+                                html.Div(
+                                    id={
+                                        "type": "slider-container",
+                                        "index": sub_variable
+                                    },
+                                    children=DistributionSlider(
+                                        variable=variable, sub_variable=sub_variable
+                                    )
+                                )
+                            )
+                        ),
+                        html.Button(
+                            children="remove",
+                            id={"type": "remove-mixture", "index": variable}
                         )
-                    )
-                ),
-
-            ])
+                    ])
+            )
         self.children.append(
             html.Button(
                 children="mixture",
@@ -325,60 +344,28 @@ def slider_update(value_, min_, max_, id_, tooltip_):
     ranges.value = value_
     ranges.min = min_
     ranges.max = max_
-    print(value_)
 
     return min_, max_, value_, tooltip_, min_, max_
 
-# @callback(
-#     Output({"type": "slider-norm", "index": MATCH}, "min"),
-#     Output({"type": "slider-norm", "index": MATCH}, "max"),
-#     Output({"type": "slider-norm", "index": MATCH}, "tooltip"),
-#     Input({"type": "input-slider-min", "index": MATCH}, "value"),
-#     Input({"type": "input-slider-max", "index": MATCH}, "value"),
-#     Input({"type": "slider-norm", "index": MATCH}, "value"),
-#     Input({"type": "slider-norm", "index": MATCH}, "tooltip"),
-#     State({"type": "slider-norm", "index": MATCH}, "id"),
-#     # prevent_initial_call=True
-# )
-# def slider_sync(input1, input2, input3, tt, id_):
-#     node, kwarg = id_.get("index").split("-")
-#     if (m:=SliderTracker.get_parameters(node)) and m.get_parameter(kwarg):
-#         new_range = RangeTracker(input1, input2, input3)
-#         m.set_parameter(kwarg, new_range)
-#     return input1, input2, tt
-#
-# @callback(
-#     Output({"type": "distr_graph", "index": ALL}, "children"),
-#     Input({"type": "slider-norm", "index": ALL}, "value")
-# )
-# def check(input_1):
-#     print(input_1)
-#     raise PreventUpdate
-#
-# @callback(
-#     Output({"type": "slider-div", "index": MATCH}, "children"),
-#     Input({"type": "distribution-options", "index": MATCH}, "value"),
-#     Input({"type": "slider-content", "index": MATCH}, "id"),
-#     # prevent_initial_call=True
-# )
-# def distribution_update(choice: str, id_: dict):
-#     distribution = DISTRIBUTION_MAPPING.get(choice)
-#     assert distribution, "distr not found"
-#     var_name = id_.get("index")
-#     assert var_name, "no varname"
-#     DistributionModelTracker.update_distribution(
-#         var_name, DistributionGenerator(choice, distribution.generator)
-#     )
-#
-#     SliderTracker.remove_variable(var_name)
-#     new_params = ParameterTracker(choice)
-#     for kwargs_, range_ in distribution.values.items():
-#         new_range = RangeTracker(range_.min, range_.max, range_.init)
-#         new_params.set_parameter(kwargs_, new_range)
-#     SliderTracker.set_value_parameters(var_name, new_params)
-#     SliderTracker.show()
-#     new_comp = DistributionSlider(var_name)
-#     return new_comp
+@callback(
+    Output({"type": "slider-container", "index": MATCH}, "children"),
+    Input({"type": "distribution-options", "index": MATCH}, "value"),
+    Input({"type": "slider-container", "index": MATCH}, "id"),
+    prevent_initial_call=True
+)
+def distribution_choice_update(choice: str, id_: dict):
+    sub_variable_name = id_.get("index")
+    assert sub_variable_name, "error"
+    variable_name = sub_variable_name.split("_")[0]
+    sub_variable = SliderTracker.get_sub_variables(variable_name)
+    assert sub_variable, "error"
+
+    new_params = ParameterTracker(choice)
+    sub_variable.set_distribution(sub_variable_name, new_params)
+    updated_slider = DistributionSlider(sub_variable_name, variable_name)
+
+    return updated_slider
+
 #
 # @callback(
 #     Output("distr_view", "children", allow_duplicate=True),

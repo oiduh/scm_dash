@@ -231,23 +231,24 @@ class DistributionComponent(html.Div):
                         )
                     ])
             )
-        self.children.append(
+        self.children.extend([
             html.Button(
                 children="mixture",
                 id={"type": "add-mixture", "index": variable},
                 n_clicks=0
-            )
-        )
+            ),
+            html.Button(
+                children="inspect",
+                id={"type": "inspect", "index": variable}
+            ),
+        ])
 
 
 class DistributionBuilderComponent(html.Div):
-    # TODO: this class needs a callback -> when nodes added/deleted/updated
     def __init__(self, id, graph_builder_comp: GraphBuilderComponent):
         super().__init__(id=id)
-        # TODO: this singleton controls all distribution components; like graph
         self.children = "empty"
         self.nodes = graph_builder_comp.graph_builder.graph
-        # initial nodes init -> a, b
         for node in self.nodes.keys():
             SliderTracker.add_new_variable(node)
         self.update()
@@ -281,53 +282,18 @@ distribution_builder_component = DistributionBuilderComponent(
 )
 
 
-# class DistributionViewComponent(html.Div):
-#     NR_POINTS = 300
-#     def __init__(self, id, var):
-#         # TODO: seed set via input
-#         np.random.seed(0)
-#         # TODO: naming
-#         super().__init__()
-#         self.id = {"type": "distr_graph", "index": id}
-#         values = SliderTracker.get_parameters(var)
-#         assert values, "error"
-#         value_dict = dict(map(lambda y: (y[0], y[1].value), values.parameter_names.items()))
-#         distribution_info = DistributionModelTracker.get_variable(var)
-#         assert distribution_info, "error"
-#         generator = distribution_info.generator
-#         data = generator.rvs(**value_dict, size=DistributionViewComponent.NR_POINTS)
-#         fig = ff.create_distplot([data], [id], show_rug=False, curve_type="kde")
-#         self.children = Graph(id=f"graph-{id}", figure=fig)
-#         self.style = {
-#             "border": "2px black solid",
-#             "margin": "2px",
-#         }
-#
-#
-# class DistributionViewContainer(html.Div):
-#     def __init__(self, id):
-#         super().__init__(id=id)
-#         self.children = []
-#         self.children.append(
-#             html.Button(id="update_button", children="update")
-#         )
-#         self.children.extend(
-#             [DistributionViewComponent(id=x, var=x)
-#                 # for x in DISTRIBUTION_CHOICE_TRACKER.keys()]
-#                 for x in DistributionModelTracker.variables.keys()]
-#         )
-#
-#     def update(self):
-#         self.children = []
-#         self.children.append(
-#             html.Button(id="update_button", children="update")
-#         )
-#         self.children.extend(
-#             [DistributionViewComponent(id=x, var=x)
-#                 for x in DistributionModelTracker.variables.keys()]
-#         )
-#
-# distribution_view = DistributionViewContainer(id="distr_view")
+class DistributionViewContainer(html.Div):
+    NR_POINTS = 1200
+    def __init__(self, id):
+        super().__init__(id=id)
+        self.style = {
+            "border": "2px black solid",
+            "margin": "2px",
+        }
+        self.children = "empty"
+
+
+distribution_view = DistributionViewContainer(id="test-graph")
 
 
 # slider specific callbacks
@@ -436,6 +402,50 @@ def remove_mixture(button_, state_):
     state_[index] = updated_variable.children
 
     return state_, [0 for _ in range(len(button_))]
+
+@callback(
+    Output("test-graph", "children"),
+    Input({"type": "inspect", "index": ALL}, "n_clicks"),
+    prevent_initial_call=True
+)
+def inspect_distribution(_):
+
+    triggered_button = ctx.triggered_id
+    if not triggered_button:
+        raise PreventUpdate
+
+
+    variable_name = triggered_button.get("index")
+    assert variable_name, "error"
+
+    variable = SliderTracker.get_sub_variables(variable_name)
+    assert variable, "error"
+    sub_variables = variable.get_sub_variables()
+    sub_variable_count = len(sub_variables)
+    partition, rest = divmod(DistributionViewContainer.NR_POINTS, sub_variable_count)
+    x = [partition for _ in range(sub_variable_count)]
+    y = [1 if idx < rest else 0 for idx, _ in enumerate(range(sub_variable_count))]
+    z = [a + b for a, b in zip(x,y)]
+    data_container, sub_variable_names, distribution_types = [], [], []
+    for (sub_variable, parameters), nr_points in zip(sub_variables.items(), z):
+        distribution_types.append(parameters.distribution_type)
+        sub_variable_names.append(sub_variable)
+        generator = parameters.generator
+        value_dict = dict(map(lambda x: (x[0], x[1].value), parameters.get_ranges().items()))
+        data = generator.rvs(**value_dict, size=nr_points)
+        data_container.append(data)
+
+    legend = list(map(lambda x: f"{x[0]}, {x[1]}", zip(sub_variable_names, distribution_types)))
+    fig_1 = ff.create_distplot(data_container, legend, show_rug=False, curve_type="kde")
+
+    data_container_2 = [x for y in data_container for x in y]
+    fig_2 = ff.create_distplot([data_container_2], [variable_name], show_rug=False, curve_type="kde")
+
+
+    return [
+        Graph(id="some-graph-1", figure=fig_1),
+        Graph(id="some-graph-2", figure=fig_2),
+    ]
 
 
 #

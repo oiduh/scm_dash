@@ -46,17 +46,31 @@ class ParameterTracker:
 
 
 class SubVariableTracker:
-    def __init__(self) -> None:
+    def __init__(self, variable: str) -> None:
+        self.variable = variable
         self.sub_variables: Dict[str, ParameterTracker] = {}
+        self.counter = 0
 
     def get_sub_variables(self):
         return self.sub_variables
 
-    def get_parameters(self, param: str):
-        return self.sub_variables.get(param)
+    def get_parameters(self, sub_variable: str):
+        return self.sub_variables.get(sub_variable)
 
-    def set_distribution(self, var_name: str, params: ParameterTracker):
-        self.sub_variables.update({var_name: params})
+    def add_distribution(self):
+        self.counter += 1
+        new_params = ParameterTracker(DEFAULT_DISTRIBUTION[0])
+        self.sub_variables.update({f"{self.variable}_{self.counter}": new_params})
+
+    def set_distribution(self, sub_var_name: str, params: ParameterTracker):
+        self.sub_variables.update({sub_var_name: params})
+
+    def remove_sub_variable(self, sub_variable: str):
+        assert self.sub_variables.get(sub_variable), "does not exist"
+        if len(self.sub_variables.keys()) > 1:
+            return self.sub_variables.pop(sub_variable, None)
+        else:
+            return None
 
 
 class SliderTracker:
@@ -72,12 +86,13 @@ class SliderTracker:
 
     @staticmethod
     def add_new_variable(variable: str):
-        new_distr = SubVariableTracker()
-        new_params = ParameterTracker(DEFAULT_DISTRIBUTION[0])
-        for param, ranges in DEFAULT_DISTRIBUTION[1].values.items():
-            new_range = RangeTracker(ranges.min, ranges.max, ranges.init)
-            new_params.set_range(param, new_range)
-        new_distr.set_distribution(f"{variable}_1", new_params)
+        new_distr = SubVariableTracker(variable)
+        new_distr.add_distribution()
+        # new_params = ParameterTracker(DEFAULT_DISTRIBUTION[0])
+        # for param, ranges in DEFAULT_DISTRIBUTION[1].values.items():
+        #     new_range = RangeTracker(ranges.min, ranges.max, ranges.init)
+        #     new_params.set_range(param, new_range)
+        # new_distr.add_distribution(variable, new_params)
         SliderTracker.variables.update({variable: new_distr})
 
     @staticmethod
@@ -163,7 +178,7 @@ class DistributionComponent(html.Div):
             "border": "2px black solid",
             "margin": "2px",
         }
-        self.id = variable
+        self.id = {"type": "variable-container", "index": variable}
         self.children = []
 
         sub_variables = SliderTracker.get_sub_variables(variable)
@@ -175,6 +190,7 @@ class DistributionComponent(html.Div):
         for sub_variable, parameters in sub_variables.get_sub_variables().items():
             self.children.append(
                 html.Div(
+                    id={"type": "sub-variable-container", "index": sub_variable},
                     style={
                         "border": "2px black solid",
                         "margin": "2px",
@@ -210,14 +226,16 @@ class DistributionComponent(html.Div):
                         ),
                         html.Button(
                             children="remove",
-                            id={"type": "remove-mixture", "index": variable}
+                            id={"type": "remove-mixture", "index": sub_variable},
+                            n_clicks=0
                         )
                     ])
             )
         self.children.append(
             html.Button(
                 children="mixture",
-                id={"type": "mixture-button", "index": variable}
+                id={"type": "add-mixture", "index": variable},
+                n_clicks=0
             )
         )
 
@@ -365,6 +383,60 @@ def distribution_choice_update(choice: str, id_: dict):
     updated_slider = DistributionSlider(sub_variable_name, variable_name)
 
     return updated_slider
+
+@callback(
+    Output({"type": "variable-container", "index": MATCH}, "children",
+           allow_duplicate=True),
+    Input({"type": "add-mixture", "index": MATCH}, "n_clicks"),
+    State({"type": "variable-container", "index": MATCH}, "id"),
+    prevent_initial_call=True
+)
+def add_mixture(button_, id_):
+    if button_ == 0:
+        raise PreventUpdate
+    index = id_.get("index")
+    assert index, "error"
+    variable = index.split("_")[0]
+    sub_variables = SliderTracker.get_sub_variables(variable)
+    assert sub_variables, "error"
+    sub_variables.add_distribution()
+
+    return DistributionComponent(variable).children
+
+
+@callback(
+    Output({"type": "variable-container", "index": ALL}, "children",
+           allow_duplicate=True),
+    Output({"type": "remove-mixture", "index": ALL}, "n_clicks"),
+    Input({"type": "remove-mixture", "index": ALL}, "n_clicks"),
+    State({"type": "variable-container", "index": ALL}, "children"),
+    prevent_initial_call=True
+)
+def remove_mixture(button_, state_):
+    triggered_button = ctx.triggered_id
+    assert triggered_button is not None, "error"
+    sub_variable_name: str = triggered_button.get("index", None)
+    assert sub_variable_name and isinstance(sub_variable_name, str), "error"
+    variable_name = sub_variable_name.split("_")
+    assert variable_name, "error"
+    variable_name = variable_name[0]
+
+    index = list(SliderTracker.get_variables().keys())
+    index = index.index(variable_name)
+
+    if sum(button_) == 0:
+        raise PreventUpdate
+
+    variable = SliderTracker.get_sub_variables(variable_name)
+    assert variable, "error"
+    if not variable.remove_sub_variable(sub_variable_name):
+        return state_, [0 for _ in range(len(button_))]
+
+    updated_variable = DistributionComponent(variable_name)
+    state_[index] = updated_variable.children
+
+    return state_, [0 for _ in range(len(button_))]
+
 
 #
 # @callback(

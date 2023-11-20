@@ -1,13 +1,13 @@
 from dash import Dash, callback, html, Output, Input, State, ALL, MATCH, ctx
-from dash.dcc import Slider, Input as InputField, Dropdown, Graph
+from dash.dcc import RadioItems, Slider, Input as InputField, Dropdown, Graph
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from distributions_builder import(
     DistributionsEntry, DISTRIBUTION_MAPPING, Range, Generator,
     DEFAULT_DISTRIBUTION
 )
-from typing import Any, Tuple, Optional, List, Dict, get_args
-from graph_builder import GraphBuilderComponent, graph_builder_component
+from typing import Any, Tuple, Optional, List, Dict, Literal, get_args
+from graph_builder import GraphBuilderComponent, GraphBuilderView, graph_builder_component
 import plotly.figure_factory as ff
 import numpy as np
 
@@ -50,6 +50,7 @@ class SubVariableTracker:
         self.variable = variable
         self.sub_variables: Dict[str, ParameterTracker] = {}
         self.counter = 0
+        self.visibility: Literal["hide", "show"] = "show"
 
     def get_sub_variables(self):
         return self.sub_variables
@@ -75,6 +76,7 @@ class SubVariableTracker:
 
 class SliderTracker:
     variables: Dict[str, SubVariableTracker] = {}
+    last_updated: Optional[str] = None
 
     @staticmethod
     def get_variables():
@@ -88,11 +90,6 @@ class SliderTracker:
     def add_new_variable(variable: str):
         new_distr = SubVariableTracker(variable)
         new_distr.add_distribution()
-        # new_params = ParameterTracker(DEFAULT_DISTRIBUTION[0])
-        # for param, ranges in DEFAULT_DISTRIBUTION[1].values.items():
-        #     new_range = RangeTracker(ranges.min, ranges.max, ranges.init)
-        #     new_params.set_range(param, new_range)
-        # new_distr.add_distribution(variable, new_params)
         SliderTracker.variables.update({variable: new_distr})
 
     @staticmethod
@@ -187,8 +184,24 @@ class DistributionComponent(html.Div):
             dbc.Row(html.Label(f"{variable}")),
             html.Hr()
         ])
+        self.children.append(
+            RadioItems(
+                id={"type": "variable-visibility", "index": variable},
+                options=["hide", "show"], value=sub_variables.visibility,
+                inline=True
+            )
+        )
+        sub_variable_container = html.Div(
+            id={"type": "all-subvariables", "index": variable},
+            style={
+                "border": "2px red solid",
+                "margin": "2px",
+                "display": sub_variables.visibility
+            },
+        )
+        sub_variable_container.children = []
         for sub_variable, parameters in sub_variables.get_sub_variables().items():
-            self.children.append(
+            sub_variable_container.children.append(
                 html.Div(
                     id={"type": "sub-variable-container", "index": sub_variable},
                     style={
@@ -231,7 +244,7 @@ class DistributionComponent(html.Div):
                         )
                     ])
             )
-        self.children.extend([
+        sub_variable_container.children.extend([
             html.Button(
                 children="mixture",
                 id={"type": "add-mixture", "index": variable},
@@ -242,6 +255,7 @@ class DistributionComponent(html.Div):
                 id={"type": "inspect", "index": variable}
             ),
         ])
+        self.children.append(sub_variable_container)
 
 
 class DistributionBuilderComponent(html.Div):
@@ -283,7 +297,7 @@ distribution_builder_component = DistributionBuilderComponent(
 
 
 class DistributionViewContainer(html.Div):
-    NR_POINTS = 1200
+    NR_POINTS = 1333
     def __init__(self, id):
         super().__init__(id=id)
         self.style = {
@@ -292,6 +306,36 @@ class DistributionViewContainer(html.Div):
         }
         self.children = "empty"
 
+    @staticmethod
+    def create_graphs(variable_name: str):
+        # TODO: make function to set or refresh seed
+        np.random.seed(0)
+        variable = SliderTracker.get_sub_variables(variable_name)
+        assert variable, "error"
+        sub_variables = variable.get_sub_variables()
+        sub_variable_count = len(sub_variables)
+        partition, rest = divmod(DistributionViewContainer.NR_POINTS, sub_variable_count)
+        x = [partition for _ in range(sub_variable_count)]
+        y = [1 if idx < rest else 0 for idx, _ in enumerate(range(sub_variable_count))]
+        z = [a + b for a, b in zip(x,y)]
+        data_container, sub_variable_names, distribution_types = [], [], []
+        for (sub_variable, parameters), nr_points in zip(sub_variables.items(), z):
+            distribution_types.append(parameters.distribution_type)
+            sub_variable_names.append(sub_variable)
+            generator = parameters.generator
+            value_dict = dict(map(lambda x: (x[0], x[1].value), parameters.get_ranges().items()))
+            data = generator.rvs(**value_dict, size=nr_points)
+            data_container.append(data)
+
+        legend = list(map(lambda x: f"{x[0]}, {x[1]}", zip(sub_variable_names, distribution_types)))
+        fig_1 = ff.create_distplot(data_container, legend, show_rug=False, curve_type="kde")
+
+        data_container_2 = [x for y in data_container for x in y]
+        fig_2 = ff.create_distplot([data_container_2], [variable_name], show_rug=False, curve_type="kde")
+
+        return [
+            Graph(figure=fig_1), Graph(figure=fig_2)
+        ]
 
 distribution_view = DistributionViewContainer(id="test-graph")
 
@@ -328,6 +372,8 @@ def slider_update(value_, min_, max_, id_, tooltip_):
     ranges.value = value_
     ranges.min = min_
     ranges.max = max_
+
+    SliderTracker.last_updated = variable
 
     return min_, max_, value_, tooltip_, min_, max_
 
@@ -404,7 +450,7 @@ def remove_mixture(button_, state_):
     return state_, [0 for _ in range(len(button_))]
 
 @callback(
-    Output("test-graph", "children"),
+    Output("test-graph", "children", allow_duplicate=True),
     Input({"type": "inspect", "index": ALL}, "n_clicks"),
     prevent_initial_call=True
 )
@@ -418,52 +464,33 @@ def inspect_distribution(_):
     variable_name = triggered_button.get("index")
     assert variable_name, "error"
 
+    return DistributionViewContainer.create_graphs(variable_name)
+
+@callback(
+    Output({"type": "all-subvariables", "index": MATCH}, "style"),
+    Input({"type": "variable-visibility", "index": MATCH}, "value"),
+    State({"type": "all-subvariables", "index": MATCH}, "style"),
+    State({"type": "all-subvariables", "index": MATCH}, "id")
+)
+def trigger_visibility(visibility_option: str, current_style: dict, id_: dict):
+    variable_name = id_.get("index")
+    assert variable_name, "error"
     variable = SliderTracker.get_sub_variables(variable_name)
     assert variable, "error"
-    sub_variables = variable.get_sub_variables()
-    sub_variable_count = len(sub_variables)
-    partition, rest = divmod(DistributionViewContainer.NR_POINTS, sub_variable_count)
-    x = [partition for _ in range(sub_variable_count)]
-    y = [1 if idx < rest else 0 for idx, _ in enumerate(range(sub_variable_count))]
-    z = [a + b for a, b in zip(x,y)]
-    data_container, sub_variable_names, distribution_types = [], [], []
-    for (sub_variable, parameters), nr_points in zip(sub_variables.items(), z):
-        distribution_types.append(parameters.distribution_type)
-        sub_variable_names.append(sub_variable)
-        generator = parameters.generator
-        value_dict = dict(map(lambda x: (x[0], x[1].value), parameters.get_ranges().items()))
-        data = generator.rvs(**value_dict, size=nr_points)
-        data_container.append(data)
+    if visibility_option == "show":
+        variable.visibility = "show"
+        current_style.update({"display": "block"})
+    else:
+        variable.visibility = "hide"
+        current_style.update({"display": "none"})
+    return current_style
 
-    legend = list(map(lambda x: f"{x[0]}, {x[1]}", zip(sub_variable_names, distribution_types)))
-    fig_1 = ff.create_distplot(data_container, legend, show_rug=False, curve_type="kde")
-
-    data_container_2 = [x for y in data_container for x in y]
-    fig_2 = ff.create_distplot([data_container_2], [variable_name], show_rug=False, curve_type="kde")
-
-
-    return [
-        Graph(id="some-graph-1", figure=fig_1),
-        Graph(id="some-graph-2", figure=fig_2),
-    ]
-
-
-#
-# @callback(
-#     Output("distr_view", "children", allow_duplicate=True),
-#     Input("update_button", "n_clicks"),
-#     # prevent_initial_call=True
-# )
-# def udpate_view(_):
-#     if ctx.triggered_id == "update_button":
-#         distribution_view.update()
-#     return distribution_view.children
-#
-# @callback(
-#     Output("distr_view", "children", allow_duplicate=True),
-#     Input("distribution-builder-component", "children"),
-#     # prevent_initial_call=True
-# )
-# def udpate_view_2(_):
-#     return distribution_view.children
-#
+@callback(
+    Output("test-graph", "children"),
+    Input({"type": "slider-value", "index": ALL}, "value"),
+    prevent_initial_call=True
+)
+def graph_sync(_):
+    last_updated = SliderTracker.last_updated
+    assert last_updated, "error"
+    return DistributionViewContainer.create_graphs(last_updated)

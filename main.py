@@ -3,8 +3,8 @@ import dash_bootstrap_components as dbc
 from dash.dcc import Tabs, Tab
 
 from graph_builder import graph_builder_component, graph_builder_view
-# from sliders import distribution_builder_component, distribution_view
 from sliders import distribution_builder_component, distribution_view
+from mechanisms import mechanism_builder_component
 
 from dash_callbacks import setup_callbacks
 
@@ -20,7 +20,8 @@ class MenuComponent(html.Div):
                     children=graph_builder_component),
                 Tab(id="distributions-menu", label="Distributions",
                     children=distribution_builder_component),
-                Tab(id="mechanisms-menu", label="Mechanisms"),
+                Tab(id="mechanisms-menu", label="Mechanisms", 
+                    children=mechanism_builder_component),
             ])
         ]
 
@@ -56,5 +57,9 @@ if __name__ == "__main__":
             ])
         ])
     ])
-    setup_callbacks(graph_builder_component, distribution_builder_component)
+    setup_callbacks(
+        graph_builder_component,
+        distribution_builder_component,
+        mechanism_builder_component
+    )
     app.run(debug=True,)

@@ -262,31 +262,38 @@ class DistributionBuilderComponent(html.Div):
     def __init__(self, id, graph_builder_comp: GraphBuilderComponent):
         super().__init__(id=id)
         self.children = "empty"
-        self.nodes = graph_builder_comp.graph_builder.graph
-        for node in self.nodes.keys():
+        self.graph_builder = graph_builder_comp.graph_builder
+        for node in self.graph_builder.graph.keys():
             SliderTracker.add_new_variable(node)
         self.update()
 
-
     def add_node(self):
+        print("dbc add")
         variables = SliderTracker.get_variables().keys()
-        diff = set(self.nodes.keys()).difference(variables)
-        assert diff and len(diff) == 1, "error"
-        to_add = list(diff)[0]
-        SliderTracker.add_new_variable(to_add)
-        self.update()
+        print(variables)
+        print(self.graph_builder.graph.keys())
+        print(graph_builder_component.graph_builder.graph)
+        diff = set(self.graph_builder.graph.keys()).difference(variables)
+        if diff:
+        # assert diff and len(diff) == 1, "error"
+            to_add = list(diff)[0]
+            SliderTracker.add_new_variable(to_add)
+            self.update()
 
     def remove_node(self):
+        print("dbc remove")
         variables = SliderTracker.get_variables().keys()
-        diff = set(variables).difference(set(self.nodes.keys()))
-        assert diff and len(diff) == 1, "error"
-        to_remove = list(diff)[0]
-        SliderTracker.remove_variable(to_remove)
-        self.update()
+        diff = set(variables).difference(set(self.graph_builder.graph.keys()))
+        if diff:
+            # assert diff and len(diff) == 1, "error"
+            to_remove = list(diff)[0]
+            SliderTracker.remove_variable(to_remove)
+            self.update()
 
     def update(self):
+        print("dbc update")
         self.children = []
-        for node in self.nodes.keys():
+        for node in self.graph_builder.graph.keys():
             self.children.append(DistributionComponent(node))
 
 
@@ -297,6 +304,7 @@ distribution_builder_component = DistributionBuilderComponent(
 
 
 class DistributionViewContainer(html.Div):
+    # TODO: make NR_POINTS configurable
     NR_POINTS = 1333
     def __init__(self, id):
         super().__init__(id=id)
@@ -327,15 +335,15 @@ class DistributionViewContainer(html.Div):
             data = generator.rvs(**value_dict, size=nr_points)
             data_container.append(data)
 
+        # graph with individual components
         legend = list(map(lambda x: f"{x[0]}, {x[1]}", zip(sub_variable_names, distribution_types)))
         fig_1 = ff.create_distplot(data_container, legend, show_rug=False, curve_type="kde")
 
+        # graph with combined components
         data_container_2 = [x for y in data_container for x in y]
         fig_2 = ff.create_distplot([data_container_2], [variable_name], show_rug=False, curve_type="kde")
 
-        return [
-            Graph(figure=fig_1), Graph(figure=fig_2)
-        ]
+        return [Graph(figure=fig_1), Graph(figure=fig_2)]
 
 distribution_view = DistributionViewContainer(id="test-graph")
 
@@ -488,9 +496,12 @@ def trigger_visibility(visibility_option: str, current_style: dict, id_: dict):
 @callback(
     Output("test-graph", "children"),
     Input({"type": "slider-value", "index": ALL}, "value"),
+    State("test-graph", "children"),
     prevent_initial_call=True
 )
-def graph_sync(_):
+def graph_sync(_, current_state):
     last_updated = SliderTracker.last_updated
-    assert last_updated, "error"
-    return DistributionViewContainer.create_graphs(last_updated)
+    if last_updated:
+        return DistributionViewContainer.create_graphs(last_updated)
+    else:
+        return current_state

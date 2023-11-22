@@ -270,12 +270,8 @@ class DistributionBuilderComponent(html.Div):
     def add_node(self):
         print("dbc add")
         variables = SliderTracker.get_variables().keys()
-        print(variables)
-        print(self.graph_builder.graph.keys())
-        print(graph_builder_component.graph_builder.graph)
         diff = set(self.graph_builder.graph.keys()).difference(variables)
         if diff:
-        # assert diff and len(diff) == 1, "error"
             to_add = list(diff)[0]
             SliderTracker.add_new_variable(to_add)
             self.update()

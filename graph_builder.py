@@ -6,12 +6,6 @@ from copy import deepcopy
 from dash_cytoscape import Cytoscape
 
 
-GRAPH: Dict[str, Set[str]] = {
-    'a': set('b'),
-    'b': set(),
-}
-
-
 class GraphTracker:
     out_edges: Dict[str, Set[str]] = dict()
     in_edges: Dict[str, Set[str]] = dict()
@@ -55,20 +49,18 @@ class GraphBuilder:
 
         effects = out_copy.get(cause)
         causes = in_copy.get(effect)
-        assert effects and causes
+        assert effects is not None and causes is not None
 
         effects.add(effect)
         out_copy.update({cause: effects})
         causes.add(cause)
         in_copy.update({effect: causes})
 
-        return GraphBuilder.is_cyclic(out_copy), out_copy, in_copy
-
-
-assert False, "TODO: continue refactoring here"
+        return not GraphBuilder.is_cyclic(out_copy), out_copy, in_copy
 
     @staticmethod
-    def is_cyclic_util(node, visited, rec_stack, graph):
+    def is_cyclic_util(node: str, visited: Dict[str, bool],
+                       rec_stack: Dict[str, bool], graph: Dict[str, Set[str]]):
         visited[node] = True
         rec_stack[node] = True
         for neighbor in graph[node]:
@@ -81,12 +73,13 @@ assert False, "TODO: continue refactoring here"
         return False
 
     @staticmethod
-    def is_cyclic(new_graph):
-        visited = {k: False for k in new_graph.keys()}
-        rec_stack = {k: False for k in new_graph.keys()}
-        for node in new_graph.keys():
+    def is_cyclic(out_nodes: Dict[str, Set[str]]):
+        visited = {k: False for k in out_nodes.keys()}
+        rec_stack = {k: False for k in out_nodes.keys()}
+
+        for node in out_nodes.keys():
             if not visited[node]:
-                if GraphBuilder.is_cyclic_util(node, visited, rec_stack, new_graph):
+                if GraphBuilder.is_cyclic_util(node, visited, rec_stack, out_nodes):
                     return True
         return False
 
@@ -98,21 +91,40 @@ assert False, "TODO: continue refactoring here"
             last = cpy[-1]
             new = cpy[:-1] + chr(ord(last) + 1)
             GraphBuilder.current_id = new
-        self.graph[GraphBuilder.current_id] = set()
+        
+        self.graph_tracker.out_edges.update({GraphBuilder.current_id: set()})
+        self.graph_tracker.in_edges.update({GraphBuilder.current_id: set()})
 
-    def remove_node(self, node_to_remove):
-        assert node_to_remove in self.graph, "error"
-        print(f"before: {self.graph}")
-        self.graph.pop(node_to_remove, None)
-        for _, effects in self.graph.items():
-            if node_to_remove in effects:
-                effects.discard(node_to_remove)
-        print(f"after: {self.graph}")
+    def remove_node(self, node_to_remove: str):
+        out_edges_check = node_to_remove in self.graph_tracker.out_edges
+        in_edges_check = node_to_remove in self.graph_tracker.in_edges
+        assert out_edges_check and in_edges_check, "node does not exist"
+        self.graph_tracker.out_edges.pop(node_to_remove)
+        self.graph_tracker.in_edges.pop(node_to_remove)
+        for node in self.graph_tracker.out_edges.keys():
+            tmp_out = self.graph_tracker.out_edges.get(node)
+            tmp_in = self.graph_tracker.in_edges.get(node)
+            assert tmp_out is not None and tmp_in is not None, "error"
+            tmp_out.discard(node_to_remove)
+            tmp_in.discard(node_to_remove)
+            self.graph_tracker.out_edges.update({node: tmp_out})
+            self.graph_tracker.in_edges.update({node: tmp_in})
 
-    def remove_edge(self, source_node, target_node):
-        x = self.graph.get(source_node)
-        assert x is not None, "error"
-        x.discard(target_node)
+    def remove_edge(self, source_node: str, target_node: str):
+        a = source_node in self.graph_tracker.out_edges.keys()
+        b = target_node in self.graph_tracker.out_edges.keys()
+        c = source_node in self.graph_tracker.in_edges.keys()
+        d = target_node in self.graph_tracker.in_edges.keys()
+        assert all([a, b, c, d]), "error"
+        tmp_out = self.graph_tracker.out_edges.get(source_node)
+        assert tmp_out is not None and target_node in tmp_out, "error"
+        tmp_out.discard(target_node)
+        self.graph_tracker.out_edges.update({source_node: tmp_out})
+
+        tmp_in  = self.graph_tracker.in_edges.get(target_node)
+        assert tmp_in is not None and source_node in tmp_in, "error"
+        tmp_in.discard(source_node)
+        self.graph_tracker.in_edges.update({target_node: tmp_in})
 
 
 class NodeComponent(html.Div):
@@ -171,20 +183,21 @@ class GraphBuilderComponent(html.Div):
             'border': '2px black solid',
             'margin': '2px'
         }
-        for cause, effects in self.graph_builder.graph.items():
+        # for cause, effects in self.graph_builder.graph.items():
+        for cause, effects in self.graph_builder.graph_tracker.out_edges.items():
             new_node = NodeComponent(cause, effects)
             self.children[0].children.append(new_node)
 
     def add_node(self):
         self.graph_builder.new_node()
-        var_name = list(self.graph_builder.graph.keys())[-1]
+        var_name = list(self.graph_builder.graph_tracker.out_edges.keys())[-1]
         new_node = NodeComponent(var_name, set())
         self.children[0].children.append(new_node)
 
     def add_edge(self, source_node, target_node):
         edge = source_node, target_node
         assert self.graph_builder.add_edge(edge), "fatal error"
-        new_effects = self.graph_builder.graph.get(source_node)
+        new_effects = self.graph_builder.graph_tracker.out_edges.get(source_node)
         assert new_effects is not None, "fatal error"
         for idx, node_component in enumerate(self.children[0].children):
             if node_component.label == source_node:
@@ -200,7 +213,7 @@ class GraphBuilderComponent(html.Div):
                 break
         for idx, node in enumerate(self.children[0].children):
             assert isinstance(node, NodeComponent), "error"
-            updated_effects = self.graph_builder.graph.get(node.label)
+            updated_effects = self.graph_builder.graph_tracker.out_edges.get(node.label)
             assert updated_effects is not None, "error"
             self.children[0].children[idx] = NodeComponent(node.label, updated_effects)
 
@@ -208,7 +221,7 @@ class GraphBuilderComponent(html.Div):
         self.graph_builder.remove_edge(source_node, target_node)
         for idx, node in enumerate(self.children[0].children):
             assert isinstance(node, NodeComponent), "error"
-            updated_effects = self.graph_builder.graph.get(node.label)
+            updated_effects = self.graph_builder.graph_tracker.out_edges.get(node.label)
             assert updated_effects is not None, "error"
             self.children[0].children[idx] = NodeComponent(node.label, updated_effects)
 
@@ -254,3 +267,30 @@ class GraphBuilderView(html.Div):
         ]
 graph_builder_view = GraphBuilderView(id="graph-builder-view")
 
+
+if __name__ == "__main__":
+    x = graph_builder
+
+    print(x.graph_tracker.out_edges)
+    print(x.graph_tracker.in_edges)
+    print()
+
+    x.new_node()
+    print(x.graph_tracker.out_edges)
+    print(x.graph_tracker.in_edges)
+    print()
+
+    x.new_node()
+    print(x.graph_tracker.out_edges)
+    print(x.graph_tracker.in_edges)
+    print()
+
+    x.add_edge(("a", "c"))
+    x.add_edge(("a", "d"))
+    print(x.graph_tracker.out_edges)
+    print(x.graph_tracker.in_edges)
+    print()
+
+    x.remove_edge("a", "b")
+    print(x.graph_tracker.out_edges)
+    print(x.graph_tracker.in_edges)

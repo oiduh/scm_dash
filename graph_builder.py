@@ -12,39 +12,60 @@ GRAPH: Dict[str, Set[str]] = {
 }
 
 
+class GraphTracker:
+    out_edges: Dict[str, Set[str]] = dict()
+    in_edges: Dict[str, Set[str]] = dict()
+    aliases: Dict[str, str] = dict()
+
+graph_tracker = GraphTracker()
+graph_tracker.out_edges.update({"a": set("b"), "b": set()})
+graph_tracker.in_edges.update({"a": set(), "b": set("a")})
+
+
 class GraphBuilder:
-    current_id = 'b'
+    current_id = "b"
 
     def __init__(self) -> None:
-        global GRAPH
-        self.graph = GRAPH
-        self.len = len(self.graph.keys())
+        global graph_tracker
+        self.graph_tracker = graph_tracker
+        self.len = len(self.graph_tracker.out_edges.keys())
 
     def add_edge(self, new_edge: Tuple[str, str]) -> bool:
-        can_add, new_graph = self.can_add_edge(new_edge)
+        can_add, out_graph, in_graph = self.can_add_edge(new_edge)
         if can_add:
-            self.graph = new_graph
+            self.graph_tracker.out_edges = out_graph
+            self.graph_tracker.in_edges = in_graph
             self.len += 1
         return can_add
 
     def can_add_edge(self, new_edge: Tuple[str, str]):
         cause, effect = new_edge
-        graph_copy = deepcopy(self.graph)
+        assert cause in self.graph_tracker.out_edges
+        assert cause in self.graph_tracker.in_edges
+        assert effect in self.graph_tracker.out_edges
+        assert effect in self.graph_tracker.in_edges
 
-        if cause in self.graph and effect in self.graph[cause]:
-            return False, graph_copy
+        out_copy = deepcopy(self.graph_tracker.out_edges)
+        in_copy = deepcopy(self.graph_tracker.in_edges)
+        if (g:=out_copy.get(cause)) is not None and effect in g:
+            return False, out_copy, in_copy
 
-        if (g:=graph_copy.get(cause, None)) is not None:
-            assert isinstance(g, set), "error"
-            g.add(effect)
-        else:
-            graph_copy.update({cause: set(effect)})
+        # at this point add edges to the graph copies and check for cycles
+        # before returning values
 
-        # if adding node alwasy succeeds, this might be redundant
-        if (g:=graph_copy.get(effect, None)) is None:
-            graph_copy.update({effect: set()})
+        effects = out_copy.get(cause)
+        causes = in_copy.get(effect)
+        assert effects and causes
 
-        return not GraphBuilder.is_cyclic(graph_copy), graph_copy
+        effects.add(effect)
+        out_copy.update({cause: effects})
+        causes.add(cause)
+        in_copy.update({effect: causes})
+
+        return GraphBuilder.is_cyclic(out_copy), out_copy, in_copy
+
+
+assert False, "TODO: continue refactoring here"
 
     @staticmethod
     def is_cyclic_util(node, visited, rec_stack, graph):
@@ -233,76 +254,3 @@ class GraphBuilderView(html.Div):
         ]
 graph_builder_view = GraphBuilderView(id="graph-builder-view")
 
-
-if __name__ == '__main__':
-    app = Dash(__name__, external_stylesheets=[dbc.themes.CERULEAN])
-    app.layout = html.Div([
-        html.Div("graph builder"),
-        html.Hr(),
-        html.Div([
-            dbc.Row([
-                dbc.Col(
-                    dbc.Row([
-                        graph_builder_component
-                    ])
-                ),
-                dbc.Col(
-                    html.Div(
-                        Cytoscape(id="network-graph", layout={"name": "circle"},
-                                  userPanningEnabled=False,
-                                  zoomingEnabled=False,
-                                  # TODO: use stylesheets for arrows and style
-                                  # give attributes to nodes (cause/effect)
-                                  # assign actual mechanism to edges
-                                  # different colors for special nodes/edges
-                                  style={"width": "100%", "height": "800px"},
-                                  elements=[
-                                  # nodes
-                                  {"data": {"id": "one", "label": "node1"}},
-                                  {"data": {"id": "two", "label": "node2"}},
-                                  {"data": {"id": "three", "label": "node3"}},
-                                  {"data": {"id": "four", "label": "node4"}},
-                                  # edges
-                                  {"data": {"source": "one", "target": "two"}},
-                                  {"data": {"source": "two", "target": "three"}},
-                                  {"data": {"source": "three", "target": "four"}},
-                                  {"data": {"source": "one", "target": "three"}},
-                                  ],
-                                  stylesheet=[
-                                  {
-                                  "selector": "node",
-                                  "style": {
-                                  "label": "data(label)"
-                                  }
-                                  },
-                                  {
-                                  "selector": "edge",
-                                  "style": {
-                                  "curve-style": "bezier",
-                                  "target-arrow-shape": "triangle",
-                                  "arrow-scale": 2
-                                  }
-                                  }
-                                  ]), style={
-                            'border': '2px black solid',
-                            'margin': '2px'
-                        }
-                    )
-                )
-            ]),
-            dbc.Row([
-                dbc.Col(html.Div('123')),
-                dbc.Col(html.Div('456')),
-                dbc.Col(html.Div('789'))
-            ]),
-            dbc.Row([
-                dbc.Col(html.Div('123')),
-                dbc.Col(html.Div('456')),
-                dbc.Col(html.Div('789')),
-                dbc.Col(html.Div('123')),
-                dbc.Col(html.Div('456')),
-                dbc.Col(html.Div('789'))
-            ])
-        ])
-    ])
-    app.run(debug=True,)

@@ -110,19 +110,19 @@ def setup_callbacks(
     def update_edge_dropdowns(_):
         can_be_added = []
         can_be_removed = []
-        all_nodes = graph_builder_component.graph_builder.graph.keys()
+        all_nodes = graph_builder_component.graph_builder.graph_tracker.out_edges.keys()
         for node_i in all_nodes:
             can_be_added.append([])
             for node_j in all_nodes:
                 edge = node_i, node_j
-                can_add, _ = graph_builder_component.graph_builder.can_add_edge(edge)
+                can_add, *_ = graph_builder_component.graph_builder.can_add_edge(edge)
                 potential_effect = {
                     "label": node_j + (" (cycle)" if not can_add else ""),
                     "value": node_j,
                     "disabled": not can_add}
                 can_be_added[-1].append(potential_effect)
             can_be_removed.append([])
-            effects = graph_builder_component.graph_builder.graph.get(node_i)
+            effects = graph_builder_component.graph_builder.graph_tracker.out_edges.get(node_i)
             assert effects is not None, "error"
             for effect in effects:
                 removable = {"label": effect, "value": effect}
@@ -137,13 +137,13 @@ def setup_callbacks(
         Input("node-container", 'children')
     )
     def update_graph(*_):
-        graph = graph_builder_component.graph_builder.graph
+        graph = graph_builder_component.graph_builder
         nodes = [
             {"data": {"id": cause, "label": cause}}
-            for cause in graph.keys()
+            for cause in graph.graph_tracker.out_edges.keys()
         ]
         edges = []
-        for cause, effects in graph.items():
+        for cause, effects in graph.graph_tracker.out_edges.items():
             for effect in effects:
                 edges.append(
                     {"data": {"source": cause, "target": effect}}

@@ -49,23 +49,9 @@ class MechanismBuilderComponent(html.Div):
 
     def update(self):
         self.children = []
-        causes = {node: set() for node in self.graph_builder.graph.keys()}
-        for node, edges in self.graph_builder.graph.items():
-            # TODO: fix potential error
-            m = causes.get(node)
-            assert m is not None, "error"
-            m.add(f"n_{node}")
-            causes.update({node: m})
-            for x in edges:
-                m = causes.get(x)
-                assert m is not None, "error"
-                m.add(node)
-                causes.update({x: m})
 
 
-        print(causes)
-
-        for node, causes in causes.items():
+        for node, causes in self.graph_builder.graph_tracker.in_edges.items():
             self.children.append(
                 MechanismContainer(
                     id={"type": "mechanism-container", "index": node},

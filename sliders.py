@@ -1,13 +1,12 @@
-from dash import Dash, callback, html, Output, Input, State, ALL, MATCH, ctx
+from dash import callback, html, Output, Input, State, ALL, MATCH, ctx
 from dash.dcc import RadioItems, Slider, Input as InputField, Dropdown, Graph
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from distributions_builder import(
-    DistributionsEntry, DISTRIBUTION_MAPPING, Range, Generator,
-    DEFAULT_DISTRIBUTION
+    DISTRIBUTION_MAPPING, Generator, DEFAULT_DISTRIBUTION
 )
-from typing import Any, Tuple, Optional, List, Dict, Literal, get_args
-from graph_builder import GraphBuilderComponent, GraphBuilderView, graph_builder_component
+from typing import Optional, Dict, Literal
+from graph_builder import GraphBuilderComponent, graph_builder_component
 import plotly.figure_factory as ff
 import numpy as np
 
@@ -40,9 +39,7 @@ class ParameterTracker:
         return self.parameter_names.get(parameter)
 
     def set_range(self, parameter: str, ranges: RangeTracker):
-        self.parameter_names.update({
-            parameter: ranges
-        })
+        self.parameter_names.update({parameter: ranges})
 
 
 class SubVariableTracker:
@@ -70,8 +67,7 @@ class SubVariableTracker:
         assert self.sub_variables.get(sub_variable), "does not exist"
         if len(self.sub_variables.keys()) > 1:
             return self.sub_variables.pop(sub_variable, None)
-        else:
-            return None
+        return None
 
 
 class SliderTracker:
@@ -263,14 +259,14 @@ class DistributionBuilderComponent(html.Div):
         super().__init__(id=id)
         self.children = "empty"
         self.graph_builder = graph_builder_comp.graph_builder
-        for node in self.graph_builder.graph.keys():
+        for node in self.graph_builder.graph_tracker.out_edges.keys():
             SliderTracker.add_new_variable(node)
         self.update()
 
     def add_node(self):
         print("dbc add")
         variables = SliderTracker.get_variables().keys()
-        diff = set(self.graph_builder.graph.keys()).difference(variables)
+        diff = set(self.graph_builder.graph_tracker.out_edges.keys()).difference(variables)
         if diff:
             to_add = list(diff)[0]
             SliderTracker.add_new_variable(to_add)
@@ -279,7 +275,7 @@ class DistributionBuilderComponent(html.Div):
     def remove_node(self):
         print("dbc remove")
         variables = SliderTracker.get_variables().keys()
-        diff = set(variables).difference(set(self.graph_builder.graph.keys()))
+        diff = set(variables).difference(set(self.graph_builder.graph_tracker.out_edges.keys()))
         if diff:
             # assert diff and len(diff) == 1, "error"
             to_remove = list(diff)[0]
@@ -289,7 +285,7 @@ class DistributionBuilderComponent(html.Div):
     def update(self):
         print("dbc update")
         self.children = []
-        for node in self.graph_builder.graph.keys():
+        for node in self.graph_builder.graph_tracker.out_edges.keys():
             self.children.append(DistributionComponent(node))
 
 

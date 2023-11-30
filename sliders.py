@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 from distributions_builder import(
     DISTRIBUTION_MAPPING, Generator, DEFAULT_DISTRIBUTION
 )
-from typing import Optional, Dict, Literal
+from typing import Optional, Dict, Literal, List
 from graph_builder import GraphBuilderComponent, graph_builder_component
 import plotly.figure_factory as ff
 import numpy as np
@@ -43,11 +43,13 @@ class ParameterTracker:
 
 
 class SubVariableTracker:
+    NR_POINTS = 2000
     def __init__(self, variable: str) -> None:
         self.variable = variable
         self.sub_variables: Dict[str, ParameterTracker] = {}
         self.counter = 0
         self.visibility: Literal["hide", "show"] = "show"
+        self.data = []
 
     def get_sub_variables(self):
         return self.sub_variables
@@ -59,14 +61,35 @@ class SubVariableTracker:
         self.counter += 1
         new_params = ParameterTracker(DEFAULT_DISTRIBUTION[0])
         self.sub_variables.update({f"{self.variable}_{self.counter}": new_params})
+        self.generate_data()
+
+    def generate_data(self):
+        np.random.seed(0)
+        sub_variables = self.get_sub_variables()
+        sub_variable_count = len(sub_variables)
+        partition, rest = divmod(SubVariableTracker.NR_POINTS, sub_variable_count)
+        x = [partition for _ in range(sub_variable_count)]
+        y = [1 if idx < rest else 0 for idx, _ in enumerate(range(sub_variable_count))]
+        z = [a + b for a, b in zip(x,y)]
+        data_container = []
+        for parameters, nr_points in zip(sub_variables.values(), z):
+            generator = parameters.generator
+            value_dict = dict(map(lambda x: (x[0], x[1].value), parameters.get_ranges().items()))
+            data = generator.rvs(**value_dict, size=nr_points)
+            data_container.append(data)
+
+        self.data = data_container
 
     def set_distribution(self, sub_var_name: str, params: ParameterTracker):
         self.sub_variables.update({sub_var_name: params})
+        self.generate_data()
 
     def remove_sub_variable(self, sub_variable: str):
         assert self.sub_variables.get(sub_variable), "does not exist"
         if len(self.sub_variables.keys()) > 1:
-            return self.sub_variables.pop(sub_variable, None)
+            tmp = self.sub_variables.pop(sub_variable, None)
+            self.generate_data()
+            return tmp
         return None
 
 
@@ -80,7 +103,10 @@ class SliderTracker:
 
     @staticmethod
     def get_sub_variables(variable: str):
-        return SliderTracker.variables.get(variable)
+        variables = SliderTracker.variables.get(variable)
+        assert variables
+        variables.generate_data()
+        return variables
 
     @staticmethod
     def add_new_variable(variable: str):
@@ -264,7 +290,6 @@ class DistributionBuilderComponent(html.Div):
         self.update()
 
     def add_node(self):
-        print("dbc add")
         variables = SliderTracker.get_variables().keys()
         diff = set(self.graph_builder.graph_tracker.out_edges.keys()).difference(variables)
         if diff:
@@ -273,7 +298,6 @@ class DistributionBuilderComponent(html.Div):
             self.update()
 
     def remove_node(self):
-        print("dbc remove")
         variables = SliderTracker.get_variables().keys()
         diff = set(variables).difference(set(self.graph_builder.graph_tracker.out_edges.keys()))
         if diff:
@@ -283,7 +307,6 @@ class DistributionBuilderComponent(html.Div):
             self.update()
 
     def update(self):
-        print("dbc update")
         self.children = []
         for node in self.graph_builder.graph_tracker.out_edges.keys():
             self.children.append(DistributionComponent(node))
@@ -297,7 +320,6 @@ distribution_builder_component = DistributionBuilderComponent(
 
 class DistributionViewContainer(html.Div):
     # TODO: make NR_POINTS configurable
-    NR_POINTS = 1333
     def __init__(self, id):
         super().__init__(id=id)
         self.style = {
@@ -311,21 +333,10 @@ class DistributionViewContainer(html.Div):
         # TODO: make function to set or refresh seed
         np.random.seed(0)
         variable = SliderTracker.get_sub_variables(variable_name)
-        assert variable, "error"
-        sub_variables = variable.get_sub_variables()
-        sub_variable_count = len(sub_variables)
-        partition, rest = divmod(DistributionViewContainer.NR_POINTS, sub_variable_count)
-        x = [partition for _ in range(sub_variable_count)]
-        y = [1 if idx < rest else 0 for idx, _ in enumerate(range(sub_variable_count))]
-        z = [a + b for a, b in zip(x,y)]
-        data_container, sub_variable_names, distribution_types = [], [], []
-        for (sub_variable, parameters), nr_points in zip(sub_variables.items(), z):
-            distribution_types.append(parameters.distribution_type)
-            sub_variable_names.append(sub_variable)
-            generator = parameters.generator
-            value_dict = dict(map(lambda x: (x[0], x[1].value), parameters.get_ranges().items()))
-            data = generator.rvs(**value_dict, size=nr_points)
-            data_container.append(data)
+        assert variable
+        data_container = variable.data
+        sub_variable_names = variable.get_sub_variables().keys()
+        distribution_types = [x.distribution_type for x in variable.get_sub_variables().values()]
 
         # graph with individual components
         legend = list(map(lambda x: f"{x[0]}, {x[1]}", zip(sub_variable_names, distribution_types)))
@@ -460,6 +471,7 @@ def inspect_distribution(_):
     if not triggered_button:
         raise PreventUpdate
 
+    print(triggered_button)
 
     variable_name = triggered_button.get("index")
     assert variable_name, "error"

@@ -1,7 +1,14 @@
-plotly graphs:
-    - renderers -> default browser, alternative svg -> no menu, no interactive options, just static image
-      https://plotly.com/python/renderers/
-    - relation graph
-      https://plotly.com/python/plotly-express/
-    - more callbacks
-      https://dash.plotly.com/
+05.02.24
+TODO:
+    backend:
+        - [ ] save generated data
+        - [ ] meta data checks -> variable if params changed but no visual update
+        - [ ] save formula for mechanism
+        - [ ] verify formula for mechanism + generate new data
+    frontend:
+        - [ ] regression mechanism option
+        - [ ] classification mechanism option
+            - [ ] based on input (causes) + noise
+            - [ ] 
+        - [ ] simple visualisation for mechanisms? -> pca?
+    

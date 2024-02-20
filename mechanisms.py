@@ -1,14 +1,14 @@
-from ast import BinOp, Call, Constant, Load, Name
-from dash import MATCH, Input, Output, callback, html, State, ctx
+from ast import Name
+from dash import MATCH, Input, Output, callback, html, State
 from dash.exceptions import PreventUpdate
 from graph_builder import graph_builder_component
-from dash.dcc import Input as InputField
-from typing import Any, List, Dict
+from dash.dcc import Input as InputField, RadioItems
+from typing import Any, Dict
 import numpy as np
-from enum import Enum
 import ast
 import numpy as np
 from numpy.typing import NDArray
+
 
 # trignometry
 sin = np.sin
@@ -104,9 +104,6 @@ class ClassificationMechanism(BaseMechanism):
         if np.any(np.sum(results, axis=0) > 1.0):
             raise Exception("value belongs to more than one class")
 
-        # TODO: check all columns -> if one has no True value add new row,
-        #       where all False column become True -> undefined class
-        #       somehow mark empty classes
         results = np.vstack([results, np.full(len(list(self.inputs.values())[0]), False)])
         for idx, col in enumerate(np.sum(results, axis=0)):
             if col == 0:
@@ -141,6 +138,88 @@ class RegressionMechanism(BaseMechanism):
         return result
 
 
+class RegressionInputComponent(html.Div):
+    def __init__(self, id: dict[str, str]):
+        super().__init__(id=id)
+        node = id["index"]
+        self.style = {
+            "border": "2px black solid",
+            "margin": "2px",
+        }
+        self.children = [
+            InputField(
+                value="",
+                id={"type": "formula-field", "index": node},
+                type="text"
+            ),
+        ]
+
+class ClassificationInputComponent(html.Div):
+    def __init__(self, id: dict[str, str]):
+        super().__init__(id=id)
+        node = id["index"]
+        self.id = id
+        self.style = {
+            "border": "2px black solid",
+            "margin": "2px",
+        }
+        # initial class structure -> 2 classes: consequence and alternative
+        self.classes = 2
+        self.children = []
+        self.children.append(html.Div(
+            id={"type": "class-container", "index": node}, children=[
+                html.Div(children=[
+                    html.Label(f"class 1:  if "),
+                    InputField(
+                        value="",
+                        id={"type": "class-formula-field", "index": f"{node}-1"},
+                        type="text"
+                    ),
+                    html.Button(
+                        "remove class",
+                        id={"type": "remove-class", "index": f"{node}-1"}
+                    )
+                ])
+            ]
+        ))
+        self.children.append(
+            html.Div(children=[
+                html.Label("class 2: else"),
+            ])
+        )
+        self.children.append(
+            html.Button("add class", id={"type": "add-class", "index": node}),
+        )
+
+    def add_class(self):
+        button = self.children[-1]
+        self.children = self.children[:-2]
+        self.children.append(html.Div(
+            id={"type": "class-container", "index": id}, children=[
+                html.Div(children=[
+                    html.Label(f"class {self.classes}:  if "),
+                    InputField(
+                        value="",
+                        id={"type": "class-formula-field", "index": f"{self.id}-{self.classes}"},
+                        type="text"
+                    ),
+                    html.Button(
+                        "remove class",
+                        id={"type": "remove-class", "index": f"{self.id}-{self.classes}"}
+                    )
+                ]) 
+            ]
+        ))
+        self.classes += 1
+        self.children.append(html.Div(children=[
+            html.Label(f"class {self.classes}: else"),
+        ]))
+        self.children.append(button)
+
+    def remove_class(self):
+        pass
+
+
 class MechanismContainer(html.Div):
     def __init__(self, id, node, edges):
         super().__init__(id=id)
@@ -153,24 +232,15 @@ class MechanismContainer(html.Div):
         self.children.append(html.Hr())
         self.children.append(html.P("affected by: "+", ".join(list(edges))))
         self.children.extend([
-            html.Label(f"f({', '.join(sorted(list(edges)))}) = "),
-            InputField(
-                value="",
-                id={"type": "formula-field", "index": node},
-                type="text"
+            RadioItems(
+                id={"type": "mechanism-option", "index": node},
+                options=["regression", "classification"], value="regression",
+                inline=True
             ),
-            html.Button(
-                "verify",
-                id={"type": "verify-formula", "index": node}
-            ),
-            html.P(
-                "not verified",
-                id={"type": "formula-validity", "index": node},
-                style={
-                    "border": "2px yellow solid",
-                    "margin": "2px",
-                }
-            )
+            html.Div(id={"type": "mechanism-choice", "index": node}, children=[
+                RegressionInputComponent(id={"type": "regression-component", "index": node}),
+                # ClassificationInputComponent(id={"type": "classification-component", "index": node})
+            ]),
         ])
 
 
@@ -181,14 +251,13 @@ class MechanismBuilderComponent(html.Div):
             "border": "2px black solid",
             "margin": "2px",
         }
-        self.graph_builder = graph_builder_component.graph_builder
+        self.graph_tracker = graph_builder_component.graph_builder.graph_tracker
         self.update()
 
     def update(self):
         self.children = []
 
-
-        for node, causes in self.graph_builder.graph_tracker.in_edges.items():
+        for node, causes in self.graph_tracker.in_edges.items():
             self.children.append(
                 MechanismContainer(
                     id={"type": "mechanism-container", "index": node},
@@ -202,45 +271,50 @@ mechanism_builder_component = MechanismBuilderComponent(
 )
 
 @callback(
-    Output({"type": "formula-validity", "index": MATCH}, "style"),
-    Output({"type": "formula-validity", "index": MATCH}, "children"),
-    Input({"type": "verify-formula", "index": MATCH}, "n_clicks"),
-    State({"type": "formula-field", "index": MATCH}, "value"),
+    Output({"type": "mechanism-choice", "index": MATCH}, "children", allow_duplicate=True),
+    Input({"type": "mechanism-option", "index": MATCH}, "value"),
+    State({"type": "mechanism-option", "index": MATCH}, "id"),
     prevent_initial_call=True
 )
-def verify(_, input_formula: str):
-    triggered_id = ctx.triggered_id
-    if not triggered_id:
-        raise PreventUpdate
+def mechanism_type(choice: str, id_dict: dict[str, str]):
+    node_id = id_dict["index"]
+    causes = mechanism_builder_component.graph_tracker.in_edges[node_id]
+    match choice:
+        case "regression":
+            print("regression")
+            return RegressionInputComponent(id={"type": "regression-component", "index": node_id})
+        case "classification":
+            print("classification")
+            return ClassificationInputComponent(id={"type": "classification-component", "index": node_id})
+        case _:
+            raise PreventUpdate
 
-    variable = triggered_id.get("index")
-    assert variable, "error"
+@callback(
+    Output({"type": "mechanism-choice", "index": MATCH}, "children"),
+    Input({"type": "add-class", "index": MATCH}, "n_clicks"),
+    State({"type": "mechanism-choice", "index": MATCH}, "children"),
+    State({"type": "classification-component", "index": MATCH}, "id"),
+    prevent_initial_call=True
+)
+def add_class(button, current, id_):
+    # must be classification component
+    comp = id_["type"]
+    id_ = id_["index"]
+    print(f"add new class to '{comp}'-'{id_}'")
+    print(f"clicked: {button}")
+    print(current)
+    return current
 
+@callback(
+    Output({"type": "classification-component", "index": MATCH}, "children"),
+    Input({"type": "remove-class", "index": MATCH}, "n_clicks"),
+    # State({"type": "classification-component", "index": MATCH}, "children"),
+    # State({"type": "classification-component", "index": MATCH}, "id"),
+    prevent_initial_call=True
+)
+def remove(button):
+    pass
 
-    if not input_formula:
-        return(
-            {
-                "border": "2px yellow solid",
-                "margin": "2px",
-            },
-            "no formula"
-        )
-    elif input_formula.isdigit():
-        return(
-            {
-                "border": "2px green solid",
-                "margin": "2px",
-            },
-            "valid formula"
-        )
-    else:
-        return(
-            {
-                "border": "2px red solid",
-                "margin": "2px",
-            },
-            "invalid formula"
-        )
 
 if __name__ == "__main__":
     x = np.random.random(size=5)

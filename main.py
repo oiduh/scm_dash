@@ -1,65 +1,33 @@
-from dash import Dash, html, callback, Output, Input, ctx
+from dash import Dash, html
 import dash_bootstrap_components as dbc
-from dash.dcc import Tabs, Tab
 
-from graph_builder import graph_builder_component, graph_builder_view
-from sliders import distribution_builder_component, distribution_view
-from mechanisms import mechanism_builder_component
+from views.utils import Placeholder
+from views.graph import GraphBuilder
 
-from dash_callbacks import setup_callbacks
+from controllers import setup_callbacks
 
 
-class MenuComponent(html.Div):
-    def __init__(self, id):
-        super().__init__(id)
-        self.children = [
-            html.Label("Menu"),
-            html.Hr(),
-            Tabs(id="menu-tab", children=[
-                Tab(id="graph-builder-menu", label="Graph Builder",
-                    children=graph_builder_component),
-                Tab(id="distributions-menu", label="Distributions",
-                    children=distribution_builder_component),
-                Tab(id="mechanisms-menu", label="Mechanisms", 
-                    children=mechanism_builder_component),
-            ])
-        ]
-
-class GraphComponent(html.Div):
-    def __init__(self, id):
-        super().__init__(id)
-        self.children = [
-            html.Label("Graphs"),
-            html.Hr(),
-            Tabs(id="graph-tab", children=[
-                Tab(id="graph-builder-graph", label="Graph Builder",
-                    children=graph_builder_view),
-                Tab(id="distributions-graph", label="Distributions",
-                    children=distribution_view),
-            ])
-        ]
-
-
-
-if __name__ == "__main__":
-    app = Dash(__name__, external_stylesheets=[dbc.themes.CERULEAN])
-    app.layout = html.Div([
-        html.Div("causality app"),
-        html.Hr(),
-        html.Div([
-            dbc.Row([
-                dbc.Col([
-                    MenuComponent(id="menu-component")
-                ]),
-                dbc.Col([
-                    GraphComponent(id="graph-component")
-                ])
-            ])
+app = Dash(__name__, external_stylesheets=[dbc.themes.CERULEAN])
+app.layout = html.Div([
+    html.Div("Causality App"),
+    html.Hr(),
+    html.Div([
+        dbc.Tabs(id="tabs", children=[
+            dbc.Tab(id="tab1", label="Graph Builder", children=dbc.Row(children=[
+                dbc.Col(GraphBuilder()),
+                dbc.Col(Placeholder("view1")),
+            ])),
+            dbc.Tab(id="tab2", label="Distribution Builder", children=dbc.Row(children=[
+                dbc.Col(Placeholder("config2")),
+                dbc.Col(Placeholder("view2")),
+            ])),
+            dbc.Tab(id="tab3", label="Mechanism Builder", children=dbc.Row(children=[
+                dbc.Col(Placeholder("config3")),
+                dbc.Col(Placeholder("view3")),
+            ])),
         ])
     ])
-    setup_callbacks(
-        graph_builder_component,
-        distribution_builder_component,
-        mechanism_builder_component
-    )
-    app.run(debug=True,)
+])
+setup_callbacks()
+app.run(debug=True,)
+

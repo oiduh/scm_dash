@@ -7,7 +7,10 @@ from views.graph import GraphBuilder
 from controllers import setup_callbacks
 
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.CERULEAN])
+app = Dash(
+    __name__, external_stylesheets=[dbc.themes.CERULEAN],
+    prevent_initial_callbacks=True
+)
 app.layout = html.Div([
     html.Div("Causality App"),
     html.Hr(),

@@ -17,13 +17,17 @@ class GraphBuilder(html.Div):
             "margin": "3px",
         }
         self.children = []
-        self.children.extend([NodeBuilder(name) for name in graph.get_node_names()])
+        accordion = dbc.Accordion(always_open=True)
+        accordion.children = []
+        for name in graph.get_node_names():
+            accordion.children.append(dbc.AccordionItem(NodeBuilder(name), title=name))
+        self.children.append(accordion)
         self.children.append(html.Div(html.Button("Add Node", id="add-node-button")))
 
 
 class NodeBuilder(html.Div):
     def __init__(self, id: str):
-        super().__init__(id=id)
+        super().__init__(id={"type": "node-builder", "index": id})
         self.style = {
             "border": "3px green solid",
             "margin": "3px",
@@ -47,15 +51,21 @@ class NodeBuilder(html.Div):
                 dbc.Col([
                     dbc.Row(html.Div("Add Edge")),
                     dbc.Row([
-                        dbc.Col(dcc.Dropdown(options=can_add, searchable=False)),
-                        dbc.Col(html.Button("Confirm"))
+                        dbc.Col(dcc.Dropdown(
+                            options=can_add, searchable=False,
+                            id={"type": "add-edge-choice", "index": id}
+                        )),
+                        dbc.Col(html.Button("Confirm", id={"type": "add-edge-button","index": id}))
                     ], className="g-0")
                 ]),
                 dbc.Col([
                     dbc.Row(html.Div("Remove Edge")),
                     dbc.Row([
-                        dbc.Col(dcc.Dropdown(options=can_remove, searchable=False)),
-                        dbc.Col(html.Button("Confirm"))
+                        dbc.Col(dcc.Dropdown(
+                            options=can_remove, searchable=False,
+                            id={"type": "remove-edge-choice", "index": id}
+                        )),
+                        dbc.Col(html.Button("Confirm", id={"type": "remove-edge-button","index": id}))
                     ], className="g-0")
                 ]),
             ]),

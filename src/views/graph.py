@@ -1,6 +1,7 @@
 from dash import Dash, html, dcc
 import dash_bootstrap_components as dbc
-from typing import Optional, Any
+from dash_cytoscape import Cytoscape
+
 
 from models.graph import graph
 
@@ -79,6 +80,33 @@ class GraphViewer(html.Div):
     def __init__(self):
         super().__init__(id= "graph-viewer")
         self.style = {}  # TODO: at last
+        self.children = [Cytoscape(
+            id="network-graph", layout={"name": "circle"},
+            userPanningEnabled=False,
+            zoomingEnabled=False,
+            # TODO: use stylesheets for arrows and style
+            # give attributes to nodes (cause/effect)
+            # assign actual mechanism to edges
+            # different colors for special nodes/edges
+            style={"width": "100%", "height": "700px"},
+            elements=[],
+            stylesheet=[
+                {
+                    "selector": "node",
+                    "style": {
+                        "label": "data(label)"
+                    }
+                },
+                {
+                    "selector": "edge",
+                    "style": {
+                        "curve-style": "bezier",
+                        "target-arrow-shape": "triangle",
+                        "arrow-scale": 2
+                    }
+                }
+            ]
+        )]
 
 
 if __name__ == "__main__":

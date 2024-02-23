@@ -41,7 +41,7 @@ def setup_callbacks():
         return GraphBuilder().children
 
     @callback(
-        Output({"type": "node-builder", "index": ALL}, "children", allow_duplicate=True),
+        Output("graph-builder", "children", allow_duplicate=True),
         Input({"type": "add-edge-button", "index": ALL}, "n_clicks"),
         State({"type": "add-edge-choice", "index": ALL}, "value"),
         State({"type": "add-edge-choice", "index": ALL}, "id"),
@@ -63,10 +63,10 @@ def setup_callbacks():
         if not graph.can_add_edge(source, target):
             raise PreventUpdate
         graph.add_edge(source, target)
-        return [NodeBuilder(id).children for id in graph.get_node_ids()]
+        return GraphBuilder().children
 
     @callback(
-        Output({"type": "node-builder", "index": ALL}, "children", allow_duplicate=True),
+        Output("graph-builder", "children", allow_duplicate=True),
         Input({"type": "remove-edge-button", "index": ALL}, "n_clicks"),
         State({"type": "remove-edge-choice", "index": ALL}, "value"),
         State({"type": "remove-edge-choice", "index": ALL}, "id"),
@@ -88,5 +88,21 @@ def setup_callbacks():
         if target.id not in source.get_out_node_ids():
             raise PreventUpdate
         graph.remove_edge(source, target)
-        return [NodeBuilder(id).children for id in graph.get_node_ids()]
+        return GraphBuilder().children
+
+    @callback(
+        Output("network-graph", "elements"),
+        Input("graph-builder", 'children')
+    )
+    def update_graph(*_):
+        nodes = [{"data": {"id": cause, "label": cause}} for cause in graph.get_node_ids()]
+        edges = []
+        for cause in graph.get_nodes():
+            for effect in cause.out_nodes:
+                edges.append({"data": {"source": cause.id, "target": effect.id}})
+        for x in nodes:
+            print(x)
+        for x in edges:
+            print(x)
+        return nodes + edges
     

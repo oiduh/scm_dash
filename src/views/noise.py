@@ -1,8 +1,9 @@
 from dash import html
-from dash.dcc import Slider
+from dash.dcc import Dropdown, Slider, Input
 import dash_bootstrap_components as dbc
 
 from models.graph import graph
+from models.noise import Distribution
 
 
 class NoiseBuilder(html.Div):
@@ -39,17 +40,30 @@ class NoiseNodeBuilder(html.Div):
 
         col = dbc.Col()
         col.children = []
-        for param in distr.parameters.values():
-            col.children.append(dbc.Row(param.name))
-            col.children.append(dbc.Row(Slider(
-                min=param.min, max=param.max, step=param.step, value=param.current,
-                marks=None,
-                tooltip={"placement": "top", "always_visible": True},
-                id={
-                    "type": "slider-value",
-                    "index": f"{id[0]}-{id[1]}"
-                }
-            )))
+        parmeter_options = Distribution.parameter_options()
+        col.children.append(Dropdown(options=parmeter_options, value=parmeter_options[0]))
+        col.children.append(html.Hr())
+        for idx, param in enumerate(distr.parameters.values()):
+            col.children.append(dbc.Col([
+                dbc.Row(dbc.Col(param.name, width=1)),
+                dbc.Row([
+                    dbc.Col(["current", Input(type="number", size="10")]), 
+                    dbc.Col(["start", Input(type="number", size="15")]),
+                    dbc.Col(["end", Input(type="number", size="20")]),
+                ]),
+                dbc.Row(Slider(
+                    min=param.min, max=param.max, step=param.step, value=param.current,
+                    marks={param.min: str(param.min), param.max: str(param.max)},
+                    tooltip={"placement": "bottom", "always_visible": True},
+                    id={
+                        "type": "slider-value",
+                        "index": f"{id[0]}-{id[1]}-{param.name}"
+                    }
+                ))
+            ]))
+            if idx != len(distr.parameters) - 1:
+                col.children.append(html.Hr())
+
         self.children = [col]
 
 

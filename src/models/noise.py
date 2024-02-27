@@ -51,6 +51,13 @@ class Distribution:
     parameters: dict[str, Parameter[int] | Parameter[float]]
     generator: Generator
 
+    @staticmethod
+    def parameter_options():
+        options = [
+            "normal", "lognorm", "uniform", "laplace", "poisson", "binom", "bernoulli", "randint"
+        ]
+        return options
+
     @classmethod
     def get_distribution(cls, id: str, name: str):
         match name:

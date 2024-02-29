@@ -21,7 +21,6 @@ class NoiseContainer(html.Div):
     def __init__(self, id: str):
         super().__init__(id=id)
         node = graph.get_node_by_id(id)
-        print([x.id for x in node.data.get_distributions()])
         self.children = []
         accordion = dbc.Accordion(always_open=True)
         accordion.children = []
@@ -34,32 +33,57 @@ class NoiseContainer(html.Div):
 
 class NoiseNodeBuilder(html.Div):
     def __init__(self, id: tuple[str, str]):
-        super().__init__(id=f"{id[0]}_{id[1]}")
+        id_ = f"{id[0]}_{id[1]}"
+        super().__init__(id={"type": "noise-node-builder", "index": id_})
         distr = graph.get_node_by_id(id[0]).data.get_distribution_by_id(id[1])
         assert distr, "no params"
 
         col = dbc.Col()
         col.children = []
         parmeter_options = Distribution.parameter_options()
-        col.children.append(Dropdown(options=parmeter_options, value=parmeter_options[0]))
+        col.children.append(Dropdown(
+            options=parmeter_options, value=distr.name,
+            id={"type": "distribution-choice", "index": id_}
+        ))
         col.children.append(html.Hr())
         for idx, param in enumerate(distr.parameters.values()):
             col.children.append(dbc.Col([
-                dbc.Row(dbc.Col(param.name, width=1)),
+                dbc.Row(html.H3(param.name)),
                 dbc.Row([
-                    dbc.Col(["current", Input(type="number", size="10")]), 
-                    dbc.Col(["start", Input(type="number", size="15")]),
-                    dbc.Col(["end", Input(type="number", size="20")]),
-                ]),
+                    dbc.Col([
+                        dbc.Label("slider min: "),
+                        Input(
+                            id={"type": "slider-min", "index": f"{id_}_{param.name}"},
+                            value=param.slider_min, type="number", size="7",
+                            min=param.min, max=param.max
+                        )
+                    ], width=3),
+                    dbc.Col([
+                        dbc.Label("current: "),
+                        Input(
+                            id={"type": "current-value", "index": f"{id_}_{param.name}"},
+                            value=param.current, type="number", size="7",
+                            min=param.min, max=param.max
+                        )
+                    ], width=3), 
+                    dbc.Col([
+                        dbc.Label("slider max: "),
+                        Input(
+                            id={"type": "slider-max", "index": f"{id_}_{param.name}"},
+                            value=param.slider_max, type="number", size="7",
+                            min=param.min, max=param.max
+                        )
+                    ], width=3),
+                ], style={"height": 50}, justify="between"),
                 dbc.Row(Slider(
                     min=param.min, max=param.max, step=param.step, value=param.current,
                     marks={param.min: str(param.min), param.max: str(param.max)},
-                    tooltip={"placement": "bottom", "always_visible": True},
+                    tooltip={"placement": "top", "always_visible": True},
                     id={
-                        "type": "slider-value",
-                        "index": f"{id[0]}-{id[1]}-{param.name}"
+                        "type": "slider",
+                        "index": f"{id_}_{param.name}"
                     }
-                ))
+                ), style={"height": 50}, align="end")
             ]))
             if idx != len(distr.parameters) - 1:
                 col.children.append(html.Hr())

@@ -1,8 +1,5 @@
-from operator import index
-from random import choice
 from dash import ALL, callback, Output, Input, State, ctx
 from dash.exceptions import PreventUpdate
-from numpy import tri
 
 from models.graph import graph
 from views.graph import GraphBuilder, NodeBuilder
@@ -17,8 +14,6 @@ def setup_callbacks():
     def add_node(clicked):
         if not clicked:
             raise PreventUpdate
-
-        print("adding")
 
         graph.add_node()
         return GraphBuilder().children
@@ -36,7 +31,6 @@ def setup_callbacks():
         if not triggered_node or not (node_id := triggered_node.get("index")):
             raise PreventUpdate
 
-        print(f"removing: {node_id}")
         graph.remove_node(graph.get_node_by_id(node_id))
         return GraphBuilder().children
 
@@ -100,9 +94,5 @@ def setup_callbacks():
         for cause in graph.get_nodes():
             for effect in cause.out_nodes:
                 edges.append({"data": {"source": cause.id, "target": effect.id}})
-        for x in nodes:
-            print(x)
-        for x in edges:
-            print(x)
         return nodes + edges
     

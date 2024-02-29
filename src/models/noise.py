@@ -1,6 +1,5 @@
 from scipy.stats import rv_continuous as RVCont, rv_discrete as RVDisc
 import scipy.stats as stats
-from typing import Generic, TypeVar, Protocol, Any, Self
 from dataclasses import dataclass, field
 
 
@@ -8,28 +7,20 @@ class CONSTANTS:
     NR_DATA_POINTS: int = 3000
 
 
-class Number(Protocol):
-    def __lt__(self, other: Any, /) -> bool:
-        ...
-    def __sub__(self, other: Any, /) -> Self:
-        ...
-    def __add__(self, other: Any, /) -> Self:
-        ...
-T = TypeVar('T', bound=Number)
 Generator = RVCont | RVDisc
 
 
 @dataclass
-class Parameter(Generic[T]):
+class Parameter():
     name: str
-    min: T
-    slider_min: T
-    max: T
-    slider_max: T
-    current: T
-    step: T
+    min: float
+    slider_min: float
+    max: float
+    slider_max: float
+    current: float
+    step: float
 
-    def change_current(self, new_value: T):
+    def change_current(self, new_value: float):
         new_value = max(self.min, min(self.max, new_value))
         if new_value < self.slider_min:
             self.slider_min = new_value
@@ -37,10 +28,10 @@ class Parameter(Generic[T]):
             self.slider_max = new_value
         self.current = new_value
 
-    def change_slider_min(self, new_value: T):
+    def change_slider_min(self, new_value: float):
         self.slider_min = max(self.min, min(self.slider_max - self.step, new_value))
 
-    def change_slider_max(self, new_value: T):
+    def change_slider_max(self, new_value: float):
         self.slider_max = min(self.max, max(self.slider_min + self.step, new_value))
 
 
@@ -48,7 +39,7 @@ class Parameter(Generic[T]):
 class Distribution:
     id: str
     name: str
-    parameters: dict[str, Parameter[int] | Parameter[float]]
+    parameters: dict[str, Parameter]
     generator: Generator
 
     @staticmethod
@@ -131,7 +122,9 @@ class Data:
 
     def get_distribution_by_id(self, id: str):
         assert id in self.get_distribution_ids(), "no distribution for this id"
-        return self.distributions[id]
+        distribution = self.distributions.get(id)
+        assert distribution, "distribution error"
+        return distribution
 
     def get_free_id(self):
         free_ids = [d for d in self.distributions.keys() if not self.distributions.get(d)]

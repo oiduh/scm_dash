@@ -29,6 +29,8 @@ class NoiseContainer(html.Div):
             title = f"{id}_{var_id}"
             accordion.children.append(dbc.AccordionItem(NoiseNodeBuilder((id, var_id)), title=title))
         self.children.append(accordion)
+        self.children.append(html.Hr())
+        self.children.append(html.Button("Add distribution"))
 
 
 class NoiseNodeBuilder(html.Div):
@@ -46,32 +48,32 @@ class NoiseNodeBuilder(html.Div):
             id={"type": "distribution-choice", "index": id_}
         ))
         col.children.append(html.Hr())
-        for idx, param in enumerate(distr.parameters.values()):
+        for param in distr.parameters.values():
             col.children.append(dbc.Col([
                 dbc.Row(html.H3(param.name)),
                 dbc.Row([
                     dbc.Col([
                         dbc.Label("slider min: "),
                         Input(
-                            id={"type": "slider-min", "index": f"{id_}_{param.name}"},
+                            id={"type": "input-min", "index": f"{id_}_{param.name}"},
                             value=param.slider_min, type="number", size="7",
-                            min=param.min, max=param.max
+                            min=param.min, max=param.max, step=param.step
                         )
                     ], width=3),
                     dbc.Col([
                         dbc.Label("current: "),
                         Input(
-                            id={"type": "current-value", "index": f"{id_}_{param.name}"},
+                            id={"type": "input-value", "index": f"{id_}_{param.name}"},
                             value=param.current, type="number", size="7",
-                            min=param.min, max=param.max
+                            min=param.min, max=param.max, step=param.step
                         )
                     ], width=3), 
                     dbc.Col([
                         dbc.Label("slider max: "),
                         Input(
-                            id={"type": "slider-max", "index": f"{id_}_{param.name}"},
+                            id={"type": "input-max", "index": f"{id_}_{param.name}"},
                             value=param.slider_max, type="number", size="7",
-                            min=param.min, max=param.max
+                            min=param.min, max=param.max, step=param.step
                         )
                     ], width=3),
                 ], style={"height": 50}, justify="between"),
@@ -83,11 +85,13 @@ class NoiseNodeBuilder(html.Div):
                         "type": "slider",
                         "index": f"{id_}_{param.name}"
                     }
-                ), style={"height": 50}, align="end")
+                ), style={"height": 50}, align="end"),
             ]))
-            if idx != len(distr.parameters) - 1:
-                col.children.append(html.Hr())
+            col.children.append(html.Hr())
 
+        col.children.append(html.Button(
+            "Remove distribution", id={"type": "remove-distribution", "index": id_}
+        ))
         self.children = [col]
 
 

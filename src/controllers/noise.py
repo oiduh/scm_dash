@@ -23,30 +23,38 @@ def setup_callbacks():
         Output({"type": "slider", "index": MATCH}, "max"),
         Output({"type": "slider", "index": MATCH}, "marks"),
         Output({"type": "slider", "index": MATCH}, "tooltip"),
-        Input({"type": "slider-min", "index": MATCH}, "value"),
-        Input({"type": "current-value", "index": MATCH}, "value"),
-        Input({"type": "slider-max", "index": MATCH}, "value"),
-        Input({"type": "slider", "index": MATCH}, "min"),
+        Output({"type": "input-min", "index": MATCH}, "value"),
+        Output({"type": "input-value", "index": MATCH}, "value"),
+        Output({"type": "input-max", "index": MATCH}, "value"),
+
+        Input({"type": "input-min", "index": MATCH}, "value"),
+        Input({"type": "input-value", "index": MATCH}, "value"),
+        Input({"type": "input-max", "index": MATCH}, "value"),
         Input({"type": "slider", "index": MATCH}, "value"),
-        Input({"type": "slider", "index": MATCH}, "max"),
-        State({"type": "current-value", "index": MATCH}, "id"),
+
+        State({"type": "input-value", "index": MATCH}, "id"),
         prevent_initial_call=True
     )
     def slider_update(
-        slider_min: float | None, current_value: float | None, slider_max: float | None,
-        input_min: float, input_value: float, input_max: float,
-        id_: dict[str, str]
+        input_min: float | None, input_value: float | None, input_max: float | None,
+        slider_value: float, id_: dict[str, str]
     ):
-        if slider_min is None or current_value is None or slider_max is None:
+        if input_min is None or input_value is None or input_max is None:
             raise PreventUpdate
-        print(ctx.triggered_prop_ids)
-        print(ctx.triggered_id)
-        print(ctx.triggered)
+
+        triggered_context = ctx.triggered_id
+        assert isinstance(triggered_context, dict), "not a dict"
+        triggered_type = triggered_context.get("type")
+        print(triggered_type)
+        new_value = slider_value if triggered_type == "slider" else input_value
         var, num, param = id_.get("index", "").split("_")
         x = graph.get_node_by_id(var).data.get_distribution_by_id(num).get_parameter_by_name(param)
-        x.current = min(x.max, max(x.min, max(min(current_value, slider_max), slider_min)))
-        x.slider_min = max(min(x.current, slider_min), x.min)
-        x.slider_max = min(max(x.current, slider_max), x.max)
+        x.current = min(x.max, max(x.min, max(min(new_value, input_max), input_min)))
+        x.slider_min = max(min(x.current, input_min), x.min)
+        x.slider_max = min(max(x.current, input_max), x.max)
         marks = {x.slider_min: str(x.slider_min), x.slider_max: str(x.slider_max)},
         tooltip = {"placement": "top", "always_visible": True},
-        return x.slider_min, x.current, x.slider_max, marks[0], tooltip[0]
+        return (
+            x.slider_min, x.current, x.slider_max, marks[0], tooltip[0],
+            x.slider_min, x.current, x.slider_max
+        )

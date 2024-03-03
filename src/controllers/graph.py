@@ -3,11 +3,13 @@ from dash.exceptions import PreventUpdate
 
 from models.graph import graph
 from views.graph import GraphBuilder, NodeBuilder
+from views.noise import NoiseBuilder
 
 
 def setup_callbacks():
     @callback(
         Output("graph-builder", "children", allow_duplicate=True),
+        Output("noise-builder", "children", allow_duplicate=True),
         Input("add-node-button", "n_clicks"),
         prevent_initial_call=True
     )
@@ -16,10 +18,11 @@ def setup_callbacks():
             raise PreventUpdate
 
         graph.add_node()
-        return GraphBuilder().children
+        return GraphBuilder().children, NoiseBuilder().children
 
     @callback(
         Output("graph-builder", "children", allow_duplicate=True),
+        Output("noise-builder", "children", allow_duplicate=True),
         Input({"type": "remove-node-button", "index": ALL}, "n_clicks"),
         prevent_initial_call=True
     )
@@ -32,7 +35,7 @@ def setup_callbacks():
             raise PreventUpdate
 
         graph.remove_node(graph.get_node_by_id(node_id))
-        return GraphBuilder().children
+        return GraphBuilder().children, NoiseBuilder().children
 
     @callback(
         Output("graph-builder", "children", allow_duplicate=True),

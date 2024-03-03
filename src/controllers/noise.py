@@ -1,8 +1,8 @@
-from dash import MATCH, callback, Output, Input, State, ctx
+from dash import MATCH, ALL, callback, Output, Input, State, ctx
 from dash.exceptions import PreventUpdate
 
 from models.graph import graph
-from views.noise import NoiseNodeBuilder
+from views.noise import NoiseBuilder, NoiseContainer, NoiseNodeBuilder
 
 
 def setup_callbacks():
@@ -58,3 +58,45 @@ def setup_callbacks():
             x.slider_min, x.current, x.slider_max, marks[0], tooltip[0],
             x.slider_min, x.current, x.slider_max
         )
+
+    @callback(
+        Output({"type": "noise-container", "index": MATCH}, "children"),
+        Input({"type": "add-sub-distribution", "index": MATCH}, "n_clicks"),
+        State({"type": "add-sub-distribution", "index": MATCH}, "id"),
+        prevent_initial_call=True
+    )
+    def add_sub_distribution(clicked, id_dict: dict[str, str]):
+        type_ = id_dict.get("type")
+        index_ = id_dict.get("index", "")
+        if type_ != "add-sub-distribution" or not index_:
+            raise PreventUpdate
+
+        try:
+            graph.get_node_by_id(index_).data.add_distribution()
+        except AssertionError:
+            raise PreventUpdate
+        return NoiseContainer(index_).children
+
+    @callback(
+        Output("noise-builder", "children"),
+        Input({"type": "remove-sub-distribution", "index": ALL}, "n_clicks"),
+        prevent_initial_call=True
+    )
+    def remove_sub_distribution(clicked: list[int]):
+        if not any(clicked):
+            raise PreventUpdate
+
+        triggered_node: dict | None = ctx.triggered_id
+        if not triggered_node or not (node_id := triggered_node.get("index")):
+            raise PreventUpdate
+
+        main, sub = node_id.split("_")
+        try:
+            to_remove = graph.get_node_by_id(main).data.get_distribution_by_id(sub)
+            graph.get_node_by_id(main).data.remove_distribution(to_remove)
+        except AssertionError:
+            raise PreventUpdate
+
+        return NoiseBuilder().children
+        
+

@@ -19,7 +19,7 @@ class NoiseBuilder(html.Div):
 
 class NoiseContainer(html.Div):
     def __init__(self, id: str):
-        super().__init__(id=id)
+        super().__init__(id={"type": "noise-container", "index": id})
         node = graph.get_node_by_id(id)
         self.children = []
         accordion = dbc.Accordion(always_open=True)
@@ -30,7 +30,9 @@ class NoiseContainer(html.Div):
             accordion.children.append(dbc.AccordionItem(NoiseNodeBuilder((id, var_id)), title=title))
         self.children.append(accordion)
         self.children.append(html.Hr())
-        self.children.append(html.Button("Add distribution"))
+        self.children.append(html.Button(
+            "Add distribution", id={"type": "add-sub-distribution", "index": id}
+        ))
 
 
 class NoiseNodeBuilder(html.Div):
@@ -90,7 +92,7 @@ class NoiseNodeBuilder(html.Div):
             col.children.append(html.Hr())
 
         col.children.append(html.Button(
-            "Remove distribution", id={"type": "remove-distribution", "index": id_}
+            "Remove distribution", id={"type": "remove-sub-distribution", "index": id_}
         ))
         self.children = [col]
 

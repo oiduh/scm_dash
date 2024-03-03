@@ -1,9 +1,11 @@
 from dash import html
-from dash.dcc import Dropdown, Slider, Input
+from dash.dcc import Dropdown, Slider, Input, Graph
 import dash_bootstrap_components as dbc
 
 from models.graph import graph
 from models.noise import Distribution
+
+import plotly.figure_factory as ff
 
 
 class NoiseBuilder(html.Div):
@@ -30,9 +32,12 @@ class NoiseContainer(html.Div):
             accordion.children.append(dbc.AccordionItem(NoiseNodeBuilder((id, var_id)), title=title))
         self.children.append(accordion)
         self.children.append(html.Hr())
-        self.children.append(html.Button(
-            "Add distribution", id={"type": "add-sub-distribution", "index": id}
-        ))
+        self.children.append(dbc.Row([
+            dbc.Col(html.Button("Add distribution", id={"type": "add-sub-distribution", "index": id})),
+            dbc.Col(html.Button(
+                "View", id={"type": "view-distribution", "index": id}
+            ), width={"size": 1, "order": "last"})
+        ]))
 
 
 class NoiseNodeBuilder(html.Div):
@@ -98,7 +103,16 @@ class NoiseNodeBuilder(html.Div):
 
 
 class NoiseViewer(html.Div):
-    def __init__(self):
+    def __init__(self, node_id: str = "a"):
         super().__init__(id="noise-viewer")
-        self.children = []
+
+        data = graph.get_node_by_id(node_id).data
+        values = [x for y in data.generate_data() for x in y]
+        param = data.id
+
+        figure = ff.create_distplot([values], [param], show_rug=False, bin_size=0.2)
+        self.children = [
+            html.H3(f"variable: {param}"),
+            Graph("graph-0", figure=figure)
+        ]
 

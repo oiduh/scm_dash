@@ -2,7 +2,7 @@ from dash import MATCH, ALL, callback, Output, Input, State, ctx
 from dash.exceptions import PreventUpdate
 
 from models.graph import graph
-from views.noise import NoiseBuilder, NoiseContainer, NoiseNodeBuilder
+from views.noise import NoiseBuilder, NoiseContainer, NoiseNodeBuilder, NoiseViewer
 
 
 def setup_callbacks():
@@ -99,4 +99,18 @@ def setup_callbacks():
 
         return NoiseBuilder().children
         
+    @callback(
+        Output("noise-viewer", "children"),
+        Input({"type": "view-distribution", "index": ALL}, "n_clicks"),
+        prevent_initial_call=True
+    )
+    def view_distribution(clicked: list[int]):
+        if not any(clicked):
+            raise PreventUpdate
+
+        triggered_node: dict | None = ctx.triggered_id
+        if not triggered_node or not (node_id := triggered_node.get("index")):
+            raise PreventUpdate
+
+        return NoiseViewer(node_id=node_id).children
 

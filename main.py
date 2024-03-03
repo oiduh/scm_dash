@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 
 from views.utils import Placeholder
 from views.graph import GraphBuilder, GraphViewer
-from views.noise import NoiseBuilder
+from views.noise import NoiseBuilder, NoiseViewer
 
 from controllers import setup_callbacks
 
@@ -23,7 +23,7 @@ app.layout = html.Div([
             ])),
             dbc.Tab(id="tab2", label="Distribution Builder", children=dbc.Row(children=[
                 dbc.Col(NoiseBuilder()),
-                dbc.Col(Placeholder("view2")),
+                dbc.Col(NoiseViewer()),
             ])),
             dbc.Tab(id="tab3", label="Mechanism Builder", children=dbc.Row(children=[
                 dbc.Col(Placeholder("config3")),

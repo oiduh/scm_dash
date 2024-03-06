@@ -33,9 +33,9 @@ class GraphTest(TestCase):
         with self.assertRaises(Exception):
             graph.get_node_by_name('b')
         with self.assertRaises(Exception):
-            graph.remove_node(Node('b', 'b', list(), list()))
+            graph.remove_node(Node('b', 'b', list(), list(), graph))
         
-        graph.remove_node(Node('a', 'a', list(), list()))
+        graph.remove_node(Node('a', 'a', list(), list(), graph))
 
         self.assertListEqual(graph.get_node_ids(), [])
         self.assertListEqual(graph.get_node_names(), [])
@@ -61,7 +61,7 @@ class GraphTest(TestCase):
             self.assertEqual(by_name.name, letter)
 
         for letter in string.ascii_lowercase:
-            graph.remove_node(Node(letter, letter, list(), list()))
+            graph.remove_node(Node(letter, letter, list(), list(), graph))
 
         self.assertListEqual(graph.get_node_ids(), [])
         self.assertListEqual(graph.get_node_names(), [])
@@ -75,10 +75,10 @@ class GraphTest(TestCase):
 
         self.assertListEqual(graph.get_node_ids(), ['a', 'b', 'c'])
 
-        graph.remove_node(Node('a', 'a', list(), list()))
+        graph.remove_node(Node('a', 'a', list(), list(), graph))
         self.assertListEqual(graph.get_node_ids(), ['b', 'c'])
 
-        graph.remove_node(Node('b', 'b', list(), list()))
+        graph.remove_node(Node('b', 'b', list(), list(), graph))
         self.assertListEqual(graph.get_node_ids(), ['c'])
 
         graph.add_node()
@@ -89,13 +89,13 @@ class GraphTest(TestCase):
 
         with self.assertRaises(Exception):
             graph.can_add_edge(
-                Node('a', 'a', list(), list()), Node('b', 'b', list(), list())
+                Node('a', 'a', list(), list(), graph), Node('b', 'b', list(), list(), graph)
             )
 
         graph.add_node()  # a
         with self.assertRaises(Exception):
             graph.can_add_edge(
-                graph.get_node_by_id('a'), Node('b', 'b', list(), list())
+                graph.get_node_by_id('a'), Node('b', 'b', list(), list(), graph)
             )
         self.assertFalse(graph.can_add_edge(
             graph.get_node_by_id('a'), graph.get_node_by_id('a')

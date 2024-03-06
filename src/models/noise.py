@@ -107,7 +107,7 @@ class Data:
     distributions: dict[str, Distribution | None] = field(
         default_factory=lambda: {str(nr): None for nr in range(10)}  # sub variables e.g. a_0, a_1
     )
-    mechanism: Mechanism | None = None
+    mechanism: BaseMechanism | None = None
 
     @classmethod
     def default_data(cls, id: str):

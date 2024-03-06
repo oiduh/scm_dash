@@ -10,6 +10,7 @@ class Node:
     name: str
     in_nodes: list['Node']
     out_nodes: list['Node']
+    graph: 'Graph'
     data: Data = field(init=False)
 
     def __post_init__(self):
@@ -36,6 +37,9 @@ class Node:
     def remove_out_node(self, to_remove: 'Node'):
         assert to_remove.id in [n.id for n in self.out_nodes], "target node is not an out node"
         self.out_nodes.remove(to_remove)
+
+    def get_in_node_data(self):
+        return {k: self.graph.get_node_by_id(k).data.generate_data() for k in self.get_in_node_ids()}
 
 
 @dataclass
@@ -68,7 +72,7 @@ class Graph:
     def add_node(self):
         free_node_id = self.get_free_node_id()
         assert free_node_id, "No more space for new nodes"
-        new_node = Node(free_node_id, free_node_id, list(), list())
+        new_node = Node(free_node_id, free_node_id, list(), list(), self)
         self.nodes[free_node_id] = new_node
 
     def remove_node(self, to_remove: Node):
@@ -86,15 +90,10 @@ class Graph:
             self.get_node_by_id(target.id).add_in_node(source)
 
     def can_add_edge(self, source: Node, target: Node):
-        # assert self.nodes.get(source.id), "Node must exist in graph"
-        # assert self.nodes.get(target.id), "Node must exist in graph"
-
         target_in_nodes = [n.id for n in target.in_nodes]
         source_out_nodes = [n.id for n in source.out_nodes]
         if source.id in target_in_nodes or target.id in source_out_nodes:
             return False
-        # assert source.id not in target_in_nodes, "source is already an in node"
-        # assert target.id not in source_out_nodes, "target is already an out node"
 
         new_graph = deepcopy(self)
         new_graph.get_node_by_id(source.id).add_out_node(target)

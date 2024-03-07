@@ -45,12 +45,12 @@ fabs = np.fabs
 
 
 class BaseMechanism:
-    def __init__(self, formulas: list[str], inputs: dict[str, list[float]]):
+    def __init__(self, formulas: list[str], inputs: dict[str, NDArray]):
         self.formulas = formulas
         self.inputs = inputs
         self.values = {k: np.array(v, dtype=np.float128) for k, v in self.inputs.items()}
 
-    def transform(self):
+    def transform(self, flatten=False):
         raise NotImplementedError()
 
 
@@ -58,7 +58,7 @@ MechanismType = TypeVar("MechanismType", bound=BaseMechanism)
 
 
 class RegressionMechanism(BaseMechanism):
-    def transform(self, flatten=False):
+    def transform(self):
         tree = ast.parse(self.formulas[0])
         for node in ast.walk(tree):
             # replace variables with inputs
@@ -71,13 +71,13 @@ class RegressionMechanism(BaseMechanism):
             print(e)
             result = np.zeros(len(list(self.inputs.values())[0]))
 
-
-        return result.flatten() if flatten else result
+        return result
 
 
 class ClassificationMechanism(BaseMechanism):
     def transform(self):
         # dimensions: x(number of classes), y(number of inputs) -> each input can have own dimension
+        self.inputs = {k: np.array(v).flatten() for k, v in self.inputs.items()}
         results = np.full((len(self.formulas), len(list(self.inputs.values())[0])), False)
 
         failed = False

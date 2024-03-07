@@ -40,8 +40,7 @@ class DataTest(TestCase):
         data.get_distribution_by_id('0').get_parameter_by_name("scale").change_current(3)  # type: ignore
 
         values = data.generate_data()
-        self.assertEqual(len(values), 1)
-        self.assertEqual(len(values[0]), 120)
+        self.assertEqual(len(values), 120)
         # check graph in files
         plt.hist(values)
         plt.savefig("simple_distribution.png")
@@ -54,10 +53,7 @@ class DataTest(TestCase):
         data.get_distribution_by_id('1').get_parameter_by_name("loc").change_current(3)  # type: ignore
 
         values = data.generate_data()
-        self.assertEqual(len(values), 2)
-        self.assertEqual(len(values[0]), 60)
-        self.assertEqual(len(values[1]), 60)
-        values = [v for vl in values for v in vl]
+        self.assertEqual(len(values), 120)
         # check graph in files
         plt.hist(values)
         plt.savefig("double_distribution.png")
@@ -72,11 +68,7 @@ class DataTest(TestCase):
         data.get_distribution_by_id('2').get_parameter_by_name("loc").change_current(4)  # type: ignore
 
         values = data.generate_data()
-        self.assertEqual(len(values), 3)
-        self.assertEqual(len(values[0]), 40)
-        self.assertEqual(len(values[1]), 40)
-        self.assertEqual(len(values[2]), 40)
-        values = [v for vl in values for v in vl]
+        self.assertEqual(len(values), 120)
         # check graph in files
         plt.hist(values)
         plt.savefig("triple_distribution.png")

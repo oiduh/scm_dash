@@ -134,7 +134,7 @@ class RegresionMechanismTest(TestCase):
         inputs = b.get_in_node_data()
         self.assertSetEqual(set(inputs.keys()), {"a", "c"})
         regression = RegressionMechanism(formulas, inputs)
-        result = regression.transform(flatten=True)
+        result = regression.transform()
         self.assertEqual(result.shape, (3000,))
         self.assertTrue(all(np.isfinite(result)))
 
@@ -258,3 +258,31 @@ class ClassficationMechanismTest(TestCase):
             classification = ClassificationMechanism(formulas, input)
             result = classification.transform()
             self.assertListEqual(result.tolist(), expected)
+
+    def test_graph_mechanism(self):
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+        graph.add_node()  # c
+
+        a = graph.get_node_by_id('a')
+        b = graph.get_node_by_id('b')
+        c = graph.get_node_by_id('c')
+
+        graph.add_edge(a, b)
+        graph.add_edge(c, b)
+
+        a.data.add_distribution()
+        a.data.get_distribution_by_id('0').parameters["loc"].change_current(-2.)
+        a.data.get_distribution_by_id('1').parameters["loc"].change_current(2.)
+
+        c.data.add_distribution()
+        c.data.get_distribution_by_id('0').parameters["loc"].change_current(-4.)
+        c.data.get_distribution_by_id('1').parameters["loc"].change_current(4.)
+
+        formulas = ["(a > 2.0) & (c > 4.0)", "(a < -2.0) & (c < -4.0)"]
+        inputs = b.get_in_node_data()
+        self.assertSetEqual(set(inputs.keys()), {"a", "c"})
+        classifcation = ClassificationMechanism(formulas, inputs)
+        result = classifcation.transform()
+        self.assertEqual(result.shape, (3, 3000))

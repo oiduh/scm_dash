@@ -2,6 +2,7 @@ from scipy.stats import rv_continuous as RVCont, rv_discrete as RVDisc
 import scipy.stats as stats
 from dataclasses import dataclass, field
 from models.mechanism import BaseMechanism
+import numpy as np
 
 
 class CONSTANTS:
@@ -153,5 +154,5 @@ class Data:
             new_values = distribution.generator.rvs(**parameter_values, size=nr_points)
             values.append(new_values)
 
-        return values
+        return np.array(values).flatten()
 

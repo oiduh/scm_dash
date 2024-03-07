@@ -199,3 +199,62 @@ class ClassficationMechanismTest(TestCase):
             classification = ClassificationMechanism(formulas, input)
             result = classification.transform()
             self.assertListEqual(result.tolist(), expected)
+
+    def test_simple_classification_mechanism_multi_class(self):
+        formulas = ["(a > 2.0) | (a < -2.0)", "(a > -0.5) & (a < 0.5)"]
+        inputs = [
+            {
+                "a": [5., 0., 1.],
+            },
+            {
+                "a": [0., 5., 1.],
+            },
+            {
+                "a": [0., 0., 0.],
+            },
+            {
+                "a": [5., -5., 5.],
+            },
+            {
+                "a": [1., -1., 1.],
+            }
+        ]
+        expecteds = [
+            [[True, False, False], [False, True, False], [False, False, True]],
+            [[False, True, False], [True, False, False], [False, False, True]],
+            [[False, False, False], [True, True, True], [False, False, False]],
+            [[True, True, True], [False, False, False], [False, False, False]],
+            [[False, False, False], [False, False, False], [True, True, True]],
+        ]
+
+        for input, expected in zip(inputs, expecteds):
+            classification = ClassificationMechanism(formulas, input)
+            result = classification.transform()
+            self.assertListEqual(result.tolist(), expected)
+
+    def test_complex_classification_mechanism_multi_class(self):
+        formulas = ["(a > 2.0) & (b > 2.0)", "(a < -2.0) & (b < -2.0)"]
+        inputs = [
+            {
+                "a": [5., -5., 0.],
+                "b": [5., -5., 0.],
+            },
+            {
+                "a": [-5., 5., 0.],
+                "b": [-5., 5., 0.],
+            },
+            {
+                "a": [-5., 5., 0.],
+                "b": [5., -5., 0.],
+            },
+        ]
+        expecteds = [
+            [[True, False, False], [False, True, False], [False, False, True]],
+            [[False, True, False], [True, False, False], [False, False, True]],
+            [[False, False, False], [False, False, False], [True, True, True]],
+        ]
+
+        for input, expected in zip(inputs, expecteds):
+            classification = ClassificationMechanism(formulas, input)
+            result = classification.transform()
+            self.assertListEqual(result.tolist(), expected)

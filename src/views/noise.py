@@ -107,10 +107,9 @@ class NoiseViewer(html.Div):
         super().__init__(id="noise-viewer")
 
         data = graph.get_node_by_id(node_id).data
-        values = [x for y in data.generate_data() for x in y]
         param = data.id
 
-        figure = ff.create_distplot([values], [param], show_rug=False, bin_size=0.2)
+        figure = ff.create_distplot([data.generate_data()], [param], show_rug=False, bin_size=0.2)
         self.children = [
             html.H3(f"variable: {param}"),
             Graph("graph-0", figure=figure)

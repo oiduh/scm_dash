@@ -50,7 +50,7 @@ class BaseMechanism:
         self.inputs = inputs
         self.values = {k: np.array(v, dtype=np.float128) for k, v in self.inputs.items()}
 
-    def transform(self, flatten=False):
+    def transform(self):
         raise NotImplementedError()
 
 

@@ -1,3 +1,4 @@
+from typing import Literal
 from dataclasses import dataclass, field
 from plotly.basedatatypes import deepcopy
 import string
@@ -12,6 +13,7 @@ class Node:
     out_nodes: list['Node']
     graph: 'Graph'
     data: Data = field(init=False)
+    mechanism: Literal["regression", "classification"] = "regression"
 
     def __post_init__(self):
         self.data = Data.default_data(self.id)
@@ -40,6 +42,10 @@ class Node:
 
     def get_in_node_data(self):
         return {k: self.graph.get_node_by_id(k).data.generate_data() for k in self.get_in_node_ids()}
+
+    def change_mechanism(self, new_mechanism: Literal["regression", "classification"]):
+        if self.mechanism != new_mechanism:
+            self.mechanism = new_mechanism
 
 
 @dataclass

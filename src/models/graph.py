@@ -3,6 +3,9 @@ from dataclasses import dataclass, field
 from plotly.basedatatypes import deepcopy
 import string
 from models.noise import Data
+from models.mechanism import MechanismMetadata
+
+
 
 
 @dataclass
@@ -13,7 +16,7 @@ class Node:
     out_nodes: list['Node']
     graph: 'Graph'
     data: Data = field(init=False)
-    mechanism: Literal["regression", "classification"] = "regression"
+    mechanism: MechanismMetadata = field(default_factory=MechanismMetadata)
 
     def __post_init__(self):
         self.data = Data.default_data(self.id)
@@ -44,8 +47,8 @@ class Node:
         return {k: self.graph.get_node_by_id(k).data.generate_data() for k in self.get_in_node_ids()}
 
     def change_mechanism(self, new_mechanism: Literal["regression", "classification"]):
-        if self.mechanism != new_mechanism:
-            self.mechanism = new_mechanism
+        if self.mechanism.mechanism_type != new_mechanism:
+            self.mechanism.mechanism_type = new_mechanism
 
 
 @dataclass

@@ -1,7 +1,9 @@
 import numpy as np
 from numpy.typing import NDArray
-from typing import Any, TypeVar
+from typing import Any, TypeVar, Literal
 import ast
+import string
+from dataclasses import dataclass, field
 
 
 #
@@ -42,6 +44,19 @@ sqrt = np.sqrt
 clip = np.clip
 cbrt = np.cbrt
 fabs = np.fabs
+
+
+@dataclass
+class MechanismMetadata:
+    mechanism_type: Literal["regression", "classification"] = "regression"
+    formulas: dict[str, str | None] = field(
+        default_factory=lambda: {str(id): None for id in string.digits}
+    )
+
+    @staticmethod
+    def verify_formula(formula: str):
+        # TODO: verify formula by generating data?
+        return True
 
 
 class BaseMechanism:

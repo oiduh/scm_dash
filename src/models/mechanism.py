@@ -47,33 +47,38 @@ fabs = np.fabs
 
 
 @dataclass
+class Formula:
+    text: str = ""
+    verified: bool = False
+
+
+@dataclass
 class MechanismMetadata:
     mechanism_type: Literal["regression", "classification"] = "regression"
-    formulas: dict[str, str | None] = field(
-        default_factory=lambda: {str(id): None for id in string.digits}
+    # mapping from class_id to formula -> relevant for multi-class-classification
+    formulas: dict[str, Formula] = field(
+        default_factory=lambda: {str(id): Formula() for id in string.digits}
     )
 
-    @staticmethod
-    def verify_formula(formula: str):
-        # TODO: verify formula by generating data?
-        return True
+
+@dataclass
+class MechanismResult:
+    success: bool
+    values: NDArray | None
 
 
 class BaseMechanism:
-    def __init__(self, formulas: list[str], inputs: dict[str, NDArray]):
+    def __init__(self, formulas: list[str], inputs: dict[str, list[float]]):
         self.formulas = formulas
         self.inputs = inputs
         self.values = {k: np.array(v, dtype=np.float128) for k, v in self.inputs.items()}
 
-    def transform(self):
+    def transform(self) -> MechanismResult:
         raise NotImplementedError()
 
 
-MechanismType = TypeVar("MechanismType", bound=BaseMechanism)
-
-
 class RegressionMechanism(BaseMechanism):
-    def transform(self):
+    def transform(self) -> MechanismResult:
         tree = ast.parse(self.formulas[0])
         for node in ast.walk(tree):
             # replace variables with inputs
@@ -84,13 +89,13 @@ class RegressionMechanism(BaseMechanism):
             result: NDArray[np.float64] = eval(new_formula)
         except Exception as e:
             print(e)
-            result = np.zeros(len(list(self.inputs.values())[0]))
+            return MechanismResult(False, None)
 
-        return result
+        return MechanismResult(True, result)
 
 
 class ClassificationMechanism(BaseMechanism):
-    def transform(self):
+    def transform(self) -> MechanismResult:
         # dimensions: x(number of classes), y(number of inputs) -> each input can have own dimension
         self.inputs = {k: np.array(v).flatten() for k, v in self.inputs.items()}
         results = np.full((len(self.formulas), len(list(self.inputs.values())[0])), False)
@@ -110,10 +115,10 @@ class ClassificationMechanism(BaseMechanism):
                 failed = True
                 print(e)
         if failed:
-            raise Exception("one of the formulas does not produce booleans")
+            return MechanismResult(False, None)
 
         if np.any(np.sum(results, axis=0) > 1.0):
-            raise Exception("value belongs to more than one class")
+            return MechanismResult(False, None)
 
         results = np.vstack([results, np.full(len(list(self.inputs.values())[0]), False)])
         for idx, col in enumerate(np.sum(results, axis=0)):
@@ -121,6 +126,6 @@ class ClassificationMechanism(BaseMechanism):
                 results[-1][idx] = True
 
         if np.prod(np.sum(results, axis=0)) != 1.:
-            raise Exception("a data entry must belong to exactly one class")
+            return MechanismResult(False, None)
 
-        return results
+        return MechanismResult(True, results)

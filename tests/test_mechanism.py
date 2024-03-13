@@ -31,7 +31,9 @@ class RegresionMechanismTest(TestCase):
         for input, expected in zip(inputs, expecteds):
             regression = RegressionMechanism(formulas, input)
             result = regression.transform()
-            npt.assert_almost_equal(result, np.array(expected, dtype=np.float128), decimal=5)
+            self.assertTrue(result.success)
+            assert result.values is not None
+            npt.assert_almost_equal(result.values, np.array(expected, dtype=np.float128), decimal=5)
 
     def test_complex_regression_mechanism(self):
         formulas = ["a**3 + (b-0.5)*2 - (c**2) + 1"]
@@ -60,7 +62,9 @@ class RegresionMechanismTest(TestCase):
         for input, expected in zip(inputs, expecteds):
             regression = RegressionMechanism(formulas, input)
             result = regression.transform()
-            npt.assert_almost_equal(result, np.array(expected, dtype=np.float128), decimal=5)
+            self.assertTrue(result.success)
+            assert result.values is not None
+            npt.assert_almost_equal(result.values, np.array(expected, dtype=np.float128), decimal=5)
 
     def test_simple_regression_mechanism_long(self):
         formulas = ["(a**3)*0.1 + (b+1.3)*2.6 + 1"]
@@ -81,7 +85,9 @@ class RegresionMechanismTest(TestCase):
         for input, expected in zip(inputs, expecteds):
             regression = RegressionMechanism(formulas, input)
             result = regression.transform()
-            npt.assert_almost_equal(result, np.array(expected, dtype=np.float128), decimal=5)
+            self.assertTrue(result.success)
+            assert result.values is not None
+            npt.assert_almost_equal(result.values, np.array(expected, dtype=np.float128), decimal=5)
 
     def test_simple_regression_mechanism_builtin(self):
         formulas = ["sin(a) + exp(b) - sqrt(abs(c)) + arctan(d) + 1"]
@@ -106,7 +112,9 @@ class RegresionMechanismTest(TestCase):
         for input, expected in zip(inputs, expecteds):
             regression = RegressionMechanism(formulas, input)
             result = regression.transform()
-            npt.assert_almost_equal(result, np.array(expected, dtype=np.float128), decimal=5)
+            self.assertTrue(result.success)
+            assert result.values is not None
+            npt.assert_almost_equal(result.values, np.array(expected, dtype=np.float128), decimal=5)
 
 
     def test_graph_mechanism(self):
@@ -131,12 +139,14 @@ class RegresionMechanismTest(TestCase):
         c.data.get_distribution_by_id('1').parameters["loc"].change_current(4.)
 
         formulas = ["sin(a) + cos(3.2+a)*c"]
-        inputs = b.get_in_node_data()
+        inputs = {x: y.tolist() for x, y in b.get_in_node_data().items()}
         self.assertSetEqual(set(inputs.keys()), {"a", "c"})
         regression = RegressionMechanism(formulas, inputs)
         result = regression.transform()
-        self.assertEqual(result.shape, (3000,))
-        self.assertTrue(all(np.isfinite(result)))
+        self.assertTrue(result.success)
+        assert result.values is not None
+        self.assertEqual(result.values.shape, (3000,))
+        self.assertTrue(all(np.isfinite(result.values)))
 
 
 class ClassficationMechanismTest(TestCase):
@@ -166,7 +176,9 @@ class ClassficationMechanismTest(TestCase):
         for input, expected in zip(inputs, expecteds):
             classification = ClassificationMechanism(formulas, input)
             result = classification.transform()
-            self.assertListEqual(result.tolist(), expected)
+            self.assertTrue(result.success)
+            assert result.values is not None
+            self.assertListEqual(result.values.tolist(), expected)
 
     def test_complex_classification_mechanism(self):
         formulas = ["(a > 0.0) & ((abs(ceil(b)) < 1.0))"]
@@ -198,7 +210,9 @@ class ClassficationMechanismTest(TestCase):
         for input, expected in zip(inputs, expecteds):
             classification = ClassificationMechanism(formulas, input)
             result = classification.transform()
-            self.assertListEqual(result.tolist(), expected)
+            self.assertTrue(result.success)
+            assert result.values is not None
+            self.assertListEqual(result.values.tolist(), expected)
 
     def test_simple_classification_mechanism_multi_class(self):
         formulas = ["(a > 2.0) | (a < -2.0)", "(a > -0.5) & (a < 0.5)"]
@@ -230,7 +244,9 @@ class ClassficationMechanismTest(TestCase):
         for input, expected in zip(inputs, expecteds):
             classification = ClassificationMechanism(formulas, input)
             result = classification.transform()
-            self.assertListEqual(result.tolist(), expected)
+            self.assertTrue(result.success)
+            assert result.values is not None
+            self.assertListEqual(result.values.tolist(), expected)
 
     def test_complex_classification_mechanism_multi_class(self):
         formulas = ["(a > 2.0) & (b > 2.0)", "(a < -2.0) & (b < -2.0)"]
@@ -257,7 +273,9 @@ class ClassficationMechanismTest(TestCase):
         for input, expected in zip(inputs, expecteds):
             classification = ClassificationMechanism(formulas, input)
             result = classification.transform()
-            self.assertListEqual(result.tolist(), expected)
+            self.assertTrue(result.success)
+            assert result.values is not None
+            self.assertListEqual(result.values.tolist(), expected)
 
     def test_graph_mechanism(self):
         graph = Graph()
@@ -281,8 +299,10 @@ class ClassficationMechanismTest(TestCase):
         c.data.get_distribution_by_id('1').parameters["loc"].change_current(4.)
 
         formulas = ["(a > 2.0) & (c > 4.0)", "(a < -2.0) & (c < -4.0)"]
-        inputs = b.get_in_node_data()
+        inputs = {x: y.tolist() for x, y in b.get_in_node_data().items()}
         self.assertSetEqual(set(inputs.keys()), {"a", "c"})
         classifcation = ClassificationMechanism(formulas, inputs)
         result = classifcation.transform()
-        self.assertEqual(result.shape, (3, 3000))
+        self.assertTrue(result.success)
+        assert result.values is not None
+        self.assertEqual(result.values.shape, (3, 3000))

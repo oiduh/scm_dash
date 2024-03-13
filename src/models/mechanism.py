@@ -50,6 +50,7 @@ fabs = np.fabs
 class Formula:
     text: str = ""
     verified: bool = False
+    enabled: bool = False
 
 
 @dataclass
@@ -59,6 +60,16 @@ class MechanismMetadata:
     formulas: dict[str, Formula] = field(
         default_factory=lambda: {str(id): Formula() for id in string.digits}
     )
+
+    def get_class_by_id(self, id: str):
+        return self.formulas.get(id)
+
+    def get_free_class_ids(self):
+        return [id for id, formula in self.formulas.items() if not formula.enabled]
+
+    def get_next_free_class_id(self):
+        free_class_ids = self.get_free_class_ids()
+        return free_class_ids[0] if free_class_ids else None
 
 
 @dataclass

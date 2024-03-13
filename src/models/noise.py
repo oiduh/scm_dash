@@ -1,7 +1,6 @@
 from scipy.stats import rv_continuous as RVCont, rv_discrete as RVDisc
 import scipy.stats as stats
 from dataclasses import dataclass, field
-from models.mechanism import BaseMechanism
 import numpy as np
 
 
@@ -108,7 +107,6 @@ class Data:
     distributions: dict[str, Distribution | None] = field(
         default_factory=lambda: {str(nr): None for nr in range(10)}  # sub variables e.g. a_0, a_1
     )
-    mechanism: BaseMechanism | None = None
 
     @classmethod
     def default_data(cls, id: str):

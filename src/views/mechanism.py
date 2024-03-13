@@ -63,9 +63,10 @@ class RegressionBuilder(html.Div):
 class ClassificationBuilder(html.Div):
     def __init__(self, id: str):
         super().__init__(id={"type": "classification-builder", "index": id})
-        self.children = [
-            html.P("classification: "),
+        self.children = []
+        self.children.append(html.P("classification: "))
+        self.children.extend([
             Textarea(id={"type": "classification-input", "index": id}),
             html.P("else:")
-        ]
+        ])
 

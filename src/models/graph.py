@@ -7,7 +7,6 @@ from models.mechanism import MechanismMetadata
 
 
 
-
 @dataclass
 class Node:
     id: str
@@ -154,8 +153,13 @@ class Graph:
 graph = Graph()
 graph.add_node()  # a
 graph.add_node()  # b
-graph.add_node()  # c
-graph.add_node()  # d
 graph.add_edge(graph.get_node_by_id('a'), graph.get_node_by_id('b'))
-graph.add_edge(graph.get_node_by_id('c'), graph.get_node_by_id('d'))
+
+# initial class always enabled
+class_a_init = graph.get_node_by_id('a').mechanism.get_class_by_id('0')
+assert class_a_init
+class_a_init.enabled = True
+class_b_init = graph.get_node_by_id('b').mechanism.get_class_by_id('0')
+assert class_b_init
+class_b_init.enabled = True
 

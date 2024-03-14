@@ -35,6 +35,14 @@ class GraphTest(TestCase):
         with self.assertRaises(Exception):
             graph.remove_node(Node('b', 'b', list(), list(), graph))
         
+        mechanism = graph.get_node_by_id('a').mechanism
+        valid_formula = mechanism.get_class_by_id('0')
+        assert valid_formula
+        self.assertTrue(valid_formula.enabled)
+        invalid_formula = mechanism.get_class_by_id('1')
+        assert invalid_formula
+        self.assertFalse(invalid_formula.enabled)
+
         graph.remove_node(Node('a', 'a', list(), list(), graph))
 
         self.assertListEqual(graph.get_node_ids(), [])

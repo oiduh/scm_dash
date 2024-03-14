@@ -46,8 +46,11 @@ class Node:
         return {k: self.graph.get_node_by_id(k).data.generate_data() for k in self.get_in_node_ids()}
 
     def change_mechanism(self, new_mechanism: Literal["regression", "classification"]):
-        if self.mechanism.mechanism_type != new_mechanism:
-            self.mechanism.mechanism_type = new_mechanism
+        self.mechanism = MechanismMetadata()
+        self.mechanism.mechanism_type = new_mechanism
+        free_class_id = self.mechanism.get_next_free_class_id()
+        assert free_class_id
+        self.mechanism.formulas[free_class_id].enabled = True
 
 
 @dataclass
@@ -81,6 +84,11 @@ class Graph:
         free_node_id = self.get_free_node_id()
         assert free_node_id, "No more space for new nodes"
         new_node = Node(free_node_id, free_node_id, list(), list(), self)
+        free_class_id = new_node.mechanism.get_next_free_class_id()
+        assert free_class_id
+        new_mechanism = new_node.mechanism.get_class_by_id(free_class_id)
+        assert new_mechanism
+        new_mechanism.enabled = True
         self.nodes[free_node_id] = new_node
 
     def remove_node(self, to_remove: Node):
@@ -154,12 +162,4 @@ graph = Graph()
 graph.add_node()  # a
 graph.add_node()  # b
 graph.add_edge(graph.get_node_by_id('a'), graph.get_node_by_id('b'))
-
-# initial class always enabled
-class_a_init = graph.get_node_by_id('a').mechanism.get_class_by_id('0')
-assert class_a_init
-class_a_init.enabled = True
-class_b_init = graph.get_node_by_id('b').mechanism.get_class_by_id('0')
-assert class_b_init
-class_b_init.enabled = True
 

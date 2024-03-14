@@ -19,7 +19,6 @@ class MechanismBuilder(html.Div):
 
 
 class MechanismContainer(html.Div):
-
     def __init__(self, id: str):
         super().__init__(id={"type": "mechanism-container", "index": id})
         node = graph.get_node_by_id(id)
@@ -65,8 +64,12 @@ class ClassificationBuilder(html.Div):
         super().__init__(id={"type": "classification-builder", "index": id})
         self.children = []
         self.children.append(html.P("classification: "))
-        self.children.extend([
-            Textarea(id={"type": "classification-input", "index": id}),
-            html.P("else:")
-        ])
+        node = graph.get_node_by_id(id)
+        enabled_formulas = [(c, f) for c, f in node.mechanism.formulas.items() if f.enabled]
+        for c, f in enabled_formulas:
+            self.children.extend([
+                html.P(f"class_{c}"),
+                Textarea(id={"type": "classification-input", "index": id}, value=f.text),
+            ])
+        self.children.append(html.P("else:"))
 

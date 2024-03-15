@@ -65,7 +65,7 @@ def setup_callbacks():
         State({"type": "add-sub-distribution", "index": MATCH}, "id"),
         prevent_initial_call=True
     )
-    def add_sub_distribution(clicked, id_dict: dict[str, str]):
+    def add_sub_distribution(_, id_dict: dict[str, str]):
         type_ = id_dict.get("type")
         index_ = id_dict.get("index", "")
         if type_ != "add-sub-distribution" or not index_:

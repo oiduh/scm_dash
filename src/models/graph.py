@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from plotly.basedatatypes import deepcopy
 import string
 from models.noise import Data
-from models.mechanism import MechanismMetadata
+from models.mechanism import Formula, MechanismMetadata
 
 
 
@@ -84,12 +84,12 @@ class Graph:
         free_node_id = self.get_free_node_id()
         assert free_node_id, "No more space for new nodes"
         new_node = Node(free_node_id, free_node_id, list(), list(), self)
+        self.nodes[free_node_id] = new_node
         free_class_id = new_node.mechanism.get_next_free_class_id()
         assert free_class_id
         new_mechanism = new_node.mechanism.get_class_by_id(free_class_id)
         assert new_mechanism
         new_mechanism.enabled = True
-        self.nodes[free_node_id] = new_node
 
     def remove_node(self, to_remove: Node):
         assert self.nodes.get(to_remove.id), "Node does not exist"

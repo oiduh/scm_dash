@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.typing import NDArray
-from typing import Any, TypeVar, Literal
+from typing import Any, Literal
 import ast
 import string
 from dataclasses import dataclass, field
@@ -70,6 +70,17 @@ class MechanismMetadata:
     def get_next_free_class_id(self):
         free_class_ids = self.get_free_class_ids()
         return free_class_ids[0] if free_class_ids else None
+
+    def add_class(self):
+        free_id = self.get_next_free_class_id()
+        if not free_id:
+            return
+        self.formulas[free_id].enabled = True
+
+    def remove_class(self, class_id: str):
+        if class_id not in self.formulas or not self.formulas[class_id].enabled:
+            return
+        self.formulas[class_id] = Formula()
 
 
 @dataclass

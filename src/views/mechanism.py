@@ -25,7 +25,7 @@ class MechanismContainer(html.Div):
         causes = node.get_in_node_ids()
         causes.append(f"n_{id}")
         self.children = [
-            RadioItems(["Regression", "Classification"], value="Regression", id={
+            RadioItems(["regression", "classification"], value="regression", id={
                 "type": "mechanism-choice", "index": id
             }),
             html.Hr(),
@@ -34,11 +34,10 @@ class MechanismContainer(html.Div):
         ]
 
 
-
 class MechanismInput(html.Div):
     def __init__(self, id: str):
         super().__init__(id={"type": "mechanism-input", "index": id})
-        match graph.get_node_by_id(id).mechanism:
+        match graph.get_node_by_id(id).mechanism.mechanism_type:
             case "regression":
                 self.children = RegressionBuilder(id)
             case "classification":
@@ -53,9 +52,10 @@ class RegressionBuilder(html.Div):
         node = graph.get_node_by_id(id)
         causes = node.get_in_node_ids()
         causes.append(f"n_{id}")
+        formula = node.mechanism.formulas['0']
         self.children = [
             html.P(f"mechanism({', '.join(causes)})="),
-            Textarea(id={"type": "regression-input", "index": id})
+            Textarea(id={"type": "regression-input", "index": id}, value=formula.text)
         ]
 
 
@@ -66,10 +66,13 @@ class ClassificationBuilder(html.Div):
         self.children.append(html.P("classification: "))
         node = graph.get_node_by_id(id)
         enabled_formulas = [(c, f) for c, f in node.mechanism.formulas.items() if f.enabled]
+        print(node.mechanism.get_free_class_ids())
         for c, f in enabled_formulas:
             self.children.extend([
                 html.P(f"class_{c}"),
                 Textarea(id={"type": "classification-input", "index": id}, value=f.text),
+                html.Button("Remove Class", id={"type": "remove-class", "index": id})
             ])
         self.children.append(html.P("else:"))
+        self.children.append(html.Button("Add Class", id={"type": "add-class", "index": id}))
 

@@ -3,7 +3,7 @@ from dash import MATCH, ALL, callback, Output, Input, State, ctx
 from dash.exceptions import PreventUpdate
 
 from models.graph import graph
-from views.mechanism import MechanismInput, RegressionBuilder, ClassificationBuilder
+from views.mechanism import MechanismBuilder, MechanismInput, RegressionBuilder, ClassificationBuilder
 
 def setup_callbacks():
     @callback(
@@ -40,3 +40,27 @@ def setup_callbacks():
             raise PreventUpdate
         mechanism.add_class()
         return MechanismInput(node).children
+
+    @callback(
+        Output("mechanism-builder", "children"),
+        Input({"type": "remove-class", "index": ALL}, "n_clicks"),
+        State({"type": "remove-class", "index": ALL}, "id"),
+        prevent_initial_call=True
+    )
+    def remove_class(clicked, id: dict[str, str]):
+        if not any(clicked):
+            raise PreventUpdate
+
+        triggered_node: dict | None = ctx.triggered_id
+        if not triggered_node or not (index := triggered_node.get("index")):
+            raise PreventUpdate
+
+        print(triggered_node)
+        print(index)
+
+        node_id, class_id = index.split("_")
+        mechanism = graph.get_node_by_id(node_id).mechanism
+        if not mechanism.get_class_by_id(class_id):
+            raise PreventUpdate
+        mechanism.remove_class(class_id)
+        return MechanismBuilder().children

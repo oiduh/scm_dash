@@ -1,14 +1,11 @@
-05.02.24
 TODO:
-    backend:
-        - [ ] save generated data
-        - [ ] meta data checks -> variable if params changed but no visual update
-        - [ ] save formula for mechanism
-        - [ ] verify formula for mechanism + generate new data
-    frontend:
-        - [ ] regression mechanism option
-        - [ ] classification mechanism option
-            - [ ] based on input (causes) + noise
-            - [ ] 
-        - [ ] simple visualisation for mechanisms? -> pca?
-    
+    - [X] find double textarea bug
+    - [ ] make the text area look nicer 
+    - [ ] read formula input and ouput on the right  
+    - [ ] graph of output
+    - [ ] bonus small input graphs to output graph    
+
+error for double text area originates from deleting a input class
+-> error fixed by wrapping in row/col from dbc
+
+

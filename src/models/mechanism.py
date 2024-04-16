@@ -65,22 +65,22 @@ class MechanismMetadata:
         return self.formulas.get(id)
 
     def get_free_class_ids(self):
-        return [id for id, formula in self.formulas.items() if not formula.enabled]
+        return [id for id, formula in self.formulas.items() if formula.enabled is False]
 
     def get_next_free_class_id(self):
         free_class_ids = self.get_free_class_ids()
-        return free_class_ids[0] if free_class_ids else None
+        return free_class_ids[0] if len(free_class_ids) > 0 else None
 
     def add_class(self):
         free_id = self.get_next_free_class_id()
-        if not free_id:
+        if free_id is None:
             return
         self.formulas[free_id].enabled = True
 
     def remove_class(self, class_id: str):
         if class_id not in self.formulas or not self.formulas[class_id].enabled:
             return
-        self.formulas[class_id] = Formula()
+        self.formulas[class_id].enabled = False
 
 
 @dataclass

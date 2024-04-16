@@ -1,6 +1,7 @@
 from dash import html
-from dash.dcc import RadioItems, Textarea
+from dash.dcc import RadioItems
 import dash_bootstrap_components as dbc
+from pandas.io.formats.printing import justify
 
 from models.graph import graph
 
@@ -55,9 +56,16 @@ class RegressionBuilder(html.Div):
         formula = node.mechanism.formulas['0']
         self.children = [
             html.P(f"mechanism({', '.join(causes)})="),
-            Textarea(id={"type": "regression-input", "index": id}, value=formula.text),
-            html.Button("Verify", id={"type": "verify-button", "index": f"{id}_0"}), 
-            html.Button("Edit", id={"type": "edit-button", "index": f"{id}_0"}), 
+            dbc.Col([
+                dbc.Row(dbc.Textarea(
+                    id={"type": "regression-input", "index": id}, value=formula.text, debounce=False,
+                    required=True
+                )),
+                dbc.Col([
+                    html.Button("Verify", id={"type": "verify-button", "index": f"{id}_0"}), 
+                    html.Button("Edit", id={"type": "edit-button", "index": f"{id}_0"}), 
+                ])
+            ])
         ]
 
 
@@ -67,14 +75,20 @@ class ClassificationBuilder(html.Div):
         self.children = []
         self.children.append(html.P("classification: "))
         node = graph.get_node_by_id(id)
-        enabled_formulas = [(c, f) for c, f in node.mechanism.formulas.items() if f.enabled]
+        enabled_formulas = [(c, f) for c, f in node.mechanism.formulas.items() if f.enabled is True]
         for c, f in enabled_formulas:
             self.children.extend([
                 html.P(f"class_{c}"),
-                Textarea(id={"type": "classification-input", "index": id}, value=f.text),
-                html.Button("Verify", id={"type": "verify-button", "index": f"{id}_{c}"}), 
-                html.Button("Edit", id={"type": "edit-button", "index": f"{id}_{c}"}), 
-                html.Button("Remove Class", id={"type": "remove-class", "index": f"{id}_{c}"})
+                dbc.Col([
+                    dbc.Row(dbc.Input(
+                        id={"type": "classification-input", "index": id}, value=f.text
+                    )),
+                    dbc.Row([
+                        html.Button("Verify", id={"type": "verify-button", "index": f"{id}_{c}"}), 
+                        html.Button("Edit", id={"type": "edit-button", "index": f"{id}_{c}"}), 
+                        html.Button("Remove Class", id={"type": "remove-class", "index": f"{id}_{c}"})
+                    ])
+                ])
             ])
         self.children.append(html.P("else:"))
         self.children.append(html.Button("Add Class", id={"type": "add-class", "index": id}))

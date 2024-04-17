@@ -1,7 +1,6 @@
 from dash import html
 from dash.dcc import RadioItems
 import dash_bootstrap_components as dbc
-from pandas.io.formats.printing import justify
 
 from models.graph import graph
 
@@ -80,14 +79,14 @@ class ClassificationBuilder(html.Div):
             self.children.extend([
                 html.P(f"class_{c}"),
                 dbc.Col([
-                    dbc.Row(dbc.Input(
+                    dbc.Row(dbc.Textarea(
                         id={"type": "classification-input", "index": id}, value=f.text
                     )),
-                    dbc.Row([
+                    dbc.Row(dbc.Col([
                         html.Button("Verify", id={"type": "verify-button", "index": f"{id}_{c}"}), 
                         html.Button("Edit", id={"type": "edit-button", "index": f"{id}_{c}"}), 
                         html.Button("Remove Class", id={"type": "remove-class", "index": f"{id}_{c}"})
-                    ])
+                    ]))
                 ])
             ])
         self.children.append(html.P("else:"))

@@ -1,7 +1,38 @@
 TODO:
     - [X] find double textarea bug
+    - [ ] distr sliders
+        - [ ] depending on distr -> limits
+    - [ ] distr view
+        - [ ] dropdown for choice
+        - [ ] variable change -> immediate update
+    - [ ] accordion items
+        - [ ] save open states -> dont change on reload
+    - [ ] formula input
+        - [ ] classification
+            - [ ] textarea
+                - [ ] initially unlocked
+                - [ ] depends on verify/edit
+            - [ ] verify button
+                - [ ] initially unlocked
+                - [ ] initially none verified
+                - [ ] clickable only if in edit mode
+                - [ ] if verify success
+                    - [ ] lock verify button
+                    - [ ] lock textarea
+                    - [ ] unlock editable button
+            - [ ] edit button
+                - [ ] initially locked
+                - [ ] initially all editable
+                - [ ] clickable only if in verified mode
+                - [ ] if edit clicked
+                    - [ ] lock edit button
+                    - [ ] unlock verify button
+                - [ ] unlock textarea
+        - [?] regression -> after classification done
+            - [ ] textarea
+            - [ ] verify
+            - [ ] edit
     - [ ] make the text area look nicer 
-    - [ ] read formula input and ouput on the right  
     - [ ] graph of output
     - [ ] bonus small input graphs to output graph    
 

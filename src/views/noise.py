@@ -1,11 +1,10 @@
-from dash import html
-from dash.dcc import Dropdown, Slider, Input, Graph
 import dash_bootstrap_components as dbc
+import plotly.figure_factory as ff
+from dash import html
+from dash.dcc import Dropdown, Graph, Input, Slider
 
 from models.graph import graph
 from models.noise import Distribution
-
-import plotly.figure_factory as ff
 
 
 class NoiseBuilder(html.Div):
@@ -15,90 +14,171 @@ class NoiseBuilder(html.Div):
         accordion = dbc.Accordion(always_open=True)
         accordion.children = []
         for name in graph.get_node_names():
-            accordion.children.append(dbc.AccordionItem(NoiseContainer(name), title=name))
+            accordion.children.append(
+                dbc.AccordionItem(NoiseContainer(name), title=name)
+            )
         self.children.append(accordion)
 
 
 class NoiseContainer(html.Div):
-    def __init__(self, id: str):
-        super().__init__(id={"type": "noise-container", "index": id})
-        node = graph.get_node_by_id(id)
+    def __init__(self, id_: str):
+        super().__init__(id={"type": "noise-container", "index": id_})
+        node = graph.get_node_by_id(id_)
+        if node is None:
+            raise Exception("Node not found")
+
         self.children = []
         accordion = dbc.Accordion(always_open=True)
         accordion.children = []
-        for distribution in node.data.get_distributions():
-            var_id = distribution.id
+        for distribution in node.noise.get_distributions():
+            if distribution is None:
+                continue
+            var_id = distribution.id_
             title = f"{id}_{var_id}"
-            accordion.children.append(dbc.AccordionItem(NoiseNodeBuilder((id, var_id)), title=title))
+            accordion.children.append(
+                dbc.AccordionItem(NoiseNodeBuilder((id_, var_id)), title=title)
+            )
         self.children.append(accordion)
         self.children.append(html.Hr())
-        self.children.append(dbc.Row([
-            dbc.Col(html.Button("Add distribution", id={"type": "add-sub-distribution", "index": id})),
-            dbc.Col(html.Button(
-                "View", id={"type": "view-distribution", "index": id}
-            ), width={"size": 1, "order": "last"})
-        ]))
+        self.children.append(
+            dbc.Row(
+                [
+                    dbc.Col(
+                        html.Button(
+                            "Add distribution",
+                            id={"type": "add-sub-distribution", "index": id_},
+                        )
+                    ),
+                    dbc.Col(
+                        html.Button(
+                            "View", id={"type": "view-distribution", "index": id_}
+                        ),
+                        width={"size": 1, "order": "last"},
+                    ),
+                ]
+            )
+        )
 
 
 class NoiseNodeBuilder(html.Div):
-    def __init__(self, id: tuple[str, str]):
-        id_ = f"{id[0]}_{id[1]}"
-        super().__init__(id={"type": "noise-node-builder", "index": id_})
-        distr = graph.get_node_by_id(id[0]).data.get_distribution_by_id(id[1])
-        assert distr, "no params"
+    def __init__(self, id_: tuple[str, str]):
+        new_id_ = f"{id_[0]}_{id_[1]}"
+        super().__init__(id={"type": "noise-node-builder", "index": new_id_})
+        source_node = graph.get_node_by_id(id_[0])
+        target_node = graph.get_node_by_id(id_[1])
+        if source_node is None or target_node is None:
+            raise Exception("Source node or targe node not found")
+
+        distribution = source_node.noise.get_distribution_by_id(target_node.id_)
+        if distribution is None:
+            raise Exception("No parameters found")
 
         col = dbc.Col()
         col.children = []
         parmeter_options = Distribution.parameter_options()
-        col.children.append(Dropdown(
-            options=parmeter_options, value=distr.name,
-            id={"type": "distribution-choice", "index": id_}
-        ))
+        col.children.append(
+            Dropdown(
+                options=parmeter_options,
+                value=distribution.name,
+                id={"type": "distribution-choice", "index": new_id_},
+            )
+        )
         col.children.append(html.Hr())
-        for param in distr.parameters.values():
-            col.children.append(dbc.Col([
-                dbc.Row(html.H3(param.name)),
-                dbc.Row([
-                    dbc.Col([
-                        dbc.Label("slider min: "),
-                        Input(
-                            id={"type": "input-min", "index": f"{id_}_{param.name}"},
-                            value=param.slider_min, type="number", size="7",
-                            min=param.min, max=param.max, step=param.step
-                        )
-                    ], width=3),
-                    dbc.Col([
-                        dbc.Label("current: "),
-                        Input(
-                            id={"type": "input-value", "index": f"{id_}_{param.name}"},
-                            value=param.current, type="number", size="7",
-                            min=param.min, max=param.max, step=param.step
-                        )
-                    ], width=3), 
-                    dbc.Col([
-                        dbc.Label("slider max: "),
-                        Input(
-                            id={"type": "input-max", "index": f"{id_}_{param.name}"},
-                            value=param.slider_max, type="number", size="7",
-                            min=param.min, max=param.max, step=param.step
-                        )
-                    ], width=3),
-                ], style={"height": 50}, justify="between"),
-                dbc.Row(Slider(
-                    min=param.min, max=param.max, step=param.step, value=param.current,
-                    marks={param.min: str(param.min), param.max: str(param.max)},
-                    tooltip={"placement": "top", "always_visible": True},
-                    id={
-                        "type": "slider",
-                        "index": f"{id_}_{param.name}"
-                    }
-                ), style={"height": 50}, align="end"),
-            ]))
+        for param in distribution.parameters.values():
+            col.children.append(
+                dbc.Col(
+                    [
+                        dbc.Row(html.H3(param.name)),
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    [
+                                        dbc.Label("slider min: "),
+                                        Input(
+                                            id={
+                                                "type": "input-min",
+                                                "index": f"{new_id_}_{param.name}",
+                                            },
+                                            value=param.slider_min,
+                                            type="number",
+                                            size="7",
+                                            min=param.min,
+                                            max=param.max,
+                                            step=param.step,
+                                        ),
+                                    ],
+                                    width=3,
+                                ),
+                                dbc.Col(
+                                    [
+                                        dbc.Label("current: "),
+                                        Input(
+                                            id={
+                                                "type": "input-value",
+                                                "index": f"{new_id_}_{param.name}",
+                                            },
+                                            value=param.current,
+                                            type="number",
+                                            size="7",
+                                            min=param.min,
+                                            max=param.max,
+                                            step=param.step,
+                                        ),
+                                    ],
+                                    width=3,
+                                ),
+                                dbc.Col(
+                                    [
+                                        dbc.Label("slider max: "),
+                                        Input(
+                                            id={
+                                                "type": "input-max",
+                                                "index": f"{new_id_}_{param.name}",
+                                            },
+                                            value=param.slider_max,
+                                            type="number",
+                                            size="7",
+                                            min=param.min,
+                                            max=param.max,
+                                            step=param.step,
+                                        ),
+                                    ],
+                                    width=3,
+                                ),
+                            ],
+                            style={"height": 50},
+                            justify="between",
+                        ),
+                        dbc.Row(
+                            Slider(
+                                min=param.min,
+                                max=param.max,
+                                step=param.step,
+                                value=param.current,
+                                marks={
+                                    param.min: str(param.min),
+                                    param.max: str(param.max),
+                                },
+                                tooltip={"placement": "top", "always_visible": True},
+                                id={
+                                    "type": "slider",
+                                    "index": f"{new_id_}_{param.name}",
+                                },
+                            ),
+                            style={"height": 50},
+                            align="end",
+                        ),
+                    ]
+                )
+            )
             col.children.append(html.Hr())
 
-        col.children.append(html.Button(
-            "Remove distribution", id={"type": "remove-sub-distribution", "index": id_}
-        ))
+        col.children.append(
+            html.Button(
+                "Remove distribution",
+                id={"type": "remove-sub-distribution", "index": new_id_},
+            )
+        )
         self.children = [col]
 
 
@@ -106,12 +186,14 @@ class NoiseViewer(html.Div):
     def __init__(self, node_id: str = "a"):
         super().__init__(id="noise-viewer")
 
-        data = graph.get_node_by_id(node_id).data
-        param = data.id
+        source_node = graph.get_node_by_id(node_id)
+        if source_node is None:
+            raise Exception("Node not found")
 
-        figure = ff.create_distplot([data.generate_data()], [param], show_rug=False, bin_size=0.2)
-        self.children = [
-            html.H3(f"variable: {param}"),
-            Graph("graph-0", figure=figure)
-        ]
+        noise = source_node.noise
+        param = noise.id_
 
+        figure = ff.create_distplot(
+            [noise.generate_data()], [param], show_rug=False, bin_size=0.2
+        )
+        self.children = [html.H3(f"variable: {param}"), Graph("graph-0", figure=figure)]

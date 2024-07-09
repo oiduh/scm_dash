@@ -1,56 +1,76 @@
-from typing import Literal
-from dataclasses import dataclass, field
-from plotly.basedatatypes import deepcopy
 import string
-from models.noise import Data
-from models.mechanism import Formula, MechanismMetadata
+from copy import deepcopy
+from dataclasses import dataclass, field
+from typing import Literal
 
+from models.mechanism import MechanismMetadata
+from models.noise import Noise
 
 
 @dataclass
 class Node:
-    id: str
-    name: str
-    in_nodes: list['Node']
-    out_nodes: list['Node']
-    graph: 'Graph'
-    data: Data = field(init=False)
-    mechanism: MechanismMetadata = field(default_factory=MechanismMetadata)
+    id_: str
+    name: str  # TODO: custom node name
+    graph: "Graph"
+    in_nodes: list["Node"] = field(default_factory=list)
+    out_nodes: list["Node"] = field(default_factory=list)
+    noise: Noise = field(init=False)
+    mechanism_metadata: MechanismMetadata = field(
+        default_factory=MechanismMetadata,
+    )
 
-    def __post_init__(self):
-        self.data = Data.default_data(self.id)
+    def __post_init__(self) -> None:
+        self.noise = Noise.default_noise(self.id_)
 
-    def get_in_node_ids(self):
-        return [n.id for n in self.in_nodes]
+    def get_in_node_ids(self) -> list[str]:
+        return [n.id_ for n in self.in_nodes]
 
-    def get_out_node_ids(self):
-        return [n.id for n in self.out_nodes]
+    def get_out_node_ids(self) -> list[str]:
+        return [n.id_ for n in self.out_nodes]
 
-    def add_in_node(self, to_add: 'Node'):
-        assert to_add not in self.in_nodes, "Node already an in_node"
+    def add_in_node(self, to_add: "Node") -> None:
+        """
+        Exception:
+            target node already an in node
+        """
+        if to_add in self.in_nodes:
+            print(
+                f"{to_add.id_=}, {to_add.get_in_node_ids()=}, {to_add.get_out_node_ids()=}"
+            )
+            raise Exception("Node already an in_node")
         self.in_nodes.append(to_add)
 
-    def add_out_node(self, to_add: 'Node'):
-        assert to_add not in self.out_nodes, "Node already an out_node"
+    def add_out_node(self, to_add: "Node") -> None:
+        """
+        Exception:
+            target node already an out node
+        """
+        if to_add in self.out_nodes:
+            raise Exception("Node already an out_node")
         self.out_nodes.append(to_add)
 
-    def remove_in_node(self, to_remove: 'Node'):
-        assert to_remove.id in [n.id for n in self.in_nodes], "target node is not an in node"
+    def remove_in_node(self, to_remove: "Node") -> None:
+        """
+        Exception:
+            target node not an in node
+        """
+        if to_remove.id_ not in self.get_in_node_ids():
+            raise Exception("Target node is not an in node")
         self.in_nodes.remove(to_remove)
 
-    def remove_out_node(self, to_remove: 'Node'):
-        assert to_remove.id in [n.id for n in self.out_nodes], "target node is not an out node"
+    def remove_out_node(self, to_remove: "Node") -> None:
+        """
+        Exception:
+            target node not an out node
+        """
+        if to_remove.id_ not in self.get_out_node_ids():
+            raise Exception("Target node is not an out node")
         self.out_nodes.remove(to_remove)
 
-    def get_in_node_data(self):
-        return {k: self.graph.get_node_by_id(k).data.generate_data() for k in self.get_in_node_ids()}
-
-    def change_mechanism(self, new_mechanism: Literal["regression", "classification"]):
-        self.mechanism = MechanismMetadata()
-        self.mechanism.mechanism_type = new_mechanism
-        free_class_id = self.mechanism.get_next_free_class_id()
-        assert free_class_id
-        self.mechanism.formulas[free_class_id].enabled = True
+    def change_mechanism_type(
+        self, new_mechanism: Literal["regression", "classification"]
+    ) -> None:
+        self.mechanism_metadata.change_type(new_mechanism)
 
 
 @dataclass
@@ -59,107 +79,132 @@ class Graph:
         default_factory=lambda: {str(id): None for id in string.ascii_lowercase}
     )
 
-    def get_nodes(self):
+    def get_nodes(self) -> list[Node]:
         return [node for node in self.nodes.values() if node]
 
-    def get_node_ids(self):
-        return [node.id for node in self.get_nodes()]
+    def get_node_ids(self) -> list[str]:
+        return [node.id_ for node in self.get_nodes()]
 
-    def get_node_names(self):
+    def get_node_names(self) -> list[str]:
         return [node.name for node in self.get_nodes()]
 
-    def get_node_by_id(self, id: str):
-        assert self.nodes.get(id), "Node does not exist"
-        return [node for node in self.get_nodes() if node.id == id][0]
+    def get_node_by_id(self, id_: str) -> Node | None:
+        return self.nodes.get(id_)
 
-    def get_node_by_name(self, name: str):
-        assert name in self.get_node_names(), "Node does not exist"
-        return [node for node in self.get_nodes() if node.name == name][0]
+    def get_node_by_name(self, name: str) -> Node | None:
+        nodes = (node for node in self.get_nodes() if node.name == name)
+        return next(nodes, None)
 
-    def get_free_node_id(self):
-        free_node_ids = [id for id in self.nodes.keys() if not self.nodes.get(id)]
-        return free_node_ids[0] if free_node_ids else None
+    def get_free_node_id(self) -> str | None:
+        free_node_ids = (id for id, node in self.nodes.items() if node is None)
+        return next(free_node_ids, None)
 
-    def add_node(self):
+    def add_node(self) -> None:
         free_node_id = self.get_free_node_id()
-        assert free_node_id, "No more space for new nodes"
-        new_node = Node(free_node_id, free_node_id, list(), list(), self)
+        if free_node_id is None:
+            raise Exception("Cannot add another node")
+
+        new_node = Node(free_node_id, free_node_id, self)
         self.nodes[free_node_id] = new_node
-        free_class_id = new_node.mechanism.get_next_free_class_id()
-        assert free_class_id
-        new_mechanism = new_node.mechanism.get_class_by_id(free_class_id)
-        assert new_mechanism
-        new_mechanism.enabled = True
+        new_node.mechanism_metadata.change_type("regression")
 
-    def remove_node(self, to_remove: Node):
-        assert self.nodes.get(to_remove.id), "Node does not exist"
+    def remove_node(self, to_remove: Node) -> None:
+        """
+        Exception:
+            node does not exist
+        """
+        if self.nodes.get(to_remove.id_) is None:
+            raise Exception("Node does not exist")
+
         for node in self.get_nodes():
-            if to_remove.id in [n.id for n in node.in_nodes]:
+            if to_remove.id_ in [n.id_ for n in node.in_nodes]:
                 node.remove_in_node(to_remove)
-            if to_remove.id in [n.id for n in node.out_nodes]:
+            if to_remove.id_ in [n.id_ for n in node.out_nodes]:
                 node.remove_out_node(to_remove)
-        self.nodes[to_remove.id] = None
 
-    def add_edge(self, source: Node, target: Node):
-        if self.can_add_edge(source, target):
-            self.get_node_by_id(source.id).add_out_node(target)
-            self.get_node_by_id(target.id).add_in_node(source)
+        self.nodes[to_remove.id_] = None
 
-    def can_add_edge(self, source: Node, target: Node):
-        target_in_nodes = [n.id for n in target.in_nodes]
-        source_out_nodes = [n.id for n in source.out_nodes]
-        if source.id in target_in_nodes or target.id in source_out_nodes:
+    def add_edge(self, source: Node, target: Node) -> None:
+        if self.can_add_edge(source, target) is False:
+            print(f"failed to add edge: {source.id_}->{target.id_}")
+            print(
+                f"{source.id_} with out_nodes: {[x for x in source.get_out_node_ids()]}"
+            )
+            print(
+                f"{target.id_} with in_nodes: {[x for x in target.get_in_node_ids()]}"
+            )
+            raise Exception("Cannot add edge")
+
+        source.add_out_node(target)
+        target.add_in_node(source)
+
+    def can_add_edge(self, source: Node, target: Node) -> bool:
+        target_in_nodes = target.get_in_node_ids()
+        source_out_nodes = source.get_out_node_ids()
+        if source.id_ in target_in_nodes and target.id_ in source_out_nodes:
             return False
 
         new_graph = deepcopy(self)
-        new_graph.get_node_by_id(source.id).add_out_node(target)
-        new_graph.get_node_by_id(target.id).add_in_node(source)
+        new_source = new_graph.get_node_by_id(source.id_)
+        new_target = new_graph.get_node_by_id(target.id_)
+        assert new_source is not None and new_target is not None
+        new_source.add_out_node(new_target)
+        new_target.add_in_node(new_source)
 
         return not Graph.is_cyclic(new_graph)
 
     @staticmethod
-    def is_cyclic(new_graph: 'Graph'):
+    def is_cyclic(new_graph: "Graph") -> bool:
         nodes = new_graph.get_nodes()
-        visited = {k.id: False for k in nodes}
-        recursive_stack = {k.id: False for k in nodes}
+        visited = {k.id_: False for k in nodes}
+        recursive_stack = {k.id_: False for k in nodes}
 
         for node in nodes:
-            if not visited[node.id]:
+            if visited[node.id_] is False:
                 if Graph.is_cyclic_util(node, visited, recursive_stack, new_graph):
                     return True
         return False
 
     @staticmethod
-    def is_cyclic_util(node: Node, visited: dict[str, bool],
-                       recursive_stack: dict[str, bool], new_graph: 'Graph'):
-        visited[node.id] = True
-        recursive_stack[node.id] = True
-        for neighbor in new_graph.get_node_by_id(node.id).out_nodes:
-            if not visited[neighbor.id]:
+    def is_cyclic_util(
+        node: Node,
+        visited: dict[str, bool],
+        recursive_stack: dict[str, bool],
+        new_graph: "Graph",
+    ) -> bool:
+        visited[node.id_] = True
+        recursive_stack[node.id_] = True
+        for neighbor in node.out_nodes:
+            if not visited[neighbor.id_]:
                 if Graph.is_cyclic_util(neighbor, visited, recursive_stack, new_graph):
                     return True
-            elif recursive_stack[neighbor.id]:
+            elif recursive_stack[neighbor.id_]:
                 return True
-        recursive_stack[node.id] = False
+        recursive_stack[node.id_] = False
         return False
 
-    def remove_edge(self, source: Node, target: Node):
-        if not self.can_remove_edge(source, target):
-            return
-        out_node = self.get_node_by_id(target.id)
-        self.get_node_by_id(source.id).out_nodes.remove(out_node)
-        in_node = self.get_node_by_id(source.id)
-        self.get_node_by_id(target.id).in_nodes.remove(in_node)
+    def remove_edge(self, source: Node, target: Node) -> None:
+        """
+        Exception:
+            edge cannot be removed
+        """
+        if self.can_remove_edge(source, target) is False:
+            raise Exception("Cannot remove edge")
 
-    def can_remove_edge(self, source: Node, target: Node):
-        target_in_nodes = [n.id for n in target.in_nodes]
-        source_out_nodes = [n.id for n in source.out_nodes]
-        return source.id in target_in_nodes and target.id in source_out_nodes
+        source.out_nodes.remove(target)
+        target.in_nodes.remove(source)
+
+    def can_remove_edge(self, source: Node, target: Node) -> bool:
+        source_removable = source.id_ in [n.id_ for n in target.in_nodes]
+        target_removable = target.id_ in [n.id_ for n in source.out_nodes]
+        return source_removable and target_removable
 
 
 # TODO: initial graph setup -> replace with imported settings if available
 graph = Graph()
-graph.add_node()  # a
-graph.add_node()  # b
-graph.add_edge(graph.get_node_by_id('a'), graph.get_node_by_id('b'))
-
+graph.add_node()
+graph.add_node()
+a = graph.get_node_by_id("a")
+b = graph.get_node_by_id("b")
+assert a is not None and b is not None, "Failed at init"
+graph.add_edge(a, b)

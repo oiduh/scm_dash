@@ -1,5 +1,24 @@
 TODO:
     - [X] find double textarea bug
+    - [ ] mechanism -> data generation process
+        - [ ] gather root nodes
+        - [ ] generate data for root nodes + save + flag
+        - [ ] get out nodes of root nodes
+        - [ ] gather all in node data -> noise + processed data
+        - [ ] repeat for rest of nodes
+        - [ ] tests for pipeline
+    - [ ] logger
+    - [ ] css
+    - [ ] graph builder design
+    - [ ] typing return values
+    - [ ] explicit code
+    - [ ] revise Data class
+    - [ ] revise mechanism
+    - [ ] remove unnecassary asserts
+        - [ ] remove
+        - [ ] handle instead
+        - [ ] exceptions + handling instead, or error
+    - [ ] randint distribution bug -> not updting
     - [ ] distr sliders
         - [ ] depending on distr -> limits
     - [ ] distr view
@@ -11,23 +30,14 @@ TODO:
         - [ ] classification
             - [ ] textarea
                 - [ ] initially unlocked
-                - [ ] depends on verify/edit
+                - [ ] verifying locks it
+                - [ ] editing unlocks it
+                - [ ] adding/removing class unlocks it
             - [ ] verify button
-                - [ ] initially unlocked
-                - [ ] initially none verified
-                - [ ] clickable only if in edit mode
-                - [ ] if verify success
-                    - [ ] lock verify button
-                    - [ ] lock textarea
-                    - [ ] unlock editable button
+                - [ ] triggers verification -> all formulas
+                - [ ] triggers data generation -> all formulas
             - [ ] edit button
-                - [ ] initially locked
-                - [ ] initially all editable
-                - [ ] clickable only if in verified mode
-                - [ ] if edit clicked
-                    - [ ] lock edit button
-                    - [ ] unlock verify button
-                - [ ] unlock textarea
+                - [ ] reverts verification steps
         - [?] regression -> after classification done
             - [ ] textarea
             - [ ] verify

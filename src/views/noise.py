@@ -34,7 +34,7 @@ class NoiseContainer(html.Div):
             if distribution is None:
                 continue
             var_id = distribution.id_
-            title = f"{id}_{var_id}"
+            title = f"{id_}_{var_id}"
             accordion.children.append(
                 dbc.AccordionItem(NoiseNodeBuilder((id_, var_id)), title=title)
             )
@@ -65,11 +65,10 @@ class NoiseNodeBuilder(html.Div):
         new_id_ = f"{id_[0]}_{id_[1]}"
         super().__init__(id={"type": "noise-node-builder", "index": new_id_})
         source_node = graph.get_node_by_id(id_[0])
-        target_node = graph.get_node_by_id(id_[1])
-        if source_node is None or target_node is None:
-            raise Exception("Source node or targe node not found")
+        if source_node is None:
+            raise Exception("Source node not found")
 
-        distribution = source_node.noise.get_distribution_by_id(target_node.id_)
+        distribution = source_node.noise.get_distribution_by_id(id_[1])
         if distribution is None:
             raise Exception("No parameters found")
 

@@ -11,13 +11,11 @@ TODO:
     - [ ] css
     - [ ] graph builder design
     - [ ] typing return values
-    - [ ] explicit code
-    - [ ] revise Data class
     - [ ] revise mechanism
-    - [ ] remove unnecassary asserts
-        - [ ] remove
-        - [ ] handle instead
-        - [ ] exceptions + handling instead, or error
+    - [X] remove unnecassary asserts
+        - [X] remove
+        - [X] handle instead
+        - [X] exceptions + handling instead, or error
     - [ ] randint distribution bug -> not updting
     - [ ] distr sliders
         - [ ] depending on distr -> limits

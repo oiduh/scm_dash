@@ -34,9 +34,6 @@ class Node:
             target node already an in node
         """
         if to_add in self.in_nodes:
-            print(
-                f"{to_add.id_=}, {to_add.get_in_node_ids()=}, {to_add.get_out_node_ids()=}"
-            )
             raise Exception("Node already an in_node")
         self.in_nodes.append(to_add)
 
@@ -126,13 +123,6 @@ class Graph:
 
     def add_edge(self, source: Node, target: Node) -> None:
         if self.can_add_edge(source, target) is False:
-            print(f"failed to add edge: {source.id_}->{target.id_}")
-            print(
-                f"{source.id_} with out_nodes: {[x for x in source.get_out_node_ids()]}"
-            )
-            print(
-                f"{target.id_} with in_nodes: {[x for x in target.get_in_node_ids()]}"
-            )
             raise Exception("Cannot add edge")
 
         source.add_out_node(target)

@@ -44,13 +44,17 @@ class NodeBuilder(html.Div):
                 continue
             if graph.can_add_edge(source_node, target_node):
                 can_add.append(
-                    {"label": source_node, "value": target_node, "disabled": False}
+                    {
+                        "label": target_node.id_,
+                        "value": target_node.id_,
+                        "disabled": False,
+                    }
                 )
             else:
                 can_add.append(
                     {
-                        "label": f"{source_node} (cycle)",
-                        "value": target_node,
+                        "label": f"{target_node.id_} (cycle)",
+                        "value": target_node.id_,
                         "disabled": True,
                     }
                 )
@@ -60,7 +64,7 @@ class NodeBuilder(html.Div):
                 [
                     dbc.Col(
                         [
-                            dbc.Row(html.Div(f"node id: {id}")),
+                            dbc.Row(html.Div(f"node id: {id_}")),
                             dbc.Row(html.Div("in nodes: " + ", ".join(in_nodes))),
                             dbc.Row(html.Div("out nodes: " + ", ".join(out_nodes))),
                         ]
@@ -74,13 +78,19 @@ class NodeBuilder(html.Div):
                                         dcc.Dropdown(
                                             options=can_add,
                                             searchable=False,
-                                            id={"type": "add-edge-choice", "index": id},
+                                            id={
+                                                "type": "add-edge-choice",
+                                                "index": id_,
+                                            },
                                         )
                                     ),
                                     dbc.Col(
                                         html.Button(
                                             "Confirm",
-                                            id={"type": "add-edge-button", "index": id},
+                                            id={
+                                                "type": "add-edge-button",
+                                                "index": id_,
+                                            },
                                         )
                                     ),
                                 ],
@@ -99,7 +109,7 @@ class NodeBuilder(html.Div):
                                             searchable=False,
                                             id={
                                                 "type": "remove-edge-choice",
-                                                "index": id,
+                                                "index": id_,
                                             },
                                         )
                                     ),
@@ -108,7 +118,7 @@ class NodeBuilder(html.Div):
                                             "Confirm",
                                             id={
                                                 "type": "remove-edge-button",
-                                                "index": id,
+                                                "index": id_,
                                             },
                                         )
                                     ),
@@ -121,7 +131,7 @@ class NodeBuilder(html.Div):
             ),
             html.Div(
                 html.Button(
-                    "Remove Node", id={"type": "remove-node-button", "index": id}
+                    "Remove Node", id={"type": "remove-node-button", "index": id_}
                 )
             ),
         ]

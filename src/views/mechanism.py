@@ -64,7 +64,7 @@ class RegressionBuilder(html.Div):
             raise Exception("Node not found")
 
         causes = node.get_in_node_ids()
-        causes.append(f"n_{id}")
+        causes.append(f"n_{id_}")
 
         formula = node.mechanism_metadata.formulas.get("0")
         if formula is None:

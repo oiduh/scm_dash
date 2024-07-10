@@ -38,7 +38,7 @@ def setup_callbacks() -> None:
         prevent_initial_call=True,
     )
     def remove_node(clicked):
-        if not any(clicked):
+        if any(clicked) is False:
             raise PreventUpdate
 
         triggered_node: dict | None = ctx.triggered_id
@@ -68,21 +68,24 @@ def setup_callbacks() -> None:
         State({"type": "add-edge-choice", "index": ALL}, "id"),
         prevent_initial_call=True,
     )
-    def add_edge(_, choices, ids):
+    def add_edge(clicked, choices, ids):
+        if any(clicked) is False:
+            raise PreventUpdate
+
         context: dict | None = ctx.triggered_id
         if context is None:
             raise PreventUpdate
 
-        triggered_node: str | None = context.get("index")
-        if triggered_node is None:
+        source_node_id: str | None = context.get("index")
+        if source_node_id is None:
             raise PreventUpdate
 
-        index = [x.get("index") for x in ids].index(triggered_node)
-        target_node_id = choices.get(index, None)
+        index = [x.get("index") for x in ids].index(source_node_id)
+        target_node_id = choices[index]
         if target_node_id is None:
             raise PreventUpdate
 
-        source = graph.get_node_by_id(triggered_node)
+        source = graph.get_node_by_id(source_node_id)
         target = graph.get_node_by_id(target_node_id)
 
         if source is None or target is None:

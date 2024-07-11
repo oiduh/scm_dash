@@ -189,6 +189,40 @@ class Graph:
         target_removable = target.id_ in [n.id_ for n in source.out_nodes]
         return source_removable and target_removable
 
+    def generate_full_data_set(self):
+        all_nodes_ids = self.get_node_ids()
+        layer_dict: dict[int, list[str]] = {}
+        root_nodes = [x.id_ for x in self.get_nodes() if len(x.get_in_node_ids()) == 0]
+        layer_dict[0] = root_nodes
+        for root_node in root_nodes:
+            all_nodes_ids.remove(root_node)
+        current_layer = 0
+        while len(all_nodes_ids) > 0:
+            nodes = layer_dict.get(current_layer)
+            assert nodes is not None
+            next_layer_nodes = [
+                x.id_
+                for x in self.get_nodes()
+                if set(x.get_in_node_ids()).intersection(set(nodes))
+            ]
+            for x in next_layer_nodes:
+                all_nodes_ids.remove(x)
+            current_layer += 1
+            layer_dict[current_layer] = next_layer_nodes
+        print(layer_dict)
+
+        # TODO:
+        # 1) get all root nodes -> layer 1
+        # 2) get next layer
+        # 3) repeat 2) until all nodes in hierarchy
+        # 4) from lowest to highest layers create data from formula
+        # 5) feed data from last layer to current data and gerate data
+        # 6) pandas data frame for each node and their data points
+        # ! need hierarchy within layer as well: ab, bc, ac -> 2 layers
+        # ! or reference to other lower layers not only the previous
+
+        pass
+
 
 # TODO: initial graph setup -> replace with imported settings if available
 graph = Graph()

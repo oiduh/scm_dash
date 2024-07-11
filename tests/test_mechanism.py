@@ -323,3 +323,63 @@ class ClassficationMechanismTest(TestCase):
         assert result.error is None
         assert result.values is not None
         self.assertEqual(result.values.shape, (3, 3000))
+
+
+class FullPipelineTest(TestCase):
+    def test_simple_hierarchy(self):
+        # TODO: actual asserts
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+
+        graph.add_edge(a, b)
+        print(graph.generate_full_data_set())
+
+    def test_simple_hierarchy_2(self):
+        # TODO: actual asserts
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+        graph.add_node()  # c
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+        c = graph.get_node_by_id("c")
+        assert c is not None
+
+        graph.add_edge(a, b)
+        graph.add_edge(b, c)
+        graph.add_edge(a, c)
+        print(graph.generate_full_data_set())
+
+    def test_simple_hierarchy_3(self):
+        # TODO: actual asserts
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+        graph.add_node()  # c
+        graph.add_node()  # d
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+        c = graph.get_node_by_id("c")
+        assert c is not None
+        d = graph.get_node_by_id("d")
+        assert d is not None
+
+        graph.add_edge(a, b)
+        graph.add_edge(b, c)
+        graph.add_edge(b, d)
+        graph.add_edge(c, d)
+        graph.add_edge(a, d)
+        graph.add_edge(a, c)
+        print(graph.generate_full_data_set())

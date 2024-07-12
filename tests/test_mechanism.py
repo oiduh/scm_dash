@@ -1,4 +1,5 @@
 import unittest
+from math import exp
 from unittest import TestCase
 
 import numpy as np
@@ -326,8 +327,7 @@ class ClassficationMechanismTest(TestCase):
 
 
 class FullPipelineTest(TestCase):
-    def test_simple_hierarchy(self):
-        # TODO: actual asserts
+    def test_simple_hierarchy_1(self):
         graph = Graph()
         graph.add_node()  # a
         graph.add_node()  # b
@@ -338,10 +338,12 @@ class FullPipelineTest(TestCase):
         assert b is not None
 
         graph.add_edge(a, b)
-        print(graph.generate_full_data_set())
+
+        expected_hierarchy = {0: {"a"}, 1: {"b"}}
+        actual_hierarchy = graph._get_generation_hierarchy()
+        self.assertDictEqual(actual_hierarchy, expected_hierarchy)
 
     def test_simple_hierarchy_2(self):
-        # TODO: actual asserts
         graph = Graph()
         graph.add_node()  # a
         graph.add_node()  # b
@@ -357,10 +359,12 @@ class FullPipelineTest(TestCase):
         graph.add_edge(a, b)
         graph.add_edge(b, c)
         graph.add_edge(a, c)
-        print(graph.generate_full_data_set())
+
+        expected_hierarchy = {0: {"a"}, 1: {"b"}, 2: {"c"}}
+        actual_hierarchy = graph._get_generation_hierarchy()
+        self.assertDictEqual(actual_hierarchy, expected_hierarchy)
 
     def test_simple_hierarchy_3(self):
-        # TODO: actual asserts
         graph = Graph()
         graph.add_node()  # a
         graph.add_node()  # b
@@ -382,4 +386,208 @@ class FullPipelineTest(TestCase):
         graph.add_edge(c, d)
         graph.add_edge(a, d)
         graph.add_edge(a, c)
-        print(graph.generate_full_data_set())
+
+        expected_hierarchy = {0: {"a"}, 1: {"b"}, 2: {"c"}, 3: {"d"}}
+        actual_hierarchy = graph._get_generation_hierarchy()
+        self.assertDictEqual(actual_hierarchy, expected_hierarchy)
+
+    def test_simple_hierarchy_4(self):
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+        graph.add_node()  # c
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+        c = graph.get_node_by_id("c")
+        assert c is not None
+
+        graph.add_edge(a, b)
+        graph.add_edge(c, b)
+
+        expected_hierarchy = {0: {"a", "c"}, 1: {"b"}}
+        actual_hierarchy = graph._get_generation_hierarchy()
+        self.assertDictEqual(actual_hierarchy, expected_hierarchy)
+
+    def test_simple_hierarchy_5(self):
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+        graph.add_node()  # c
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+        c = graph.get_node_by_id("c")
+        assert c is not None
+
+        graph.add_edge(b, a)
+        graph.add_edge(b, c)
+
+        expected_hierarchy = {0: {"b"}, 1: {"a", "c"}}
+        actual_hierarchy = graph._get_generation_hierarchy()
+        self.assertDictEqual(actual_hierarchy, expected_hierarchy)
+
+    def test_simple_hierarchy_6(self):
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+        graph.add_node()  # c
+        graph.add_node()  # d
+        graph.add_node()  # e
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+        c = graph.get_node_by_id("c")
+        assert c is not None
+        d = graph.get_node_by_id("d")
+        assert d is not None
+        e = graph.get_node_by_id("e")
+        assert e is not None
+
+        graph.add_edge(a, b)
+        graph.add_edge(c, d)
+        graph.add_edge(b, e)
+        graph.add_edge(d, e)
+
+        expected_hierarchy = {0: {"a", "c"}, 1: {"b", "d"}, 2: {"e"}}
+        actual_hierarchy = graph._get_generation_hierarchy()
+        self.assertDictEqual(actual_hierarchy, expected_hierarchy)
+
+    def test_simple_hierarchy_7(self):
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+        graph.add_node()  # c
+        graph.add_node()  # d
+        graph.add_node()  # e
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+        c = graph.get_node_by_id("c")
+        assert c is not None
+        d = graph.get_node_by_id("d")
+        assert d is not None
+        e = graph.get_node_by_id("e")
+        assert e is not None
+
+        graph.add_edge(a, b)
+        graph.add_edge(a, c)
+        graph.add_edge(a, d)
+        graph.add_edge(a, e)
+
+        expected_hierarchy = {0: {"a"}, 1: {"b", "c", "d", "e"}}
+        actual_hierarchy = graph._get_generation_hierarchy()
+        self.assertDictEqual(actual_hierarchy, expected_hierarchy)
+
+    def test_simple_hierarchy_8(self):
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+        graph.add_node()  # c
+        graph.add_node()  # d
+        graph.add_node()  # e
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+        c = graph.get_node_by_id("c")
+        assert c is not None
+        d = graph.get_node_by_id("d")
+        assert d is not None
+        e = graph.get_node_by_id("e")
+        assert e is not None
+
+        graph.add_edge(b, a)
+        graph.add_edge(c, a)
+        graph.add_edge(d, a)
+        graph.add_edge(e, a)
+
+        expected_hierarchy = {0: {"b", "c", "d", "e"}, 1: {"a"}}
+        actual_hierarchy = graph._get_generation_hierarchy()
+        self.assertDictEqual(actual_hierarchy, expected_hierarchy)
+
+    def test_complex_hierarchy_1(self):
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+        graph.add_node()  # c
+        graph.add_node()  # d
+        graph.add_node()  # e
+        graph.add_node()  # f
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+        c = graph.get_node_by_id("c")
+        assert c is not None
+        d = graph.get_node_by_id("d")
+        assert d is not None
+        e = graph.get_node_by_id("e")
+        assert e is not None
+        f = graph.get_node_by_id("f")
+        assert f is not None
+
+        graph.add_edge(a, b)
+        graph.add_edge(b, c)
+        graph.add_edge(b, d)
+        graph.add_edge(c, e)
+        graph.add_edge(d, e)
+        graph.add_edge(e, f)
+
+        expected_hierarchy = {0: {"a"}, 1: {"b"}, 2: {"c", "d"}, 3: {"e"}, 4: {"f"}}
+        actual_hierarchy = graph._get_generation_hierarchy()
+        self.assertDictEqual(actual_hierarchy, expected_hierarchy)
+
+    def test_complex_hierarchy_2(self):
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+        graph.add_node()  # c
+        graph.add_node()  # d
+        graph.add_node()  # e
+        graph.add_node()  # f
+        graph.add_node()  # g
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+        c = graph.get_node_by_id("c")
+        assert c is not None
+        d = graph.get_node_by_id("d")
+        assert d is not None
+        e = graph.get_node_by_id("e")
+        assert e is not None
+        f = graph.get_node_by_id("f")
+        assert f is not None
+        g = graph.get_node_by_id("g")
+        assert g is not None
+
+        graph.add_edge(a, b)
+        graph.add_edge(b, c)
+        graph.add_edge(b, d)
+        graph.add_edge(b, e)
+        graph.add_edge(c, f)
+        graph.add_edge(d, f)
+        graph.add_edge(e, f)
+        graph.add_edge(f, g)
+
+        expected_hierarchy = {
+            0: {"a"},
+            1: {"b"},
+            2: {"c", "d", "e"},
+            3: {"f"},
+            4: {"g"},
+        }
+        actual_hierarchy = graph._get_generation_hierarchy()
+        self.assertDictEqual(actual_hierarchy, expected_hierarchy)

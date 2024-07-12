@@ -104,6 +104,11 @@ class MechanismMetadata:
             raise Exception("Cannot remove this class")
         self.formulas[class_id].enabled = False
 
+    def get_verified_formulas(self):
+        # TODO: depends on classification or regression
+        for id_, formula in self.formulas.items():
+            pass
+
 
 @dataclass
 class MechanismResult:

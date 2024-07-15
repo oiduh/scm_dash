@@ -1,7 +1,7 @@
-import unittest
-from math import exp
 from unittest import TestCase
+from unittest.mock import patch
 
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.testing as npt
 
@@ -591,3 +591,61 @@ class FullPipelineTest(TestCase):
         }
         actual_hierarchy = graph._get_generation_hierarchy()
         self.assertDictEqual(actual_hierarchy, expected_hierarchy)
+
+    def test_simple_mechanism_1(self):
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+
+        graph.add_edge(a, b)
+
+        a.mechanism_metadata.formulas["0"].text = "n_a"
+        a.mechanism_metadata.formulas["0"].verified = True
+        b.mechanism_metadata.formulas["0"].text = "a * 1 + n_b"
+        b.mechanism_metadata.formulas["0"].verified = True
+
+        data = graph.generate_full_data_set()
+
+        assert data is not None
+
+        data.plot.scatter(x="a", y="b")
+        plt.savefig("full_mechanism_1.png")
+
+    @patch("models.noise.CONSTANTS.NR_DATA_POINTS", 10)
+    def test_simple_mechanism_2(self):
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+        graph.add_node()  # c
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+        c = graph.get_node_by_id("c")
+        assert c is not None
+
+        graph.add_edge(a, b)
+        graph.add_edge(b, c)
+
+        a.mechanism_metadata.formulas["0"].text = "n_a"
+        a.mechanism_metadata.formulas["0"].verified = True
+        b.mechanism_metadata.formulas["0"].text = "a * 1 + n_b"
+        b.mechanism_metadata.formulas["0"].verified = True
+
+        c.change_mechanism_type("classification")
+        c.mechanism_metadata.formulas["0"].text = "n_c * b > 0"
+        c.mechanism_metadata.formulas["0"].verified = True
+
+        data = graph.generate_full_data_set()
+
+        assert data is not None
+
+        print(data["c"])
+        data.plot.scatter(x="a", y="b", c="c")
+        plt.savefig("full_mechanism_1.png")

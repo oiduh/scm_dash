@@ -3,6 +3,10 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Literal
 
+import numpy as np
+import pandas as pd
+
+from mechanisms import ClassificationMechanism, RegressionMechanism
 from models.mechanism import MechanismMetadata
 from models.noise import Noise
 
@@ -12,9 +16,11 @@ class Node:
     id_: str
     name: str  # TODO: custom node name
     graph: "Graph"
+
     in_nodes: list["Node"] = field(default_factory=list)
     out_nodes: list["Node"] = field(default_factory=list)
     noise: Noise = field(init=False)
+    data: np.ndarray | None = None
     mechanism_metadata: MechanismMetadata = field(
         default_factory=MechanismMetadata,
     )
@@ -75,9 +81,10 @@ class Graph:
     nodes: dict[str, Node | None] = field(
         default_factory=lambda: {str(id): None for id in string.ascii_lowercase}
     )
+    data: None = None
 
     def get_nodes(self) -> list[Node]:
-        return [node for node in self.nodes.values() if node]
+        return [node for node in self.nodes.values() if node is not None]
 
     def get_node_ids(self) -> list[str]:
         return [node.id_ for node in self.get_nodes()]
@@ -213,12 +220,59 @@ class Graph:
             available_node_ids = available_node_ids.union(next_layer_nodes)
         return hierarchy
 
-    def generate_full_data_set(self):
+    def generate_full_data_set(self) -> pd.DataFrame | None:
         # get verified formulas or verify them now
-        for node in self.get_nodes():
-            formulas = node.mechanism_metadata
+        all_verified = all(x.mechanism_metadata.is_verified() for x in self.get_nodes())
+        if not all_verified:
+            return None
 
         hierarchy = self._get_generation_hierarchy()
+
+        for layer in hierarchy.values():
+            for node_id in layer:
+                node = self.get_node_by_id(node_id)
+                if node is None:
+                    return None
+
+                inputs: dict[str, np.ndarray] = {
+                    f"n_{node_id}": node.noise.generate_data()
+                }
+
+                for in_node_id in node.get_in_node_ids():
+                    in_node = self.get_node_by_id(in_node_id)
+                    if in_node is None or in_node.data is None:
+                        return None
+                    inputs[in_node_id] = in_node.data
+
+                formulas = [
+                    x.text
+                    for x in node.mechanism_metadata.formulas.values()
+                    if x.enabled is True
+                ]
+                if len(formulas) < 1:
+                    return None
+                match node.mechanism_metadata.mechanism_type:
+                    case "classification":
+                        mechanism = ClassificationMechanism(inputs)
+                        data = mechanism.transform(formulas)
+                    case "regression":
+                        mechanism = RegressionMechanism(inputs)
+                        data = mechanism.transform(formulas[0])
+
+                node.data = data
+
+        dataframe = pd.DataFrame.from_dict(
+            {
+                node_id: node.data
+                for node_id, node in self.nodes.items()
+                if node is not None
+            }
+        )
+        if sorted(dataframe.columns.tolist()) != sorted(self.get_node_ids()):
+            print(5)
+            return None
+
+        return dataframe
 
         # TODO:
         # 1) get all root nodes -> layer 1
@@ -228,8 +282,6 @@ class Graph:
         # 5) feed data from last layer to current data and gerate data
         # 6) pandas data frame for each node and their data points
         # ! need hierarchy within layer as well: ab, bc, ac -> 2 layers
-
-        pass
 
 
 # TODO: initial graph setup -> replace with imported settings if available

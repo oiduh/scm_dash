@@ -1,14 +1,15 @@
-from ast import Name
-from dash import MATCH, Input, Output, callback, html, State
-from dash.exceptions import PreventUpdate
-from graph_builder import graph_builder_component
-from dash.dcc import Input as InputField, RadioItems
-from typing import Any, Dict
-import numpy as np
 import ast
+from ast import Name
+from typing import Any, Dict
+
 import numpy as np
+from dash import MATCH, Input, Output, State, callback, html
+from dash.dcc import Input as InputField
+from dash.dcc import RadioItems
+from dash.exceptions import PreventUpdate
 from numpy.typing import NDArray
 
+from graph_builder import graph_builder_component
 
 # trignometry
 sin = np.sin
@@ -45,7 +46,6 @@ cbrt = np.cbrt
 fabs = np.fabs
 
 
-
 # mechanism builder plan:
 #   2 types:
 #     classification -> fixed amount of output values
@@ -74,7 +74,7 @@ class BaseMechanism:
         self.inputs = inputs
 
     def transform(self):
-        raise NotImplemented
+        raise NotImplemented()
 
 
 class ClassificationMechanism(BaseMechanism):
@@ -82,14 +82,16 @@ class ClassificationMechanism(BaseMechanism):
         super().__init__(inputs)
 
     def transform(self, formulas: list[str]):
+        print(formulas)
         results = np.full((len(formulas), len(list(self.inputs.values())[0])), False)
 
         failed = False
         for idx, formula in enumerate(formulas):
+            print(idx, formula)
             tree = ast.parse(formula)
             for a in ast.walk(tree):
                 if isinstance(a, Name) and a.id in self.inputs.keys():
-                    a.id = f"self.inputs[\"{a.id}\"]"
+                    a.id = f'self.inputs["{a.id}"]'
             new_formula = ast.unparse(tree)
             try:
                 result: NDArray[Any] = eval(new_formula)
@@ -104,7 +106,9 @@ class ClassificationMechanism(BaseMechanism):
         if np.any(np.sum(results, axis=0) > 1.0):
             raise Exception("value belongs to more than one class")
 
-        results = np.vstack([results, np.full(len(list(self.inputs.values())[0]), False)])
+        results = np.vstack(
+            [results, np.full(len(list(self.inputs.values())[0]), False)]
+        )
         for idx, col in enumerate(np.sum(results, axis=0)):
             if col == 0:
                 results[-1][idx] = True
@@ -112,7 +116,7 @@ class ClassificationMechanism(BaseMechanism):
         if not np.any(results[-1]):
             results = results[:-1]
 
-        if np.prod(np.sum(results, axis=0)) != 1.:
+        if np.prod(np.sum(results, axis=0)) != 1.0:
             raise Exception("a data entry must belong to exactly one class")
 
         return results
@@ -127,7 +131,7 @@ class RegressionMechanism(BaseMechanism):
         for a in ast.walk(tree):
             # replace variables with inputs
             if isinstance(a, Name) and a.id in self.inputs.keys():
-                a.id = f"self.inputs[\"{a.id}\"]"
+                a.id = f'self.inputs["{a.id}"]'
         new_formula = ast.unparse(tree)
         try:
             result: NDArray[np.float64] = eval(new_formula)
@@ -148,11 +152,10 @@ class RegressionInputComponent(html.Div):
         }
         self.children = [
             InputField(
-                value="",
-                id={"type": "formula-field", "index": node},
-                type="text"
+                value="", id={"type": "formula-field", "index": node}, type="text"
             ),
         ]
+
 
 class ClassificationInputComponent(html.Div):
     def __init__(self, id: dict[str, str]):
@@ -166,26 +169,36 @@ class ClassificationInputComponent(html.Div):
         # initial class structure -> 2 classes: consequence and alternative
         self.classes = 2
         self.children = []
-        self.children.append(html.Div(
-            id={"type": "class-container", "index": node}, children=[
-                html.Div(children=[
-                    html.Label(f"class 1:  if "),
-                    InputField(
-                        value="",
-                        id={"type": "class-formula-field", "index": f"{node}-1"},
-                        type="text"
-                    ),
-                    html.Button(
-                        "remove class",
-                        id={"type": "remove-class", "index": f"{node}-1"}
-                    )
-                ])
-            ]
-        ))
         self.children.append(
-            html.Div(children=[
-                html.Label("class 2: else"),
-            ])
+            html.Div(
+                id={"type": "class-container", "index": node},
+                children=[
+                    html.Div(
+                        children=[
+                            html.Label(f"class 1:  if "),
+                            InputField(
+                                value="",
+                                id={
+                                    "type": "class-formula-field",
+                                    "index": f"{node}-1",
+                                },
+                                type="text",
+                            ),
+                            html.Button(
+                                "remove class",
+                                id={"type": "remove-class", "index": f"{node}-1"},
+                            ),
+                        ]
+                    )
+                ],
+            )
+        )
+        self.children.append(
+            html.Div(
+                children=[
+                    html.Label("class 2: else"),
+                ]
+            )
         )
         self.children.append(
             html.Button("add class", id={"type": "add-class", "index": node}),
@@ -194,26 +207,41 @@ class ClassificationInputComponent(html.Div):
     def add_class(self):
         button = self.children[-1]
         self.children = self.children[:-2]
-        self.children.append(html.Div(
-            id={"type": "class-container", "index": id}, children=[
-                html.Div(children=[
-                    html.Label(f"class {self.classes}:  if "),
-                    InputField(
-                        value="",
-                        id={"type": "class-formula-field", "index": f"{self.id}-{self.classes}"},
-                        type="text"
-                    ),
-                    html.Button(
-                        "remove class",
-                        id={"type": "remove-class", "index": f"{self.id}-{self.classes}"}
+        self.children.append(
+            html.Div(
+                id={"type": "class-container", "index": id},
+                children=[
+                    html.Div(
+                        children=[
+                            html.Label(f"class {self.classes}:  if "),
+                            InputField(
+                                value="",
+                                id={
+                                    "type": "class-formula-field",
+                                    "index": f"{self.id}-{self.classes}",
+                                },
+                                type="text",
+                            ),
+                            html.Button(
+                                "remove class",
+                                id={
+                                    "type": "remove-class",
+                                    "index": f"{self.id}-{self.classes}",
+                                },
+                            ),
+                        ]
                     )
-                ]) 
-            ]
-        ))
+                ],
+            )
+        )
         self.classes += 1
-        self.children.append(html.Div(children=[
-            html.Label(f"class {self.classes}: else"),
-        ]))
+        self.children.append(
+            html.Div(
+                children=[
+                    html.Label(f"class {self.classes}: else"),
+                ]
+            )
+        )
         self.children.append(button)
 
     def remove_class(self):
@@ -230,18 +258,26 @@ class MechanismContainer(html.Div):
         self.children = []
         self.children.append(html.Label(f"variable: {node}"))
         self.children.append(html.Hr())
-        self.children.append(html.P("affected by: "+", ".join(list(edges))))
-        self.children.extend([
-            RadioItems(
-                id={"type": "mechanism-option", "index": node},
-                options=["regression", "classification"], value="regression",
-                inline=True
-            ),
-            html.Div(id={"type": "mechanism-choice", "index": node}, children=[
-                RegressionInputComponent(id={"type": "regression-component", "index": node}),
-                # ClassificationInputComponent(id={"type": "classification-component", "index": node})
-            ]),
-        ])
+        self.children.append(html.P("affected by: " + ", ".join(list(edges))))
+        self.children.extend(
+            [
+                RadioItems(
+                    id={"type": "mechanism-option", "index": node},
+                    options=["regression", "classification"],
+                    value="regression",
+                    inline=True,
+                ),
+                html.Div(
+                    id={"type": "mechanism-choice", "index": node},
+                    children=[
+                        RegressionInputComponent(
+                            id={"type": "regression-component", "index": node}
+                        ),
+                        # ClassificationInputComponent(id={"type": "classification-component", "index": node})
+                    ],
+                ),
+            ]
+        )
 
 
 class MechanismBuilderComponent(html.Div):
@@ -261,7 +297,8 @@ class MechanismBuilderComponent(html.Div):
             self.children.append(
                 MechanismContainer(
                     id={"type": "mechanism-container", "index": node},
-                    node=node, edges=causes
+                    node=node,
+                    edges=causes,
                 )
             )
 
@@ -270,11 +307,14 @@ mechanism_builder_component = MechanismBuilderComponent(
     id="mechanism-builder-component"
 )
 
+
 @callback(
-    Output({"type": "mechanism-choice", "index": MATCH}, "children", allow_duplicate=True),
+    Output(
+        {"type": "mechanism-choice", "index": MATCH}, "children", allow_duplicate=True
+    ),
     Input({"type": "mechanism-option", "index": MATCH}, "value"),
     State({"type": "mechanism-option", "index": MATCH}, "id"),
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
 def mechanism_type(choice: str, id_dict: dict[str, str]):
     node_id = id_dict["index"]
@@ -282,19 +322,24 @@ def mechanism_type(choice: str, id_dict: dict[str, str]):
     match choice:
         case "regression":
             print("regression")
-            return RegressionInputComponent(id={"type": "regression-component", "index": node_id})
+            return RegressionInputComponent(
+                id={"type": "regression-component", "index": node_id}
+            )
         case "classification":
             print("classification")
-            return ClassificationInputComponent(id={"type": "classification-component", "index": node_id})
+            return ClassificationInputComponent(
+                id={"type": "classification-component", "index": node_id}
+            )
         case _:
             raise PreventUpdate
+
 
 @callback(
     Output({"type": "mechanism-choice", "index": MATCH}, "children"),
     Input({"type": "add-class", "index": MATCH}, "n_clicks"),
     State({"type": "mechanism-choice", "index": MATCH}, "children"),
     State({"type": "classification-component", "index": MATCH}, "id"),
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
 def add_class(button, current, id_):
     # must be classification component
@@ -305,12 +350,13 @@ def add_class(button, current, id_):
     print(current)
     return current
 
+
 @callback(
     Output({"type": "classification-component", "index": MATCH}, "children"),
     Input({"type": "remove-class", "index": MATCH}, "n_clicks"),
     # State({"type": "classification-component", "index": MATCH}, "children"),
     # State({"type": "classification-component", "index": MATCH}, "id"),
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
 def remove(button):
     pass
@@ -329,4 +375,3 @@ if __name__ == "__main__":
     print(cl.transform(conditions))
     conditions = ["x < 0.2", "(0.2 <= x) & (x < 0.8)"]
     print(cl.transform(conditions))
-

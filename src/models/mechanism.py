@@ -50,13 +50,7 @@ fabs = np.fabs
 class Formula:
     text: str = ""
     verified: bool = False
-    # verified -> after typing a formula, it needs to be verified,
-    # do not generate data on verification, because an in node might
-    # still change and impact this one -> verify with some dummy data?
     enabled: bool = False
-    # enabled -> each mechanism has internally 10 max formulas,
-    # but at least 1 is active -> if another is added, enable it
-    # TODO: revise the 'verified' and 'enabled' fields
 
 
 MechanismType = Literal["regression", "classification"]
@@ -94,6 +88,7 @@ class MechanismMetadata:
         return free_class_ids[0] if len(free_class_ids) > 0 else None
 
     def add_class(self) -> None:
+        assert self.mechanism_type == "classification"
         free_id = self.get_next_free_class_id()
         if free_id is None:
             raise Exception("Cannot add another class")
@@ -104,10 +99,8 @@ class MechanismMetadata:
             raise Exception("Cannot remove this class")
         self.formulas[class_id].enabled = False
 
-    def get_verified_formulas(self):
-        # TODO: depends on classification or regression
-        for id_, formula in self.formulas.items():
-            pass
+    def is_verified(self) -> bool:
+        return all(x.verified for x in self.formulas.values() if x.enabled is True)
 
 
 @dataclass

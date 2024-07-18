@@ -6,8 +6,11 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 
-from mechanisms import ClassificationMechanism, RegressionMechanism
-from models.mechanism import MechanismMetadata
+from models.mechanism import (
+    ClassificationMechanism,
+    MechanismMetadata,
+    RegressionMechanism,
+)
 from models.noise import Noise
 
 
@@ -224,6 +227,7 @@ class Graph:
         # get verified formulas or verify them now
         all_verified = all(x.mechanism_metadata.is_verified() for x in self.get_nodes())
         if not all_verified:
+            print(1)
             return None
 
         hierarchy = self._get_generation_hierarchy()
@@ -232,6 +236,7 @@ class Graph:
             for node_id in layer:
                 node = self.get_node_by_id(node_id)
                 if node is None:
+                    print(2)
                     return None
 
                 inputs: dict[str, np.ndarray] = {
@@ -241,6 +246,7 @@ class Graph:
                 for in_node_id in node.get_in_node_ids():
                     in_node = self.get_node_by_id(in_node_id)
                     if in_node is None or in_node.data is None:
+                        print(3)
                         return None
                     inputs[in_node_id] = in_node.data
 
@@ -250,16 +256,29 @@ class Graph:
                     if x.enabled is True
                 ]
                 if len(formulas) < 1:
+                    print(4)
                     return None
                 match node.mechanism_metadata.mechanism_type:
                     case "classification":
-                        mechanism = ClassificationMechanism(inputs)
-                        data = mechanism.transform(formulas)
+                        mechanism = ClassificationMechanism(
+                            formulas=formulas, inputs=inputs
+                        )
+                        result = mechanism.transform()
+                        if result.error is not None:
+                            print(5)
+                            return None
                     case "regression":
-                        mechanism = RegressionMechanism(inputs)
-                        data = mechanism.transform(formulas[0])
+                        mechanism = RegressionMechanism(
+                            formulas=formulas, inputs=inputs
+                        )
+                        result = mechanism.transform()
+                        if result.error is not None:
+                            print(6)
+                            return None
 
-                node.data = data
+                assert result.values is not None
+                node.data = result.values
+                print(f"{node.id_=}: {node.data}")
 
         dataframe = pd.DataFrame.from_dict(
             {
@@ -268,8 +287,9 @@ class Graph:
                 if node is not None
             }
         )
+        print(dataframe)
         if sorted(dataframe.columns.tolist()) != sorted(self.get_node_ids()):
-            print(5)
+            print(7)
             return None
 
         return dataframe

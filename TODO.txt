@@ -1,12 +1,12 @@
 TODO:
     - [X] find double textarea bug
     - [ ] mechanism -> data generation process
-        - [ ] gather root nodes
-        - [ ] generate data for root nodes + save + flag
-        - [ ] get out nodes of root nodes
-        - [ ] gather all in node data -> noise + processed data
-        - [ ] repeat for rest of nodes
+        - [X] gather root nodes
+        - [X] generate data for root nodes
+        - [X] gather all in node data -> noise + processed data
+        - [X] repeat for rest of nodes
         - [ ] tests for pipeline
+        - [ ] replace one hot encoding -> can be done later
     - [ ] logger
     - [ ] css
     - [ ] graph builder design

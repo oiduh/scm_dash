@@ -153,29 +153,28 @@ class RegresionMechanismTest(TestCase):
 
 
 # TODO: refactor test cases -> no more on hot encoding
-@skip("test")
 class ClassficationMechanismTest(TestCase):
     def test_simple_classification_mechanism(self):
         formulas = ["a > 0.0"]
         inputs = [
             {
-                "a": [-1.0, 2.0],
+                "a": np.array([-1.0, 2.0]),
             },
             {
-                "a": [2.0, -1.0],
+                "a": np.array([2.0, -1.0]),
             },
             {
-                "a": [0.0, 0.0],
+                "a": np.array([0.0, 0.0]),
             },
             {
-                "a": [1.5, 2.2],
+                "a": np.array([1.5, 2.2]),
             },
         ]
         expecteds = [
-            [[False, True], [True, False]],
-            [[True, False], [False, True]],
-            [[False, False], [True, True]],
-            [[True, True], [False, False]],
+            [1, 0],
+            [0, 1],
+            [1, 1],
+            [0, 0],
         ]
 
         for input, expected in zip(inputs, expecteds):
@@ -188,16 +187,16 @@ class ClassficationMechanismTest(TestCase):
     def test_complex_classification_mechanism(self):
         formulas = ["(a > 0.0) & ((abs(ceil(b)) < 1.0))"]
         inputs = [
-            {"a": [-1.0, 2.0], "b": [-0.8, -0.1]},
-            {"a": [1.0, 2.0], "b": [-0.8, -1.1]},
-            {"a": [-1.0, 2.0], "b": [-0.8, -1.1]},
-            {"a": [1.0, 2.0], "b": [-0.8, -0.9]},
+            {"a": np.array([-1.0, 2.0]), "b": np.array([-0.8, -0.1])},
+            {"a": np.array([1.0, 2.0]), "b": np.array([-0.8, -1.1])},
+            {"a": np.array([-1.0, 2.0]), "b": np.array([-0.8, -1.1])},
+            {"a": np.array([1.0, 2.0]), "b": np.array([-0.8, -0.9])},
         ]
         expecteds = [
-            [[False, True], [True, False]],
-            [[True, False], [False, True]],
-            [[False, False], [True, True]],
-            [[True, True], [False, False]],
+            [1, 0],
+            [0, 1],
+            [1, 1],
+            [0, 0],
         ]
 
         for input, expected in zip(inputs, expecteds):
@@ -211,27 +210,27 @@ class ClassficationMechanismTest(TestCase):
         formulas = ["(a > 2.0) | (a < -2.0)", "(a > -0.5) & (a < 0.5)"]
         inputs = [
             {
-                "a": [5.0, 0.0, 1.0],
+                "a": np.array([5.0, 0.0, 1.0]),
             },
             {
-                "a": [0.0, 5.0, 1.0],
+                "a": np.array([0.0, 5.0, 1.0]),
             },
             {
-                "a": [0.0, 0.0, 0.0],
+                "a": np.array([0.0, 0.0, 0.0]),
             },
             {
-                "a": [5.0, -5.0, 5.0],
+                "a": np.array([5.0, -5.0, 5.0]),
             },
             {
-                "a": [1.0, -1.0, 1.0],
+                "a": np.array([1.0, -1.0, 1.0]),
             },
         ]
         expecteds = [
-            [[True, False, False], [False, True, False], [False, False, True]],
-            [[False, True, False], [True, False, False], [False, False, True]],
-            [[False, False, False], [True, True, True], [False, False, False]],
-            [[True, True, True], [False, False, False], [False, False, False]],
-            [[False, False, False], [False, False, False], [True, True, True]],
+            [0, 1, 2],
+            [1, 0, 2],
+            [1, 1, 1],
+            [0, 0, 0],
+            [2, 2, 2],
         ]
 
         for input, expected in zip(inputs, expecteds):
@@ -245,22 +244,22 @@ class ClassficationMechanismTest(TestCase):
         formulas = ["(a > 2.0) & (b > 2.0)", "(a < -2.0) & (b < -2.0)"]
         inputs = [
             {
-                "a": [5.0, -5.0, 0.0],
-                "b": [5.0, -5.0, 0.0],
+                "a": np.array([5.0, -5.0, 0.0]),
+                "b": np.array([5.0, -5.0, 0.0]),
             },
             {
-                "a": [-5.0, 5.0, 0.0],
-                "b": [-5.0, 5.0, 0.0],
+                "a": np.array([-5.0, 5.0, 0.0]),
+                "b": np.array([-5.0, 5.0, 0.0]),
             },
             {
-                "a": [-5.0, 5.0, 0.0],
-                "b": [5.0, -5.0, 0.0],
+                "a": np.array([-5.0, 5.0, 0.0]),
+                "b": np.array([5.0, -5.0, 0.0]),
             },
         ]
         expecteds = [
-            [[True, False, False], [False, True, False], [False, False, True]],
-            [[False, True, False], [True, False, False], [False, False, True]],
-            [[False, False, False], [False, False, False], [True, True, True]],
+            [0, 1, 2],
+            [1, 0, 2],
+            [2, 2, 2],
         ]
 
         for input, expected in zip(inputs, expecteds):
@@ -325,7 +324,7 @@ class ClassficationMechanismTest(TestCase):
         result = classifcation.transform()
         assert result.error is None
         assert result.values is not None
-        self.assertEqual(result.values.shape, (3, 3000))
+        self.assertEqual(result.values.shape, (3000,))
 
 
 class FullPipelineTest(TestCase):
@@ -648,6 +647,5 @@ class FullPipelineTest(TestCase):
 
         assert data is not None
 
-        print(data["c"])
         data.plot.scatter(x="a", y="b", c="c", colormap="viridis")
         plt.savefig("full_mechanism_2.png")

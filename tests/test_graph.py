@@ -6,7 +6,6 @@ from models.graph import Graph, Node
 
 class GraphTest(TestCase):
     def setUp(self) -> None:
-        print(f"\n{self.__class__.__name__}::{self._testMethodName}")
         return super().setUp()
 
     def test_empty_graph(self):

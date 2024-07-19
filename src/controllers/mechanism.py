@@ -55,27 +55,22 @@ def setup_callbacks():
     )
     def add_class(clicked, id: dict[str, str]):
         if not clicked:
-            print(1)
             raise PreventUpdate
         node_id = id.get("index", None)
         if node_id is None:
-            print(2)
             raise PreventUpdate("Node id not found")
 
         node = graph.get_node_by_id(node_id)
         if node is None:
-            print(3)
             raise PreventUpdate("Node not found")
 
         mechanism = node.mechanism_metadata
         if mechanism.get_next_free_class_id() is None:
-            print(4)
             raise PreventUpdate
 
         try:
             mechanism.add_class()
         except Exception as e:
-            print(5)
             raise PreventUpdate from e
 
         return MechanismInput(node_id).children

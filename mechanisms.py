@@ -82,12 +82,10 @@ class ClassificationMechanism(BaseMechanism):
         super().__init__(inputs)
 
     def transform(self, formulas: list[str]):
-        print(formulas)
         results = np.full((len(formulas), len(list(self.inputs.values())[0])), False)
 
         failed = False
         for idx, formula in enumerate(formulas):
-            print(idx, formula)
             tree = ast.parse(formula)
             for a in ast.walk(tree):
                 if isinstance(a, Name) and a.id in self.inputs.keys():
@@ -321,12 +319,10 @@ def mechanism_type(choice: str, id_dict: dict[str, str]):
     causes = mechanism_builder_component.graph_tracker.in_edges[node_id]
     match choice:
         case "regression":
-            print("regression")
             return RegressionInputComponent(
                 id={"type": "regression-component", "index": node_id}
             )
         case "classification":
-            print("classification")
             return ClassificationInputComponent(
                 id={"type": "classification-component", "index": node_id}
             )
@@ -345,9 +341,6 @@ def add_class(button, current, id_):
     # must be classification component
     comp = id_["type"]
     id_ = id_["index"]
-    print(f"add new class to '{comp}'-'{id_}'")
-    print(f"clicked: {button}")
-    print(current)
     return current
 
 

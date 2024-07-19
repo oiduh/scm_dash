@@ -141,9 +141,6 @@ class ClassificationMechanism(BaseMechanism):
         # dimensions: x(number of classes), y(number of inputs) -> each input can have own dimension
         self.inputs = {k: np.array(v).flatten() for k, v in self.inputs.items()}
         results = np.full(
-            (len(self.formulas), len(list(self.inputs.values())[0])), False
-        )
-        results_new = np.full(
             len(list(self.inputs.values())[0]), fill_value=-1, dtype=np.int32
         )
 
@@ -157,50 +154,23 @@ class ClassificationMechanism(BaseMechanism):
             try:
                 result: np.ndarray[Any, np.dtype[np.bool_]] = eval(new_formula)
                 assert result.dtype == np.bool_, "NOT A BOOL"
-                results[idx] = result
-                print(f"{result=}")
-
                 for idx_, x in enumerate(result):
-                    print(f"{type(x)=}")
                     if bool(x) is True:
-                        print("true")
-                        if results_new[idx_] != -1:
+                        if results[idx_] != -1:
                             raise Exception("multi class")
                         else:
-                            results_new[idx_] = idx
-                    else:
-                        print("false")
+                            results[idx_] = idx
             except Exception as e:
                 failed = True
                 # TODO: logger
                 print(e)
 
-        print(f"{results_new=}")
         if failed:
-            print("a")
             return MechanismResult(None, "Failed to evaulate")
 
-        if np.any(np.sum(results, axis=0) > 1.0):
-            print("b")
-            return MechanismResult(None, "Some data belongs to multiple classes")
-
         else_class_idx = len(self.formulas)
-        for idx_, x in enumerate(results_new):
+        for idx_, x in enumerate(results):
             if x == -1:
-                results_new[idx_] = else_class_idx
+                results[idx_] = else_class_idx
 
-        # add an 'else' class in case all other classes dont cover all input data
-        results = np.vstack(
-            [results, np.full(len(list(self.inputs.values())[0]), False)]
-        )
-        for idx, col in enumerate(np.sum(results, axis=0)):
-            if col == 0:
-                results[-1][idx] = True
-
-        if np.prod(np.sum(results, axis=0)) != 1.0:
-            print("d")
-            return MechanismResult(None, "Some data belongs to multiple classes2")
-
-        print("GOOD DATA")
-        # return MechanismResult(results, None)
-        return MechanismResult(results_new, None)
+        return MechanismResult(results, None)

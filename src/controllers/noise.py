@@ -1,8 +1,13 @@
+import logging
+
 from dash import ALL, MATCH, Input, Output, State, callback, ctx
 from dash.exceptions import PreventUpdate
 
 from models.graph import graph
+from utils.logger import DashLogger
 from views.noise import NoiseBuilder, NoiseContainer, NoiseNodeBuilder, NoiseViewer
+
+LOGGER = DashLogger(name="NoiseController", level=logging.DEBUG)
 
 
 def setup_callbacks():
@@ -13,22 +18,31 @@ def setup_callbacks():
         prevent_initial_call=True,
     )
     def change_distribution_choice(choice, id_: dict[str, str]):
-        var, num = id_.get("index", "").split("_")
-        node = graph.get_node_by_id(var)
+        node_id, distr_id = id_.get("index", "").split("_")
+
+        LOGGER.info(f"invoked 'change_distribution' for: {node_id}_{distr_id}")
+
+        node = graph.get_node_by_id(node_id)
         if node is None:
+            LOGGER.error(f"Failed to find node with id: {node_id}")
             raise PreventUpdate
 
-        distr = node.noise.get_distribution_by_id(num)
-
+        distr = node.noise.get_distribution_by_id(distr_id)
         if distr is None:
+            LOGGER.error(
+                f"Failed to find distr with id: {distr_id} for node with id: {node_id}"
+            )
             raise PreventUpdate
 
         try:
             distr.change_distribution(choice)
         except Exception as e:
+            LOGGER.exception(
+                f"Failed to change distribution for node with id: {node_id}"
+            )
             raise PreventUpdate from e
 
-        return NoiseNodeBuilder((var, num)).children
+        return NoiseNodeBuilder((node_id, distr_id)).children
 
     @callback(
         Output({"type": "slider", "index": MATCH}, "min"),
@@ -53,9 +67,6 @@ def setup_callbacks():
         slider_value: float,
         id_: dict[str, str],
     ):
-        if input_min is None or input_value is None or input_max is None:
-            raise PreventUpdate
-
         triggered_context = ctx.triggered_id
         if triggered_context is None:
             raise PreventUpdate("Not a dictionary")
@@ -64,19 +75,30 @@ def setup_callbacks():
         if triggered_type is None:
             raise PreventUpdate("Unknown type")
 
-        new_value = slider_value if triggered_type == "slider" else input_value
-        var, num, param_name = id_.get("index", "").split("_")
+        if input_min is None or input_value is None or input_max is None:
+            LOGGER.error("input values not read")
+            raise PreventUpdate
 
-        node = graph.get_node_by_id(var)
+        new_value = slider_value if triggered_type == "slider" else input_value
+        node_id, distr_id, param_id = id_.get("index", "").split("_")
+
+        LOGGER.info(
+            f"Invoked 'slider_update' for: {node_id}-{distr_id}-{param_id} via {triggered_type}"
+        )
+
+        node = graph.get_node_by_id(node_id)
         if node is None:
+            LOGGER.error(f"Failed to find node with id {node_id}")
             raise PreventUpdate("Node not found")
 
-        distr = node.noise.get_distribution_by_id(num)
+        distr = node.noise.get_distribution_by_id(distr_id)
         if distr is None:
+            LOGGER.error(f"Failed to find distr with id {distr_id}")
             raise PreventUpdate("Distr not found")
 
-        param = distr.get_parameter_by_name(param_name)
+        param = distr.get_parameter_by_name(param_id)
         if param is None:
+            LOGGER.error(f"Failed to find param with id {param_id}")
             raise PreventUpdate("Param not found")
 
         param.current = min(
@@ -110,19 +132,26 @@ def setup_callbacks():
     )
     def add_sub_distribution(_, id_dict: dict[str, str]):
         type_ = id_dict.get("type", "")
-        index_ = id_dict.get("index", None)
-        if type_ != "add-sub-distribution" or index_ is None:
+        node_id = id_dict.get("index", None)
+        if type_ != "add-sub-distribution" or node_id is None:
             raise PreventUpdate("wrong button")
 
-        node = graph.get_node_by_id(index_)
+        LOGGER.info(f"Invoked 'add_sub_distribution' for {node_id}")
+
+        node = graph.get_node_by_id(node_id)
         if node is None:
+            LOGGER.error(f"Failed to find node with id: {node_id}")
             raise PreventUpdate("Node not found")
 
         try:
             node.noise.add_distribution()
         except Exception as e:
+            LOGGER.exception(
+                f"Failed to add sub distribution for node with id: {node_id}"
+            )
             raise PreventUpdate from e
-        return NoiseContainer(index_).children
+
+        return NoiseContainer(node_id).children
 
     @callback(
         Output("noise-builder", "children"),
@@ -137,22 +166,27 @@ def setup_callbacks():
         if triggered_node is None:
             raise PreventUpdate
 
-        node_id = triggered_node.get("index", None)
-        if node_id is None:
+        index = triggered_node.get("index", None)
+        if index is None:
             raise PreventUpdate
 
-        main, sub = node_id.split("_")
-        node = graph.get_node_by_id(main)
+        node_id, distr_id = index.split("_")
+        LOGGER.info(f"Invoked 'remove_sub_distribution' for node with id: {node_id}")
+
+        node = graph.get_node_by_id(node_id)
         if node is None:
+            LOGGER.error(f"Failed to find node with id: {node_id}")
             raise PreventUpdate("Node not found")
 
-        distr = node.noise.get_distribution_by_id(sub)
+        distr = node.noise.get_distribution_by_id(distr_id)
         if distr is None:
+            LOGGER.error(f"Failed to find distr with id: {distr_id}")
             raise PreventUpdate("Distr not found")
 
         try:
             node.noise.remove_distribution(distr)
         except Exception as e:
+            LOGGER.exception(f"Failed to remove distribution for: {node_id}-{distr_id}")
             raise PreventUpdate from e
 
         return NoiseBuilder().children
@@ -171,7 +205,10 @@ def setup_callbacks():
             raise PreventUpdate
 
         node_id = triggered_node.get("index", None)
+        LOGGER.info(f"Updating view for node with id: {node_id}")
+
         if node_id is None:
+            LOGGER.error(f"Failed to find node with id: {node_id}")
             raise PreventUpdate("Node not found")
 
         return NoiseViewer(node_id=node_id).children

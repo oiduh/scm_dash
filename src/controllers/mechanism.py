@@ -1,15 +1,19 @@
+import logging
 from typing import Literal
 
 from dash import ALL, MATCH, Input, Output, State, callback, ctx
 from dash.exceptions import PreventUpdate
 
 from models.graph import graph
+from utils.logger import DashLogger
 from views.mechanism import (
     ClassificationBuilder,
     MechanismBuilder,
     MechanismInput,
     RegressionBuilder,
 )
+
+LOGGER = DashLogger(name="MechanismController", level=logging.DEBUG)
 
 
 def setup_callbacks():
@@ -33,8 +37,11 @@ def setup_callbacks():
         if node_id is None:
             raise PreventUpdate("Node not found")
 
+        LOGGER.info(f"Invoked 'change_mechanism_type' for node with id: {node_id}")
+
         node = graph.get_node_by_id(node_id)
         if node is None:
+            LOGGER.error(f"Failed to find node with id: {node_id}")
             raise PreventUpdate("Node not found")
 
         node.change_mechanism_type(choice)
@@ -60,17 +67,22 @@ def setup_callbacks():
         if node_id is None:
             raise PreventUpdate("Node id not found")
 
+        LOGGER.info(f"Invoked 'add_class' for node with id: {node_id}")
+
         node = graph.get_node_by_id(node_id)
         if node is None:
+            LOGGER.error(f"Failed to find node with id: {node_id}")
             raise PreventUpdate("Node not found")
 
         mechanism = node.mechanism_metadata
         if mechanism.get_next_free_class_id() is None:
+            LOGGER.error("Max limit of sub classes reached")
             raise PreventUpdate
 
         try:
             mechanism.add_class()
         except Exception as e:
+            LOGGER.exception("Failed to add class")
             raise PreventUpdate from e
 
         return MechanismInput(node_id).children
@@ -94,17 +106,23 @@ def setup_callbacks():
             raise PreventUpdate
 
         node_id, class_id = index.split("_")
+
+        LOGGER.info(f"Invoked 'remove_class' for node with id: {node_id}_{class_id}")
+
         node = graph.get_node_by_id(node_id)
         if node is None:
+            LOGGER.error(f"Failed to find node with id: {node_id}")
             raise PreventUpdate("Node not found")
 
         mechanism = node.mechanism_metadata
         if mechanism.get_class_by_id(class_id) is None:
+            LOGGER.error(f"Failed to find class with id: {class_id}")
             raise PreventUpdate
 
         try:
             mechanism.remove_class(class_id)
         except Exception as e:
+            LOGGER.exception(f"Failed to remove class")
             raise PreventUpdate from e
 
         return MechanismBuilder().children

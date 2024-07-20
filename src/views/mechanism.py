@@ -11,9 +11,9 @@ class MechanismBuilder(html.Div):
         self.children = []
         accordion = dbc.Accordion(always_open=True)
         accordion.children = []
-        for name in graph.get_node_names():
+        for id_ in graph.get_node_ids():
             accordion.children.append(
-                dbc.AccordionItem([MechanismContainer(name)], title=name)
+                dbc.AccordionItem([MechanismContainer(id_)], title=id_)
             )
         self.children.append(accordion)
 

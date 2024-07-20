@@ -1,48 +1,38 @@
 TODO:
     - [X] find double textarea bug
-    - [ ] mechanism -> data generation process
+    - [X] mechanism -> data generation process
         - [X] gather root nodes
         - [X] generate data for root nodes
         - [X] gather all in node data -> noise + processed data
         - [X] repeat for rest of nodes
-        - [ ] tests for pipeline
-        - [ ] replace one hot encoding -> can be done later
-    - [ ] logger
-    - [ ] css
-    - [ ] graph builder design
-    - [ ] typing return values
-    - [ ] revise mechanism
+        - [X] tests for pipeline
+        - [X] replace one hot encoding -> can be done later
+    - [X] revise mechanism
     - [X] remove unnecassary asserts
+    - [X] graph builder design
         - [X] remove
         - [X] handle instead
         - [X] exceptions + handling instead, or error
-    - [ ] randint distribution bug -> not updting
-    - [ ] distr sliders
-        - [ ] depending on distr -> limits
+    - [X] randint distribution bug -> not updting
+    - [ ] fix graph builder accordion on startup -> not updating correctly
+        when multiple node on refresh
+    - [ ] fix callbacks after refactor
+    - [ ] summary view
+        - [ ] summary to confirm pipeline
+        - [ ] errors to fix before -> mechanism OR untouched noise
+        - [ ] advanced data view e.g. graph with noise 
+        - [ ] advanced data view e.g. correlation graph
     - [ ] distr view
         - [ ] dropdown for choice
         - [ ] variable change -> immediate update
+    - [ ] distr sliders
+        - [ ] depending on distr -> limits
     - [ ] accordion items
         - [ ] save open states -> dont change on reload
     - [ ] formula input
-        - [ ] classification
-            - [ ] textarea
-                - [ ] initially unlocked
-                - [ ] verifying locks it
-                - [ ] editing unlocks it
-                - [ ] adding/removing class unlocks it
-            - [ ] verify button
-                - [ ] triggers verification -> all formulas
-                - [ ] triggers data generation -> all formulas
-            - [ ] edit button
-                - [ ] reverts verification steps
-        - [?] regression -> after classification done
-            - [ ] textarea
-            - [ ] verify
-            - [ ] edit
-    - [ ] make the text area look nicer 
-    - [ ] graph of output
-    - [ ] bonus small input graphs to output graph    
+        - [ ] help button -> what do you need to input
+    - [ ] logger
+    - [ ] css
 
 error for double text area originates from deleting a input class
 -> error fixed by wrapping in row/col from dbc

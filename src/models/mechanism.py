@@ -46,42 +46,42 @@ cbrt = np.cbrt
 fabs = np.fabs
 
 
-@dataclass
-class Formula:
-    text: str = ""
-    verified: bool = False
-    enabled: bool = False
-
-
 MechanismType = Literal["regression", "classification"]
+MechanismState = Literal["editable", "locked"]
 
 
 @dataclass
 class MechanismMetadata:
     mechanism_type: MechanismType = "regression"
+    state: MechanismState = "editable"
     # mapping from class_id to formula -> only relevant for multi-class-classification
-    formulas: dict[str, Formula] = field(init=False)
+    formulas: dict[str, str | None] = field(init=False)
 
     def __post_init__(self) -> None:
         self.formulas = MechanismMetadata.reset_formulas()
 
     @staticmethod
-    def reset_formulas() -> dict[str, Formula]:
-        ret = {str(id_): Formula() for id_ in string.digits}
-        ret["0"].enabled = True
+    def reset_formulas() -> dict[str, str | None]:
+        ret: dict[str, str | None] = {id_: None for id_ in string.digits}
+        ret["0"] = "<PLACEHOLDER>"
         return ret
 
-    def change_type(self, new_type: Literal["regression", "classification"]) -> None:
+    def change_type(self, new_type: MechanismType) -> None:
+        assert self.state == "editable"
         self.mechanism_type = new_type
         self.formulas = MechanismMetadata.reset_formulas()
 
-    def get_class_by_id(self, id_: str) -> Formula | None:
+    def change_state(self, new_state: MechanismState) -> None:
+        self.state = new_state
+
+    def get_formulas(self):
+        return [v for v in self.formulas.values() if v is not None]
+
+    def get_class_by_id(self, id_: str) -> str | None:
         return self.formulas.get(id_)
 
     def get_free_class_ids(self) -> list[str]:
-        return [
-            id_ for id_, formula in self.formulas.items() if formula.enabled is False
-        ]
+        return [id_ for id_, formula in self.formulas.items() if formula is not None]
 
     def get_next_free_class_id(self) -> str | None:
         free_class_ids = self.get_free_class_ids()
@@ -89,18 +89,17 @@ class MechanismMetadata:
 
     def add_class(self) -> None:
         assert self.mechanism_type == "classification"
+        assert self.state == "editable"
         free_id = self.get_next_free_class_id()
         if free_id is None:
             raise Exception("Cannot add another class")
-        self.formulas[free_id].enabled = True
+        self.formulas[free_id] = "<PLACEHOLDER>"
 
     def remove_class(self, class_id: str) -> None:
-        if class_id not in self.formulas or self.formulas[class_id].enabled is False:
+        assert self.state == "editable"
+        if class_id not in self.formulas.keys() or self.formulas[class_id] is None:
             raise Exception("Cannot remove this class")
-        self.formulas[class_id].enabled = False
-
-    def is_verified(self) -> bool:
-        return all(x.verified for x in self.formulas.values() if x.enabled is True)
+        del self.formulas[class_id]
 
 
 @dataclass
@@ -162,7 +161,6 @@ class ClassificationMechanism(BaseMechanism):
                             results[idx_] = idx
             except Exception as e:
                 failed = True
-                # TODO: logger
                 print(e)
 
         if failed:

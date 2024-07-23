@@ -605,10 +605,10 @@ class FullPipelineTest(TestCase):
 
         graph.add_edge(a, b)
 
-        a.mechanism_metadata.formulas["0"].text = "n_a"
-        a.mechanism_metadata.formulas["0"].verified = True
-        b.mechanism_metadata.formulas["0"].text = "a * 1 + n_b"
-        b.mechanism_metadata.formulas["0"].verified = True
+        a.mechanism_metadata.formulas["0"] = "n_a"
+        a.mechanism_metadata.state = "locked"
+        b.mechanism_metadata.formulas["0"] = "a * 1 + n_b"
+        b.mechanism_metadata.state = "locked"
 
         data = graph.generate_full_data_set()
 
@@ -634,14 +634,14 @@ class FullPipelineTest(TestCase):
         graph.add_edge(a, b)
         graph.add_edge(b, c)
 
-        a.mechanism_metadata.formulas["0"].text = "n_a"
-        a.mechanism_metadata.formulas["0"].verified = True
-        b.mechanism_metadata.formulas["0"].text = "a * 1 + n_b"
-        b.mechanism_metadata.formulas["0"].verified = True
+        a.mechanism_metadata.formulas["0"] = "n_a"
+        a.mechanism_metadata.state = "locked"
+        b.mechanism_metadata.formulas["0"] = "a * 1 + n_b"
+        b.mechanism_metadata.state = "locked"
 
         c.change_mechanism_type("classification")
-        c.mechanism_metadata.formulas["0"].text = "b > 0"
-        c.mechanism_metadata.formulas["0"].verified = True
+        c.mechanism_metadata.formulas["0"] = "b > 0"
+        c.mechanism_metadata.state = "locked"
 
         data = graph.generate_full_data_set()
 

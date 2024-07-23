@@ -225,8 +225,11 @@ class Graph:
 
     def generate_full_data_set(self) -> pd.DataFrame | None:
         # get verified formulas or verify them now
-        all_verified = all(x.mechanism_metadata.is_verified() for x in self.get_nodes())
-        if not all_verified:
+        is_locked = all(
+            x.mechanism_metadata.state == "locked" for x in self.get_nodes()
+        )
+
+        if not is_locked:
             return None
 
         hierarchy = self._get_generation_hierarchy()
@@ -248,12 +251,15 @@ class Graph:
                     inputs[in_node_id] = in_node.data
 
                 formulas = [
-                    x.text
+                    x
                     for x in node.mechanism_metadata.formulas.values()
-                    if x.enabled is True
+                    if x is not None
                 ]
+
+                formulas = [x for x in node.mechanism_metadata.get_formulas()]
                 if len(formulas) < 1:
                     return None
+
                 match node.mechanism_metadata.mechanism_type:
                     case "classification":
                         mechanism = ClassificationMechanism(

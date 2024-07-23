@@ -44,11 +44,9 @@ class GraphTest(TestCase):
         mechanism = node.mechanism_metadata
         valid_formula = mechanism.get_class_by_id("0")
         assert valid_formula is not None
-        self.assertTrue(valid_formula.enabled)
 
         invalid_formula = mechanism.get_class_by_id("1")
-        assert invalid_formula is not None
-        self.assertFalse(invalid_formula.enabled)
+        assert invalid_formula is None
 
         graph.remove_node(Node("a", "a", graph))
 

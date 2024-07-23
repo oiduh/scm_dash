@@ -223,22 +223,16 @@ class Graph:
             available_node_ids = available_node_ids.union(next_layer_nodes)
         return hierarchy
 
-    def generate_full_data_set(self) -> pd.DataFrame | None:
-        # get verified formulas or verify them now
-        is_locked = all(
-            x.mechanism_metadata.state == "locked" for x in self.get_nodes()
-        )
-
-        if not is_locked:
-            return None
+    def generate_full_data_set(self) -> pd.DataFrame:
+        if not all(x.mechanism_metadata.state == "locked" for x in self.get_nodes()):
+            raise Exception("All formulas need to be locked before generating data")
 
         hierarchy = self._get_generation_hierarchy()
-
         for layer in hierarchy.values():
             for node_id in layer:
                 node = self.get_node_by_id(node_id)
                 if node is None:
-                    return None
+                    raise Exception(f"Failed to find node with id: {node_id}")
 
                 inputs: dict[str, np.ndarray] = {
                     f"n_{node_id}": node.noise.generate_data()
@@ -247,18 +241,12 @@ class Graph:
                 for in_node_id in node.get_in_node_ids():
                     in_node = self.get_node_by_id(in_node_id)
                     if in_node is None or in_node.data is None:
-                        return None
+                        raise Exception(f"Failed to find node with id: {in_node_id}")
                     inputs[in_node_id] = in_node.data
 
-                formulas = [
-                    x
-                    for x in node.mechanism_metadata.formulas.values()
-                    if x is not None
-                ]
-
-                formulas = [x for x in node.mechanism_metadata.get_formulas()]
+                formulas = [x for x in node.mechanism_metadata.get_formulas().values()]
                 if len(formulas) < 1:
-                    return None
+                    raise Exception("Invalid number of formulas found")
 
                 match node.mechanism_metadata.mechanism_type:
                     case "classification":
@@ -267,14 +255,14 @@ class Graph:
                         )
                         result = mechanism.transform()
                         if result.error is not None:
-                            return None
+                            raise Exception("Failed to evaluate")
                     case "regression":
                         mechanism = RegressionMechanism(
                             formulas=formulas, inputs=inputs
                         )
                         result = mechanism.transform()
                         if result.error is not None:
-                            return None
+                            raise Exception("Failed to evaluate")
 
                 assert result.values is not None
                 node.data = result.values
@@ -287,18 +275,9 @@ class Graph:
             }
         )
         if sorted(dataframe.columns.tolist()) != sorted(self.get_node_ids()):
-            return None
+            raise Exception("Inconsisten columns")
 
         return dataframe
-
-        # TODO:
-        # 1) get all root nodes -> layer 1
-        # 2) get next layer
-        # 3) repeat 2) until all nodes in hierarchy
-        # 4) from lowest to highest layers create data from formula
-        # 5) feed data from last layer to current data and gerate data
-        # 6) pandas data frame for each node and their data points
-        # ! need hierarchy within layer as well: ab, bc, ac -> 2 layers
 
 
 # TODO: initial graph setup -> replace with imported settings if available

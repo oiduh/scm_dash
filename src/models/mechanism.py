@@ -75,13 +75,13 @@ class MechanismMetadata:
         self.state = new_state
 
     def get_formulas(self):
-        return [v for v in self.formulas.values() if v is not None]
+        return {k: v for k, v in self.formulas.items() if v is not None}
 
     def get_class_by_id(self, id_: str) -> str | None:
         return self.formulas.get(id_)
 
     def get_free_class_ids(self) -> list[str]:
-        return [id_ for id_, formula in self.formulas.items() if formula is not None]
+        return [id_ for id_, formula in self.formulas.items() if formula is None]
 
     def get_next_free_class_id(self) -> str | None:
         free_class_ids = self.get_free_class_ids()
@@ -91,15 +91,17 @@ class MechanismMetadata:
         assert self.mechanism_type == "classification"
         assert self.state == "editable"
         free_id = self.get_next_free_class_id()
+        print(f"{free_id=}")
         if free_id is None:
             raise Exception("Cannot add another class")
         self.formulas[free_id] = "<PLACEHOLDER>"
+        print(self.formulas)
 
     def remove_class(self, class_id: str) -> None:
         assert self.state == "editable"
         if class_id not in self.formulas.keys() or self.formulas[class_id] is None:
             raise Exception("Cannot remove this class")
-        del self.formulas[class_id]
+        self.formulas[class_id] = None
 
 
 @dataclass
@@ -164,7 +166,7 @@ class ClassificationMechanism(BaseMechanism):
                 print(e)
 
         if failed:
-            return MechanismResult(None, "Failed to evaulate")
+            return MechanismResult(None, "Failed to evaluate")
 
         else_class_idx = len(self.formulas)
         for idx_, x in enumerate(results):

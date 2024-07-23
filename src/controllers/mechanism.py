@@ -63,6 +63,7 @@ def setup_callbacks():
     def add_class(clicked, id: dict[str, str]):
         if not clicked:
             raise PreventUpdate
+
         node_id = id.get("index", None)
         if node_id is None:
             raise PreventUpdate("Node id not found")

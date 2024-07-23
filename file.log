@@ -98,3 +98,76 @@
 2024-07-20 17:24:16,497 - GraphController - INFO - Updating graph view
 2024-07-20 17:24:30,679 - GraphController - INFO - Updating graph view
 2024-07-20 17:24:49,850 - GraphController - INFO - Updating graph view
+2024-07-23 19:43:32,124 - GraphController - INFO - Updating graph view
+2024-07-23 19:43:44,468 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: b
+2024-07-23 19:47:03,484 - GraphController - INFO - Updating graph view
+2024-07-23 19:47:06,877 - GraphController - INFO - Updating graph view
+2024-07-23 19:47:08,952 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 19:47:10,263 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 19:47:10,978 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 19:47:15,904 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 19:47:16,758 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 20:59:47,629 - GraphController - INFO - Updating graph view
+2024-07-23 20:59:51,921 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 20:59:55,382 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 20:59:58,446 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:00:00,576 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:00:01,022 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:00:02,061 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:00:02,210 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:00:02,385 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:01:29,771 - GraphController - INFO - Updating graph view
+2024-07-23 21:01:40,713 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:01:43,198 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:01:45,450 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:01:47,707 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:02:01,893 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:02:42,234 - GraphController - INFO - Updating graph view
+2024-07-23 21:02:46,075 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:02:48,938 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:03:10,020 - GraphController - INFO - Updating graph view
+2024-07-23 21:03:18,131 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:03:19,626 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:03:22,864 - MechanismController - INFO - Invoked 'remove_class' for node with id: a_0
+2024-07-23 21:03:28,749 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:03:32,459 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:03:34,852 - MechanismController - INFO - Invoked 'remove_class' for node with id: a_1
+2024-07-23 21:03:37,252 - MechanismController - INFO - Invoked 'remove_class' for node with id: a_2
+2024-07-23 21:03:39,699 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:04:01,830 - GraphController - INFO - Updating graph view
+2024-07-23 21:04:05,424 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:04:07,150 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:04:08,540 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:04:10,946 - MechanismController - INFO - Invoked 'remove_class' for node with id: a_0
+2024-07-23 21:04:13,179 - MechanismController - INFO - Invoked 'remove_class' for node with id: a_1
+2024-07-23 21:04:15,799 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:05:48,253 - GraphController - INFO - Updating graph view
+2024-07-23 21:05:50,487 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:06:27,478 - GraphController - INFO - Updating graph view
+2024-07-23 21:06:30,388 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:09:10,622 - GraphController - INFO - Updating graph view
+2024-07-23 21:09:17,437 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:09:45,978 - GraphController - INFO - Updating graph view
+2024-07-23 21:09:48,360 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:09:49,965 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:10:19,251 - GraphController - INFO - Updating graph view
+2024-07-23 21:10:46,839 - GraphController - INFO - Updating graph view
+2024-07-23 21:10:52,531 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:11:10,847 - GraphController - INFO - Updating graph view
+2024-07-23 21:11:14,366 - GraphController - INFO - Updating graph view
+2024-07-23 21:11:20,089 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:11:21,975 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:11:23,350 - MechanismController - INFO - Invoked 'remove_class' for node with id: a_0
+2024-07-23 21:11:25,818 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:11:26,853 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:11:27,999 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:11:30,249 - GraphController - INFO - invoked 'add_node'
+2024-07-23 21:11:30,441 - GraphController - INFO - Updating graph view
+2024-07-23 21:11:35,720 - MechanismController - INFO - Invoked 'remove_class' for node with id: a_1
+2024-07-23 21:11:38,241 - MechanismController - INFO - Invoked 'remove_class' for node with id: a_0
+2024-07-23 21:11:40,791 - MechanismController - INFO - Invoked 'remove_class' for node with id: a_3
+2024-07-23 21:11:44,115 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-07-23 21:12:07,627 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:12:08,313 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:12:09,526 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-07-23 21:12:10,965 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a

@@ -77,26 +77,10 @@ class RegressionBuilder(html.Div):
                     dbc.Row(
                         dbc.Textarea(
                             id={"type": "regression-input", "index": id_},
-                            value=formula.text,
+                            value=formula,
                             debounce=False,
                             required=True,
                         )
-                    ),
-                    dbc.Row(
-                        [
-                            dbc.Col(
-                                html.Button(
-                                    "Verify",
-                                    id={"type": "verify-button", "index": f"{id_}_0"},
-                                )
-                            ),
-                            dbc.Col(
-                                html.Button(
-                                    "Edit",
-                                    id={"type": "edit-button", "index": f"{id_}_0"},
-                                )
-                            ),
-                        ]
                     ),
                 ]
             ),
@@ -112,28 +96,19 @@ class ClassificationBuilder(html.Div):
         if node is None:
             raise Exception("Node not found")
 
-        enabled_formulas = [
-            (c, f)
-            for c, f in node.mechanism_metadata.formulas.items()
-            if f.enabled is True
-        ]
-        for c, f in enabled_formulas:
+        for c, f in node.mechanism_metadata.get_formulas().items():
             self.children.extend(
                 [
                     html.P(f"class_{c}"),
                     dbc.Col(
                         [
-                            dbc.Row(
-                                dbc.Textarea(
-                                    id={"type": "classification-input", "index": id_},
-                                    value=f.text,
-                                )
+                            dbc.Textarea(
+                                id={"type": "classification-input", "index": id_},
+                                value=f,
                             ),
-                            dbc.Row(
-                                html.Button(
-                                    "Remove Class",
-                                    id={"type": "remove-class", "index": f"{id_}_{c}"},
-                                )
+                            html.Button(
+                                "Remove Class",
+                                id={"type": "remove-class", "index": f"{id_}_{c}"},
                             ),
                         ]
                     ),
@@ -144,10 +119,8 @@ class ClassificationBuilder(html.Div):
             html.P("else: 'TODO -> rest that dont fit in other classes'")
         )
         self.children.append(
-            html.Button(
-                "Verify mechanism", id={"type": "verify-mechanism", "index": id_}
-            )
+            html.Button("Add Class", id={"type": "add-class", "index": id_})
         )
         self.children.append(
-            html.Button("Add Class", id={"type": "add-class", "index": id_})
+            html.Button("Lock", id={"type": "lock-mechanism", "index": id_})
         )

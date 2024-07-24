@@ -639,7 +639,7 @@ class FullPipelineTest(TestCase):
         b.mechanism_metadata.formulas["0"] = "a * 1 + n_b"
         b.mechanism_metadata.state = "locked"
 
-        c.change_mechanism_type("classification")
+        c.mechanism_metadata.change_type("classification")
         c.mechanism_metadata.formulas["0"] = "b > 0"
         c.mechanism_metadata.state = "locked"
 

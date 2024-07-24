@@ -71,7 +71,31 @@ class MechanismMetadata:
         self.mechanism_type = new_type
         self.formulas = MechanismMetadata.reset_formulas()
 
+    def formulas_are_valid(self) -> bool:
+        # data in range (-5.0, 5.0)
+        # just a sanity check, values might not be correct for
+        # actual outcome
+        formulas = self.get_formulas()
+        data = {k: (np.random.rand(1000) - 0.5) * 10 for k in formulas.keys()}
+        match self.mechanism_type:
+            case "regression":
+                mechanism = RegressionMechanism(list(formulas.values()), data)
+            case "classification":
+                mechanism = ClassificationMechanism(list(formulas.values()), data)
+        # we do not care about the data, only if the data generation failed
+        return mechanism.transform().error is not None
+
     def change_state(self, new_state: MechanismState) -> None:
+        """
+        change state -> formulas editable or locked
+        changing to the locked state requires a validation of the formulas
+        Exception:
+            failed to evaluate formula with dummy data
+        """
+        if new_state == "locked":
+            if self.formulas_are_valid() is False:
+                raise Exception("Formulas are invalid")
+
         self.state = new_state
 
     def get_formulas(self):
@@ -114,7 +138,6 @@ class BaseMechanism:
     def __init__(self, formulas: list[str], inputs: dict[str, np.ndarray]):
         self.formulas = formulas
         self.inputs = inputs
-        # input consists of all data from in nodes, also own noise
         self.values = {k: np.array(v, dtype=np.float64) for k, v in self.inputs.items()}
 
     def transform(self) -> MechanismResult:
@@ -132,7 +155,7 @@ class RegressionMechanism(BaseMechanism):
         try:
             result: NDArray[np.float64] = eval(new_formula)
         except:
-            return MechanismResult(None, "failed to evaluate")
+            return MechanismResult(None, "Failed to evaluate formula")
 
         return MechanismResult(result, None)
 
@@ -145,7 +168,7 @@ class ClassificationMechanism(BaseMechanism):
             len(list(self.inputs.values())[0]), fill_value=-1, dtype=np.int32
         )
 
-        failed = False
+        failed_indices: list[int] = []
         for idx, formula in enumerate(self.formulas):
             tree = ast.parse(formula)
             for node in ast.walk(tree):
@@ -158,15 +181,17 @@ class ClassificationMechanism(BaseMechanism):
                 for idx_, x in enumerate(result):
                     if bool(x) is True:
                         if results[idx_] != -1:
-                            raise Exception("multi class")
+                            raise
                         else:
                             results[idx_] = idx
             except Exception as e:
-                failed = True
+                failed_indices.append(idx)
                 print(e)
 
-        if failed:
-            return MechanismResult(None, "Failed to evaluate")
+        if len(failed_indices) > 0:
+            return MechanismResult(
+                None, f"Failed to evaluate classes: {failed_indices}"
+            )
 
         else_class_idx = len(self.formulas)
         for idx_, x in enumerate(results):

@@ -73,11 +73,6 @@ class Node:
             raise Exception("Target node is not an out node")
         self.out_nodes.remove(to_remove)
 
-    def change_mechanism_type(
-        self, new_mechanism: Literal["regression", "classification"]
-    ) -> None:
-        self.mechanism_metadata.change_type(new_mechanism)
-
 
 @dataclass
 class Graph:

@@ -18,7 +18,6 @@ class GraphBuilder(html.Div):
         accordion = dbc.Accordion(always_open=True)
         accordion.children = []
         for id_ in graph.get_node_ids():  # TODO: get node names when available
-            print(f"appending node {id_}")
             accordion.children.append(dbc.AccordionItem(NodeBuilder(id_), title=id_))
         self.children.append(accordion)
         self.children.append(html.Div(html.Button("Add Node", id="add-node-button")))

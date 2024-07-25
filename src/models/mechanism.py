@@ -66,50 +66,6 @@ class MechanismMetadata:
         ret["0"] = "<PLACEHOLDER>"
         return ret
 
-    def change_type(self, new_type: MechanismType) -> None:
-        assert self.state == "editable"
-        self.mechanism_type = new_type
-        self.formulas = MechanismMetadata.reset_formulas()
-
-    def formulas_are_valid(self) -> bool:
-        def get_graph():
-            # TODO: dirty workaround to avoid circular import
-            # change method to be called from node and not from mechanism
-            # -> makes it possible to access graph
-            from models.graph import graph
-
-            return graph
-
-        # data in range (-5.0, 5.0)
-        # just a sanity check, values might not be correct for
-        # actual outcome
-        data = {
-            node_id: (np.random.rand(1000) - 0.5) * 10
-            for node_id in get_graph().get_node_ids()
-        }
-        formulas = self.get_formulas()
-        print(f"{formulas=}")
-        match self.mechanism_type:
-            case "regression":
-                mechanism = RegressionMechanism(list(formulas.values()), data)
-            case "classification":
-                mechanism = ClassificationMechanism(list(formulas.values()), data)
-        # we do not care about the data, only if the data generation failed
-        return mechanism.transform().error is not None
-
-    def change_state(self, new_state: MechanismState) -> None:
-        """
-        change state -> formulas editable or locked
-        changing to the locked state requires a validation of the formulas
-        Exception:
-            failed to evaluate formula with dummy data
-        """
-        if new_state == "locked":
-            if self.formulas_are_valid() is False:
-                raise Exception("Formulas are invalid")
-
-        self.state = new_state
-
     def get_formulas(self):
         return {k: v for k, v in self.formulas.items() if v is not None}
 
@@ -127,11 +83,9 @@ class MechanismMetadata:
         assert self.mechanism_type == "classification"
         assert self.state == "editable"
         free_id = self.get_next_free_class_id()
-        print(f"{free_id=}")
         if free_id is None:
             raise Exception("Cannot add another class")
         self.formulas[free_id] = "<PLACEHOLDER>"
-        print(self.formulas)
 
     def remove_class(self, class_id: str) -> None:
         assert self.state == "editable"
@@ -184,29 +138,20 @@ class ClassificationMechanism(BaseMechanism):
         for idx, formula in enumerate(self.formulas):
             tree = ast.parse(formula)
             for node in ast.walk(tree):
-                if isinstance(node, ast.Name):
-                    print(f"{node.id=}")
                 if isinstance(node, ast.Name) and node.id in self.inputs.keys():
-                    print(f"replacing {node.id}")
                     node.id = f'self.values["{node.id}"]'
             new_formula = ast.unparse(tree)
             try:
-                print(f"{formula=}")
-                print(f"{new_formula=}")
                 result: np.ndarray[Any, np.dtype[np.bool_]] = eval(new_formula)
                 assert result.dtype == np.bool_, "NOT A BOOL"
-                print(idx)
                 for idx_, x in enumerate(result):
                     if bool(x) is True:
-                        print(results[:10])
                         if results[idx_] != -1:
-                            print("overwriting assigned value")
                             raise
                         else:
                             results[idx_] = idx
-            except Exception as e:
+            except:
                 failed_indices.append(idx)
-                print(f"Exception: {e}")
 
         if len(failed_indices) > 0:
             return MechanismResult(

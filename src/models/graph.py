@@ -1,7 +1,6 @@
 import string
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -9,6 +8,8 @@ import pandas as pd
 from models.mechanism import (
     ClassificationMechanism,
     MechanismMetadata,
+    MechanismState,
+    MechanismType,
     RegressionMechanism,
 )
 from models.noise import Noise
@@ -73,6 +74,40 @@ class Node:
             raise Exception("Target node is not an out node")
         self.out_nodes.remove(to_remove)
 
+    def change_type(self, new_type: MechanismType) -> None:
+        assert self.mechanism_metadata.state == "editable"
+        self.mechanism_metadata.mechanism_type = new_type
+        self.mechanism_metadata.formulas = MechanismMetadata.reset_formulas()
+
+    def formulas_are_valid(self) -> bool:
+        # data in range (-5.0, 5.0)
+        # just a sanity check, values might not be correct for actual outcome
+        input_ids = []
+        input_ids.append(f"n_{self.id_}")  # add noise to inputs as well
+        input_ids.extend(self.get_in_node_ids())
+        data = {node_id: (np.random.rand(1000) - 0.5) * 10 for node_id in input_ids}
+        formulas = self.mechanism_metadata.get_formulas()
+        match self.mechanism_metadata.mechanism_type:
+            case "regression":
+                mechanism = RegressionMechanism(list(formulas.values()), data)
+            case "classification":
+                mechanism = ClassificationMechanism(list(formulas.values()), data)
+        # we do not care about the data, only if the data generation failed
+        return mechanism.transform().error is None
+
+    def change_state(self, new_state: MechanismState) -> None:
+        """
+        change state -> formulas editable or locked
+        changing to the locked state requires a validation of the formulas
+        Exception:
+            failed to evaluate formula with dummy data
+        """
+        if new_state == "locked":
+            if self.formulas_are_valid() is False:
+                raise Exception("Formulas are invalid")
+
+        self.mechanism_metadata.state = new_state
+
 
 @dataclass
 class Graph:
@@ -108,7 +143,7 @@ class Graph:
 
         new_node = Node(free_node_id, free_node_id, self)
         self.nodes[free_node_id] = new_node
-        new_node.mechanism_metadata.change_type("regression")
+        new_node.change_type("regression")
 
     def remove_node(self, to_remove: Node) -> None:
         """

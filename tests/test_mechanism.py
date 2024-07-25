@@ -641,7 +641,7 @@ class FullPipelineTest(TestCase):
         b.mechanism_metadata.formulas["0"] = "a * 1 + n_b"
         b.mechanism_metadata.state = "locked"
 
-        c.mechanism_metadata.change_type("classification")
+        c.change_type("classification")
         c.mechanism_metadata.formulas["0"] = "b > 0"
         c.mechanism_metadata.state = "locked"
 
@@ -665,13 +665,13 @@ class FullPipelineTest(TestCase):
         graph.add_edge(a, b)
 
         a.mechanism_metadata.formulas["0"] = "n_a"
-        a.mechanism_metadata.change_state("locked")
+        a.change_state("locked")
 
-        b.mechanism_metadata.change_type("classification")
+        b.change_type("classification")
         b.mechanism_metadata.add_class()
         # conflict -> some datapoints will be assigned to multiple classes
         b.mechanism_metadata.formulas["0"] = "a + n_b > 0"
         b.mechanism_metadata.formulas["1"] = "a + n_b > 0.5"
 
         with self.assertRaises(Exception):
-            b.mechanism_metadata.change_state("locked")
+            b.change_state("locked")

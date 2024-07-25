@@ -72,11 +72,23 @@ class MechanismMetadata:
         self.formulas = MechanismMetadata.reset_formulas()
 
     def formulas_are_valid(self) -> bool:
+        def get_graph():
+            # TODO: dirty workaround to avoid circular import
+            # change method to be called from node and not from mechanism
+            # -> makes it possible to access graph
+            from models.graph import graph
+
+            return graph
+
         # data in range (-5.0, 5.0)
         # just a sanity check, values might not be correct for
         # actual outcome
+        data = {
+            node_id: (np.random.rand(1000) - 0.5) * 10
+            for node_id in get_graph().get_node_ids()
+        }
         formulas = self.get_formulas()
-        data = {k: (np.random.rand(1000) - 0.5) * 10 for k in formulas.keys()}
+        print(f"{formulas=}")
         match self.mechanism_type:
             case "regression":
                 mechanism = RegressionMechanism(list(formulas.values()), data)
@@ -172,21 +184,29 @@ class ClassificationMechanism(BaseMechanism):
         for idx, formula in enumerate(self.formulas):
             tree = ast.parse(formula)
             for node in ast.walk(tree):
+                if isinstance(node, ast.Name):
+                    print(f"{node.id=}")
                 if isinstance(node, ast.Name) and node.id in self.inputs.keys():
+                    print(f"replacing {node.id}")
                     node.id = f'self.values["{node.id}"]'
             new_formula = ast.unparse(tree)
             try:
+                print(f"{formula=}")
+                print(f"{new_formula=}")
                 result: np.ndarray[Any, np.dtype[np.bool_]] = eval(new_formula)
                 assert result.dtype == np.bool_, "NOT A BOOL"
+                print(idx)
                 for idx_, x in enumerate(result):
                     if bool(x) is True:
+                        print(results[:10])
                         if results[idx_] != -1:
+                            print("overwriting assigned value")
                             raise
                         else:
                             results[idx_] = idx
             except Exception as e:
                 failed_indices.append(idx)
-                print(e)
+                print(f"Exception: {e}")
 
         if len(failed_indices) > 0:
             return MechanismResult(

@@ -1,4 +1,4 @@
-from unittest import TestCase, skip
+from unittest import TestCase
 from unittest.mock import patch
 
 import matplotlib.pyplot as plt
@@ -7,6 +7,8 @@ import numpy.testing as npt
 
 from models.graph import Graph
 from models.mechanism import ClassificationMechanism, RegressionMechanism
+
+# TODO: convert test case inputs from float list to np.array
 
 
 class RegresionMechanismTest(TestCase):
@@ -649,3 +651,27 @@ class FullPipelineTest(TestCase):
 
         data.plot.scatter(x="a", y="b", c="c", colormap="viridis")
         plt.savefig("full_mechanism_2.png")
+
+    def test_lockable_1(self):
+        graph = Graph()
+        graph.add_node()  # a
+        graph.add_node()  # b
+
+        a = graph.get_node_by_id("a")
+        assert a is not None
+        b = graph.get_node_by_id("b")
+        assert b is not None
+
+        graph.add_edge(a, b)
+
+        a.mechanism_metadata.formulas["0"] = "n_a"
+        a.mechanism_metadata.change_state("locked")
+
+        b.mechanism_metadata.change_type("classification")
+        b.mechanism_metadata.add_class()
+        # conflict -> some datapoints will be assigned to multiple classes
+        b.mechanism_metadata.formulas["0"] = "a + n_b > 0"
+        b.mechanism_metadata.formulas["1"] = "a + n_b > 0.5"
+
+        with self.assertRaises(Exception):
+            b.mechanism_metadata.change_state("locked")

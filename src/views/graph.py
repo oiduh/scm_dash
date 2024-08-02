@@ -15,7 +15,23 @@ class GraphBuilder(html.Div):
             "margin": "3px",
         }
         self.children = []
-        accordion = dbc.Accordion(always_open=True)
+        self.children.append(
+            dbc.Row(
+                [
+                    dbc.Col(
+                        html.Button("expand all"),
+                        width="auto",
+                    ),
+                    dbc.Col(
+                        html.Button("collapse all"),
+                        width="auto",
+                    ),
+                ],
+                className="g-0",
+            )
+        )
+
+        accordion = dbc.Accordion(start_collapsed=True)
         accordion.children = []
         for id_ in graph.get_node_ids():  # TODO: get node names when available
             accordion.children.append(dbc.AccordionItem(NodeBuilder(id_), title=id_))

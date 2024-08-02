@@ -14,12 +14,20 @@ TODO:
         - [X] handle instead
         - [X] exceptions + handling instead, or error
     - [X] randint distribution bug -> not updting
+    - [X] fix callbacks after refactor
+    - [ ] accordion
+        - [ ] expand all
+        - [ ] collapse all
+        - [ ] applied to all accordions and sub-accordions
+        - [ ] save active items and restore on change (also refresh)
     - [ ] fix graph builder accordion on startup -> not updating correctly
         when multiple node on refresh
-    - [ ] fix callbacks after refactor
+        -> update method?
     - [ ] summary view
         - [ ] summary to confirm pipeline
-        - [ ] errors to fix before -> mechanism OR untouched noise
+        - [ ] errors to fix before ->
+            - [ ] mechanism
+            - [ ] untouched noise
         - [ ] advanced data view e.g. graph with noise 
         - [ ] advanced data view e.g. correlation graph
     - [ ] distr view

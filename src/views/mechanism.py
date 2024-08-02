@@ -9,7 +9,7 @@ class MechanismBuilder(html.Div):
     def __init__(self):
         super().__init__(id="mechanism-builder")
         self.children = []
-        accordion = dbc.Accordion(always_open=True)
+        accordion = dbc.Accordion(start_collapsed=True)
         accordion.children = []
         for id_ in graph.get_node_ids():
             accordion.children.append(

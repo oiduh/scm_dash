@@ -44,7 +44,7 @@ def setup_callbacks():
             LOGGER.error(f"Failed to find node with id: {node_id}")
             raise PreventUpdate("Node not found")
 
-        node.mechanism_metadata.change_type(choice)
+        node.change_type(choice)
         if choice == "regression":
             return RegressionBuilder(node_id).children
         else:

@@ -24,9 +24,15 @@ app.layout = html.Div(
                             label="Graph Builder",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(GraphBuilder()),
+                                    dbc.Col(
+                                        GraphBuilder(),
+                                        style={
+                                            "height": "800px",
+                                            "overflow": "scroll",
+                                        },
+                                    ),
                                     dbc.Col(GraphViewer()),
-                                ]
+                                ],
                             ),
                         ),
                         dbc.Tab(
@@ -34,9 +40,15 @@ app.layout = html.Div(
                             label="Distribution Builder",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(NoiseBuilder()),
+                                    dbc.Col(
+                                        NoiseBuilder(),
+                                        style={
+                                            "height": "800px",
+                                            "overflow": "scroll",
+                                        },
+                                    ),
                                     dbc.Col(NoiseViewer()),
-                                ]
+                                ],
                             ),
                         ),
                         dbc.Tab(
@@ -44,14 +56,20 @@ app.layout = html.Div(
                             label="Mechanism Builder",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(MechanismBuilder()),
+                                    dbc.Col(
+                                        MechanismBuilder(),
+                                        style={
+                                            "height": "800px",
+                                            "overflow": "scroll",
+                                        },
+                                    ),
                                     dbc.Col(Placeholder("mechanism viewer")),
-                                ]
+                                ],
                             ),
                         ),
                     ],
                 )
-            ]
+            ],
         ),
     ]
 )

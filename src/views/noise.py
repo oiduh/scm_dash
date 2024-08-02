@@ -11,7 +11,7 @@ class NoiseBuilder(html.Div):
     def __init__(self):
         super().__init__(id="noise-builder")
         self.children = []
-        accordion = dbc.Accordion(always_open=True)
+        accordion = dbc.Accordion(start_collapsed=True)
         accordion.children = []
         for name in graph.get_node_names():
             accordion.children.append(
@@ -28,7 +28,7 @@ class NoiseContainer(html.Div):
             raise Exception("Node not found")
 
         self.children = []
-        accordion = dbc.Accordion(always_open=True)
+        accordion = dbc.Accordion(start_collapsed=True)
         accordion.children = []
         for distribution in node.noise.get_distributions():
             if distribution is None:

@@ -15,32 +15,63 @@ TODO:
         - [X] exceptions + handling instead, or error
     - [X] randint distribution bug -> not updting
     - [X] fix callbacks after refactor
-    - [ ] accordion
-        - [ ] expand all
-        - [ ] collapse all
-        - [ ] applied to all accordions and sub-accordions
-        - [ ] save active items and restore on change (also refresh)
-    - [ ] fix graph builder accordion on startup -> not updating correctly
+	- [X] fix slider visual bug -> only on laptop?
+	- [X] in accordion only focus on ONE open
+    - [X] fix graph builder accordion on startup -> not updating correctly
         when multiple node on refresh
-        -> update method?
-    - [ ] summary view
-        - [ ] summary to confirm pipeline
-        - [ ] errors to fix before ->
-            - [ ] mechanism
-            - [ ] untouched noise
-        - [ ] advanced data view e.g. graph with noise 
-        - [ ] advanced data view e.g. correlation graph
+    - [X] distr sliders
+        - [X] depending on distr -> limits
+    - [X] logger
+	- [X] graph view
+		- [X] dropdown for node arrangement + save
+		- [X] add 'more' layouts -> loading possible
+		- [X] title; display current choice
+		- [X] find a way to center + spread all layout
+		-> remove 'ugly' layouts (not centered)
+	- [ ] graph view
+		- [ ] save layout option -> on refresh
     - [ ] distr view
-        - [ ] dropdown for choice
-        - [ ] variable change -> immediate update
-    - [ ] distr sliders
-        - [ ] depending on distr -> limits
-    - [ ] accordion items
-        - [ ] save open states -> dont change on reload
-    - [ ] formula input
-        - [ ] help button -> what do you need to input
-    - [ ] logger
+        - [X] dropdown for choice (right side)
+        - [ ] variable change -> immediate update -> slider change
+	- [ ] mechanism
+		- [ ] default regression -> id noise instead of placeholder
+	- [ ] graph state as file
+		- [ ] export import from meta files
+		-> no exacte data points, just meta data for generation
+		-> export/save files (reproducible results)
+		- [ ] import feature -> parser + validation
+	- [ ] info/help for mechanism
+		- [ ] how to use e.g. numpy standard
+		- [ ] which variables available
+	- [ ] mechanism layout
+		- [ ] show info button main + highlight
+		- [ ] overall design
+			- [ ] mechanism choice
+			- [ ] variables highlighted
+			- [ ] mechanism input
+	- [ ] mechanism feedback
+		- [ ] confirm mechanism -> which variables affected
+		-> no detailed feedback (overkill)
+		- [ ] flag for confirmation of all variables (for summary)
+    - [ ] summary view
+	-> needs confirmed and valid mechanism
+		- [ ] dag
+			- [ ] all nodes and edges 
+			- [ ] hover node -> noise
+			- [ ] hover edge -> mechansim (text)
+		- [ ] confirm base graph -> exportable data + metadata
+	- [ ] intervention
+	-> needs base metadata
+	-> multiple iteration possible (1 base, multiple interventions)
+	-> at least one variable needs to be intervened on
+	-> intervention = constant for variable (no distr)
+		- [ ] 
+
+
+
+
     - [ ] css
+		- [ ] class_name e.g. 'h-50' etc. -> find out
 
 error for double text area originates from deleting a input class
 -> error fixed by wrapping in row/col from dbc

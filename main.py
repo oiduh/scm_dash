@@ -6,9 +6,16 @@ from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilder
 from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
+import dash_cytoscape as cyto
+
+
+cyto.load_extra_layouts()
+
 
 app = Dash(
-    __name__, external_stylesheets=[dbc.themes.CERULEAN], prevent_initial_callbacks=True
+    __name__,
+    external_stylesheets=[dbc.themes.CERULEAN],
+    prevent_initial_callbacks=True,
 )
 app.layout = html.Div(
     [
@@ -71,9 +78,11 @@ app.layout = html.Div(
                 )
             ],
         ),
-    ]
+    ],
+    style={"width": "99vw", "height": "99vh", "margin": "0", "padding": "0", "border-style": "solid"},
 )
 setup_callbacks()
 app.run(
+    # TODO: remove this for actual use -> ram usage
     debug=True,
 )

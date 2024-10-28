@@ -5,7 +5,7 @@ from dash.exceptions import PreventUpdate
 
 from models.graph import graph
 from utils.logger import DashLogger
-from views.graph import GraphBuilder
+from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilder
 from views.noise import NoiseBuilder
 
@@ -18,11 +18,16 @@ def setup_callbacks() -> None:
         Output("noise-builder", "children", allow_duplicate=True),
         Output("mechanism-builder", "children", allow_duplicate=True),
         Input("add-node-button", "n_clicks"),
-        prevent_initial_call=True,
+        prevent_initial_call='initial_duplicate',
     )
     def add_node(clicked):
         if not clicked:
-            raise PreventUpdate
+            # called on startup/refresh -> ensure last graph state restored
+            return (
+                GraphBuilder().children,
+                NoiseBuilder().children,
+                MechanismBuilder().children,
+            )
 
         LOGGER.info("invoked 'add_node'")
 
@@ -162,15 +167,32 @@ def setup_callbacks() -> None:
 
         return GraphBuilder().children, MechanismBuilder().children
 
-    @callback(Output("network-graph", "elements"), Input("graph-builder", "children"))
+    @callback(
+        Output("network-graph", "elements"),
+        Input("graph-builder", "children"),
+    )
     def update_graph(*_):
         LOGGER.info("Updating graph view")
         nodes = [
             {"data": {"id": cause, "label": cause}} for cause in graph.get_node_ids()
         ]
+        LOGGER.info(f"{nodes=}")
         edges = []
         for cause in graph.get_nodes():
             for effect in cause.out_nodes:
                 edges.append({"data": {"source": cause.id_, "target": effect.id_}})
 
         return nodes + edges
+
+    @callback(
+        Output("graph-viewer", "children"),
+        Input("layout-choices", "value"),
+        prevent_initial_call=True,
+    )
+    def update_layout_choice(new_value: GraphViewer.Layouts):
+        LOGGER.info("Updating graph viewer layout")
+        LOGGER.info([x.id_ for x in graph.get_nodes()])
+        if new_value not in GraphViewer.Layouts.get_all():
+            raise PreventUpdate(f"Invalid layout choice: {new_value}")
+        GraphViewer.LAYOUT = new_value
+        return GraphViewer()

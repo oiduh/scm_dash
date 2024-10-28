@@ -138,7 +138,6 @@ class SliderTracker:
 
 
 class DistributionSlider(html.Div):
-
     def __init__(self, sub_variable: str, variable: str):
         super().__init__()
         self.style = {

@@ -318,3 +318,4 @@ a = graph.get_node_by_id("a")
 b = graph.get_node_by_id("b")
 assert a is not None and b is not None, "Failed at init"
 graph.add_edge(a, b)
+print(graph.get_node_ids())

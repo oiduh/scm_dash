@@ -1,6 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html
 from dash_cytoscape import Cytoscape
+from enum import Enum
 
 from models.graph import graph
 
@@ -15,22 +16,6 @@ class GraphBuilder(html.Div):
             "margin": "3px",
         }
         self.children = []
-        self.children.append(
-            dbc.Row(
-                [
-                    dbc.Col(
-                        html.Button("expand all"),
-                        width="auto",
-                    ),
-                    dbc.Col(
-                        html.Button("collapse all"),
-                        width="auto",
-                    ),
-                ],
-                className="g-0",
-            )
-        )
-
         accordion = dbc.Accordion(start_collapsed=True)
         accordion.children = []
         for id_ in graph.get_node_ids():  # TODO: get node names when available
@@ -155,14 +140,40 @@ class NodeBuilder(html.Div):
 
 class GraphViewer(html.Div):
     """singleton graph viewer class"""
+    class Layouts(str, Enum):
+        circle = "circle"
+        random = "random"
+        grid = "grid"
+        concentric = "concentric"
+        breadthfirst = "breadthfirst"
+        # cose = "cose"
+        # cose_bilkent = "cose-bilkent"
+        cola = "cola"
+        # euler = "euler"
+        spread = "spread"
+        # dagre = "dagre"
+        # klay = "klay"
+        
+        @classmethod
+        def get_all(cls):
+            return [e.value for e in cls]
+
+    LAYOUT = Layouts.circle.value
 
     def __init__(self) -> None:
         super().__init__(id="graph-viewer")
         self.style = {}
         self.children = [
+            dcc.Dropdown(
+                options=self.Layouts.get_all(),
+                searchable=False,
+                id="layout-choices",
+                multi=False,
+            ),
+            html.H3(f"Layout: {GraphViewer.LAYOUT}"),
             Cytoscape(
                 id="network-graph",
-                layout={"name": "circle"},
+                layout={"name": self.LAYOUT},
                 userPanningEnabled=False,
                 zoomingEnabled=False,
                 style={"width": "100%", "height": "700px"},

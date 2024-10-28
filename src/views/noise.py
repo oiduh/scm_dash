@@ -145,7 +145,7 @@ class NoiseNodeBuilder(html.Div):
                                     width=3,
                                 ),
                             ],
-                            style={"height": 50},
+                            class_name="h-30",
                             justify="between",
                         ),
                         dbc.Row(
@@ -164,7 +164,8 @@ class NoiseNodeBuilder(html.Div):
                                     "index": f"{new_id_}_{param.name}",
                                 },
                             ),
-                            style={"height": 50},
+                            style={"margin-top": "5%"},
+                            class_name="h-70",
                             align="end",
                         ),
                     ]
@@ -182,10 +183,12 @@ class NoiseNodeBuilder(html.Div):
 
 
 class NoiseViewer(html.Div):
-    def __init__(self, node_id: str = "a"):
+    # TODO: hardcoded 'a' since initially defined
+    SELECTED_NODE_ID: str = "a"
+    def __init__(self):
         super().__init__(id="noise-viewer")
 
-        source_node = graph.get_node_by_id(node_id)
+        source_node = graph.get_node_by_id(NoiseViewer.SELECTED_NODE_ID)
         if source_node is None:
             raise Exception("Node not found")
 
@@ -195,4 +198,13 @@ class NoiseViewer(html.Div):
         figure = ff.create_distplot(
             [noise.generate_data()], [param], show_rug=False, bin_size=0.2
         )
-        self.children = [html.H3(f"variable: {param}"), Graph("graph-0", figure=figure)]
+        self.children = [
+            Dropdown(
+                options=graph.get_node_ids(),
+                searchable=False,
+                id="noise-viewer-target",
+                multi=False,
+            ),
+            html.H3(f"variable: {param}"),
+            Graph("graph-0", figure=figure)
+        ]

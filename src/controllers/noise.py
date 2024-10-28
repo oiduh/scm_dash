@@ -192,13 +192,13 @@ def setup_callbacks():
         return NoiseBuilder().children
 
     @callback(
-        Output("noise-viewer", "children"),
+        Output("noise-viewer", "children", allow_duplicate=True),
         Input({"type": "view-distribution", "index": ALL}, "n_clicks"),
-        prevent_initial_call=True,
+        prevent_initial_call='initial_duplicate',
     )
     def view_distribution(clicked: list[int]):
         if not any(clicked):
-            raise PreventUpdate
+            return NoiseViewer().children
 
         triggered_node: dict | None = ctx.triggered_id
         if not triggered_node:
@@ -211,4 +211,17 @@ def setup_callbacks():
             LOGGER.error(f"Failed to find node with id: {node_id}")
             raise PreventUpdate("Node not found")
 
-        return NoiseViewer(node_id=node_id).children
+        NoiseViewer.SELECTED_NODE_ID = node_id
+        return NoiseViewer().children
+
+    @callback(
+        Output("noise-viewer", "children")  ,
+        Input("noise-viewer-target", "value"),
+        prevent_initial_call=True,
+    )
+    def update_noise_viewer_choice(node_id: str):
+        LOGGER.info("Updating noise viewer layout")
+        if node_id not in graph.get_node_ids():
+            raise PreventUpdate(f"Invalid node choice: {node_id}")
+        NoiseViewer.SELECTED_NODE_ID = node_id
+        return NoiseViewer().children

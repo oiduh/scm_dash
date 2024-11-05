@@ -78,8 +78,8 @@ class Distribution:
                 # variance (phi)
                 scale = Parameter(
                     name="scale",
-                    min=0,
-                    slider_min=0,
+                    min=0.1,
+                    slider_min=0.1,
                     max=5,
                     slider_max=5,
                     current=1,
@@ -314,18 +314,18 @@ class Noise:
         self.sub_distributions[to_remove.id_] = None
 
     def generate_data(self) -> np.ndarray[Any, np.dtype[np.float64]]:
-        # TODO: noise not final data
         distributions = self.get_distributions()
         partition, rest = divmod(CONSTANTS.NR_DATA_POINTS, len(distributions))
         x = [partition for _ in range(len(distributions))]
         y = [1 if idx < rest else 0 for idx, _ in enumerate(range(len(distributions)))]
         buckets = [a + b for a, b in zip(x, y)]
-        # TODO: maybe dict to distinguish sub variable
         values: list[float] = []
         for distribution, nr_points in zip(distributions, buckets):
             parameter_values = {
                 v.name: v.current for v in distribution.parameters.values()
             }
+            # TODO: setting for seed via UI?
+            np.random.seed(0)
             new_values = distribution.generator.rvs(**parameter_values, size=nr_points)
             values.append(new_values)
 

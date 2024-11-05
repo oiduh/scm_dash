@@ -39,7 +39,6 @@ class NoiseContainer(html.Div):
                 dbc.AccordionItem(NoiseNodeBuilder((id_, var_id)), title=title)
             )
         self.children.append(accordion)
-        self.children.append(html.Hr())
         self.children.append(
             dbc.Row(
                 [
@@ -48,12 +47,6 @@ class NoiseContainer(html.Div):
                             "Add distribution",
                             id={"type": "add-sub-distribution", "index": id_},
                         )
-                    ),
-                    dbc.Col(
-                        html.Button(
-                            "View", id={"type": "view-distribution", "index": id_}
-                        ),
-                        width={"size": 1, "order": "last"},
                     ),
                 ]
             )

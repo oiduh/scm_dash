@@ -86,12 +86,12 @@ class Node:
         input_ids.append(f"n_{self.id_}")  # add noise to inputs as well
         input_ids.extend(self.get_in_node_ids())
         data = {node_id: (np.random.rand(1000) - 0.5) * 10 for node_id in input_ids}
-        formulas = self.mechanism_metadata.get_formulas()
+        formulas = list(self.mechanism_metadata.get_formulas().values())
         match self.mechanism_metadata.mechanism_type:
             case "regression":
-                mechanism = RegressionMechanism(list(formulas.values()), data)
+                mechanism = RegressionMechanism(formulas, data)
             case "classification":
-                mechanism = ClassificationMechanism(list(formulas.values()), data)
+                mechanism = ClassificationMechanism(formulas, data)
         # we do not care about the data, only if the data generation failed
         return mechanism.transform().error is None
 
@@ -318,4 +318,3 @@ a = graph.get_node_by_id("a")
 b = graph.get_node_by_id("b")
 assert a is not None and b is not None, "Failed at init"
 graph.add_edge(a, b)
-print(graph.get_node_ids())

@@ -54,6 +54,7 @@ MechanismState = Literal["editable", "locked"]
 class MechanismMetadata:
     mechanism_type: MechanismType = "regression"
     state: MechanismState = "editable"
+    valid: bool = True
     # mapping from class_id to formula -> only relevant for multi-class-classification
     formulas: dict[str, str | None] = field(init=False)
 

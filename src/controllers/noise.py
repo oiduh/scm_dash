@@ -113,6 +113,7 @@ def setup_callbacks():
             },
         )
         tooltip = ({"placement": "top", "always_visible": True},)
+        NoiseViewer.SELECTED_NODE_ID = node_id
         return (
             param.slider_min,
             param.current,
@@ -123,6 +124,20 @@ def setup_callbacks():
             param.current,
             param.slider_max,
         )
+
+    @callback(
+        Output("noise-viewer", "children", allow_duplicate=True),
+        Input({"type": "slider", "index": ALL}, "min"),
+        Input({"type": "slider", "index": ALL}, "value"),
+        Input({"type": "slider", "index": ALL}, "max"),
+        Input({"type": "input-min", "index": ALL}, "value"),
+        Input({"type": "input-value", "index": ALL}, "value"),
+        Input({"type": "input-max", "index": ALL}, "value"),
+        Input({"type": "slider", "index": ALL}, "id"),
+        prevent_initial_call=True,
+    )
+    def update_graph_on_slider_release(*_):
+        return NoiseViewer().children
 
     @callback(
         Output({"type": "noise-container", "index": MATCH}, "children"),
@@ -190,29 +205,6 @@ def setup_callbacks():
             raise PreventUpdate from e
 
         return NoiseBuilder().children
-
-    @callback(
-        Output("noise-viewer", "children", allow_duplicate=True),
-        Input({"type": "view-distribution", "index": ALL}, "n_clicks"),
-        prevent_initial_call='initial_duplicate',
-    )
-    def view_distribution(clicked: list[int]):
-        if not any(clicked):
-            return NoiseViewer().children
-
-        triggered_node: dict | None = ctx.triggered_id
-        if not triggered_node:
-            raise PreventUpdate
-
-        node_id = triggered_node.get("index", None)
-        LOGGER.info(f"Updating view for node with id: {node_id}")
-
-        if node_id is None:
-            LOGGER.error(f"Failed to find node with id: {node_id}")
-            raise PreventUpdate("Node not found")
-
-        NoiseViewer.SELECTED_NODE_ID = node_id
-        return NoiseViewer().children
 
     @callback(
         Output("noise-viewer", "children")  ,

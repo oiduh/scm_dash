@@ -53,7 +53,7 @@ class MechanismInput(html.Div):
             case "classification":
                 self.children = ClassificationBuilder(id_)
             case _:
-                raise Exception("Invalid mechanism type found")
+                raise Exception("Invalid mechanism type found")  # type: ignore
 
 
 class RegressionBuilder(html.Div):
@@ -124,3 +124,4 @@ class ClassificationBuilder(html.Div):
         self.children.append(
             html.Button("Lock", id={"type": "lock-mechanism", "index": id_})
         )
+

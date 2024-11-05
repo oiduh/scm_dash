@@ -28,20 +28,30 @@ TODO:
 		- [X] title; display current choice
 		- [X] find a way to center + spread all layout
 		-> remove 'ugly' layouts (not centered)
-	- [ ] graph view
-		- [ ] save layout option -> on refresh
-    - [ ] distr view
+    - [X] distr view
         - [X] dropdown for choice (right side)
-        - [ ] variable change -> immediate update -> slider change
-	- [ ] mechanism
+        - [X] variable change -> immediate update -> slider change (on release, not hold)
+    - [X] add seed fixed seed for each data generation function
+
+
+    - [ ] mechanism (default mapping for instant data generation)
 		- [ ] default regression -> id noise instead of placeholder
+        - [ ] defualt classification (all 1 class)
+    - [ ] mechanism choice confirmation
+        - [ ] viewer left with options to confirm AND (un)lock
+        - [ ] viewer right with state of mechanism (once all confirmed and locked -> next tab)
+
+
+
 	- [ ] graph state as file
+    -> simple json
 		- [ ] export import from meta files
-		-> no exacte data points, just meta data for generation
+		-> no exact data points, just meta data for generation + seed
 		-> export/save files (reproducible results)
 		- [ ] import feature -> parser + validation
 	- [ ] info/help for mechanism
 		- [ ] how to use e.g. numpy standard
+        - [ ] available mathematical functions
 		- [ ] which variables available
 	- [ ] mechanism layout
 		- [ ] show info button main + highlight
@@ -65,15 +75,22 @@ TODO:
 	-> multiple iteration possible (1 base, multiple interventions)
 	-> at least one variable needs to be intervened on
 	-> intervention = constant for variable (no distr)
-		- [ ] 
 
 
+ideas for mechanism view:
+    - check list -> which mechanisms are correct, which are not
+    - display mechanism/function in a nice way
 
+after mechanism done:
+    - lock in scm -> evaluate mechanisms and generate data
+    - if date is successfully generated -> enable new window
+    - else generic message to check mechansims
 
-    - [ ] css
-		- [ ] class_name e.g. 'h-50' etc. -> find out
+next window:
+    - data view
+    - dimensionality reduction of whole data
+    - pairwise correlation view
 
-error for double text area originates from deleting a input class
--> error fixed by wrapping in row/col from dbc
-
-
+next window:
+    - select target variable
+    - select source variables (all by default -> enables to ignore potential problem vars)

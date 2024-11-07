@@ -52,20 +52,22 @@ MechanismState = Literal["editable", "locked"]
 
 @dataclass
 class MechanismMetadata:
+    var_name: str
     mechanism_type: MechanismType = "regression"
     state: MechanismState = "editable"
     valid: bool = True
-    # mapping from class_id to formula -> only relevant for multi-class-classification
-    formulas: dict[str, str | None] = field(init=False)
+    formulas: dict[str, str | None] = field(init=False)  # depends on the type
 
     def __post_init__(self) -> None:
-        self.formulas = MechanismMetadata.reset_formulas()
+        self.reset_formulas()
 
-    @staticmethod
-    def reset_formulas() -> dict[str, str | None]:
-        ret: dict[str, str | None] = {id_: None for id_ in string.digits}
-        ret["0"] = "<PLACEHOLDER>"
-        return ret
+    def reset_formulas(self) -> None:
+        new_formulas: dict[str, str | None] = {id_: None for id_ in string.digits}
+        if self.mechanism_type == "regression":
+            new_formulas["0"] = f"n_{self.var_name}"
+        else:
+            new_formulas["0"] = f"n_{self.var_name} > 0.0"
+        self.formulas = new_formulas
 
     def get_formulas(self):
         return {k: v for k, v in self.formulas.items() if v is not None}
@@ -86,7 +88,7 @@ class MechanismMetadata:
         free_id = self.get_next_free_class_id()
         if free_id is None:
             raise Exception("Cannot add another class")
-        self.formulas[free_id] = "<PLACEHOLDER>"
+        self.formulas[free_id] = f"n_{self.var_name} > 0.0"
 
     def remove_class(self, class_id: str) -> None:
         assert self.state == "editable"

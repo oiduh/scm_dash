@@ -37,6 +37,8 @@ class MechanismContainer(html.Div):
             html.Hr(),
             html.P(f"Causes: {', '.join(causes)}"),
             MechanismInput(id_),
+            html.Hr(),
+            html.Button("confirm", id={"type": "confirm-mechanism", "index": id_})
         ]
 
 
@@ -121,7 +123,29 @@ class ClassificationBuilder(html.Div):
         self.children.append(
             html.Button("Add Class", id={"type": "add-class", "index": id_})
         )
-        self.children.append(
-            html.Button("Lock", id={"type": "lock-mechanism", "index": id_})
-        )
 
+
+class MechanismViewer(html.Div):
+    def __init__(self):
+        super().__init__(id="mechanism-viewer")
+        nodes = graph.get_nodes()
+        self.children = []
+        for node in nodes:
+            node_id = node.id_
+            in_node_ids = [in_node_id for in_node_id in node.get_in_node_ids()]
+            in_node_ids.append(f"n_{node_id}")
+            mechanism_metadata = node.mechanism_metadata
+            if mechanism_metadata.mechanism_type == "regression":
+                # one formula
+                # TODO: getting formulas can be None -> proper getter + check
+                formula = list(mechanism_metadata.formulas.values())[0]
+                assert formula is not None
+                formula = f"{node_id} = f_{node_id}({', '.join(in_node_ids)}) = {formula}"
+                self.children.append(html.P(formula))
+            else:
+                # multiple formulas
+                formulas = list(mechanism_metadata.formulas.values())
+                for formula in formulas:
+                    if formula is not None:
+                        self.children.append(html.P(formula))
+            self.children.append(html.Hr())

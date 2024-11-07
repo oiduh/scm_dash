@@ -34,14 +34,22 @@ TODO:
     - [X] add seed fixed seed for each data generation function
 
 
-    - [ ] mechanism (default mapping for instant data generation)
-		- [ ] default regression -> id noise instead of placeholder
-        - [ ] defualt classification (all 1 class)
+    - [X] mechanism (default mapping for instant data generation)
+		- [X] default regression -> id noise instead of placeholder
+        - [X] default classification (all 1 class)
     - [ ] mechanism choice confirmation
-        - [ ] viewer left with options to confirm AND (un)lock
-        - [ ] viewer right with state of mechanism (once all confirmed and locked -> next tab)
-
-
+        - [ ] left
+            - [X] confirm button
+            - [ ] confirm callback -> sample data + verification
+        - [ ] right
+            - [ ] formula display + info about confirmation (confirm only on left side)
+            -> full formula needed e.g. z = f(x,y,n_z) = x + y + 0.5*n_z
+                - [X] regression -> only 1
+                - [ ] classification -> multiple (depending on class)
+            - [ ] lock button -> if all confirmed -> unlock button if locked
+            - [ ] generate data on lock
+        - [ ] disable graph and noise and left mechanism on lock
+    - [ ] new tab -> summary + target/source node selection
 
 	- [ ] graph state as file
     -> simple json

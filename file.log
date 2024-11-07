@@ -1,0 +1,139 @@
+2024-11-06 18:24:18,985 - GraphController - INFO - Updating graph view
+2024-11-06 18:24:18,990 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:24:19,176 - GraphController - INFO - Updating graph view
+2024-11-06 18:24:19,177 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:24:19,470 - NoiseController - INFO - Updating noise viewer layout
+2024-11-06 18:24:35,228 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: b
+2024-11-06 18:24:43,072 - MechanismController - INFO - Invoked 'add_class' for node with id: b
+2024-11-06 18:24:49,954 - MechanismController - INFO - Invoked 'remove_class' for node with id: b_0
+2024-11-06 18:25:41,337 - GraphController - INFO - Updating graph view
+2024-11-06 18:25:41,342 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:25:42,425 - GraphController - INFO - Updating graph view
+2024-11-06 18:25:42,425 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:25:44,433 - NoiseController - INFO - Updating noise viewer layout
+2024-11-06 18:25:53,425 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-06 18:25:54,961 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-11-06 18:33:06,063 - GraphController - INFO - Updating graph view
+2024-11-06 18:33:06,068 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:33:07,154 - GraphController - INFO - Updating graph view
+2024-11-06 18:33:07,155 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:33:09,168 - NoiseController - INFO - Updating noise viewer layout
+2024-11-06 18:33:15,907 - GraphController - INFO - Updating graph view
+2024-11-06 18:33:15,912 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:33:16,978 - GraphController - INFO - Updating graph view
+2024-11-06 18:33:16,978 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:33:18,990 - NoiseController - INFO - Updating noise viewer layout
+2024-11-06 18:33:28,081 - GraphController - INFO - Updating graph view
+2024-11-06 18:33:28,086 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:33:29,149 - GraphController - INFO - Updating graph view
+2024-11-06 18:33:29,150 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:33:31,158 - NoiseController - INFO - Updating noise viewer layout
+2024-11-06 18:35:04,812 - GraphController - INFO - Updating graph view
+2024-11-06 18:35:04,818 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:35:05,901 - GraphController - INFO - Updating graph view
+2024-11-06 18:35:05,901 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:35:07,913 - NoiseController - INFO - Updating noise viewer layout
+2024-11-06 18:43:37,540 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-06 18:43:38,968 - MechanismController - INFO - Invoked 'add_class' for node with id: a
+2024-11-06 18:43:41,442 - GraphController - INFO - invoked 'add_node'
+2024-11-06 18:43:41,586 - GraphController - INFO - Updating graph view
+2024-11-06 18:43:41,586 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}, {'data': {'id': 'c', 'label': 'c'}}]
+2024-11-06 18:43:41,672 - NoiseController - INFO - Updating noise viewer layout
+2024-11-06 18:43:52,871 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-06 18:43:53,676 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-06 18:46:08,589 - GraphController - INFO - Updating graph view
+2024-11-06 18:46:08,594 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:46:09,662 - GraphController - INFO - Updating graph view
+2024-11-06 18:46:09,662 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-06 18:46:11,673 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:24:10,503 - GraphController - INFO - Updating graph view
+2024-11-07 07:24:10,508 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:24:10,621 - GraphController - INFO - Updating graph view
+2024-11-07 07:24:10,621 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:24:10,710 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:29:18,025 - GraphController - INFO - Updating graph view
+2024-11-07 07:29:18,030 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:29:18,132 - GraphController - INFO - Updating graph view
+2024-11-07 07:29:18,132 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:29:18,218 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:33:52,894 - GraphController - INFO - Updating graph view
+2024-11-07 07:33:52,899 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:33:53,055 - GraphController - INFO - Updating graph view
+2024-11-07 07:33:53,056 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:34:07,146 - GraphController - INFO - Updating graph view
+2024-11-07 07:34:07,151 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:34:07,310 - GraphController - INFO - Updating graph view
+2024-11-07 07:34:07,310 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:34:07,489 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:34:34,689 - GraphController - INFO - Updating graph view
+2024-11-07 07:34:34,694 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:34:34,807 - GraphController - INFO - Updating graph view
+2024-11-07 07:34:34,808 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:34:34,897 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:34:45,367 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-07 07:34:48,320 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-07 07:34:50,770 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-07 07:34:52,793 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-07 07:34:53,513 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-07 07:34:56,983 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-07 07:35:22,729 - GraphController - INFO - Updating graph view
+2024-11-07 07:35:22,735 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:35:22,834 - GraphController - INFO - Updating graph view
+2024-11-07 07:35:22,834 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:35:22,917 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:35:59,015 - GraphController - INFO - Updating graph view
+2024-11-07 07:35:59,021 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:35:59,132 - GraphController - INFO - Updating graph view
+2024-11-07 07:35:59,132 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:35:59,215 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:36:05,244 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-07 07:36:11,921 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-07 07:36:12,447 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-07 07:36:14,595 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-07 07:36:15,609 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-07 07:36:16,936 - MechanismController - INFO - Invoked 'change_mechanism_type' for node with id: a
+2024-11-07 07:37:26,604 - GraphController - INFO - Updating graph view
+2024-11-07 07:37:26,609 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:37:26,720 - GraphController - INFO - Updating graph view
+2024-11-07 07:37:26,720 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:37:26,811 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:39:21,586 - GraphController - INFO - Updating graph view
+2024-11-07 07:39:21,591 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:39:21,702 - GraphController - INFO - Updating graph view
+2024-11-07 07:39:21,702 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:39:21,784 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:39:42,930 - GraphController - INFO - Updating graph view
+2024-11-07 07:39:42,935 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:39:43,035 - GraphController - INFO - Updating graph view
+2024-11-07 07:39:43,035 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:39:43,124 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:39:55,351 - GraphController - INFO - Updating graph view
+2024-11-07 07:39:55,356 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:39:55,462 - GraphController - INFO - Updating graph view
+2024-11-07 07:39:55,463 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:39:55,550 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:41:13,551 - GraphController - INFO - Updating graph view
+2024-11-07 07:41:13,557 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:41:13,669 - GraphController - INFO - Updating graph view
+2024-11-07 07:41:13,669 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:41:13,749 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:42:14,384 - GraphController - INFO - Updating graph view
+2024-11-07 07:42:14,389 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:42:14,493 - GraphController - INFO - Updating graph view
+2024-11-07 07:42:14,493 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:42:14,576 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:49:34,820 - GraphController - INFO - Updating graph view
+2024-11-07 07:49:34,826 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:49:34,929 - GraphController - INFO - Updating graph view
+2024-11-07 07:49:34,929 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:49:35,014 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:50:46,885 - GraphController - INFO - Updating graph view
+2024-11-07 07:50:46,890 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:50:46,981 - GraphController - INFO - Updating graph view
+2024-11-07 07:50:46,982 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:50:47,059 - NoiseController - INFO - Updating noise viewer layout
+2024-11-07 07:53:50,462 - GraphController - INFO - Updating graph view
+2024-11-07 07:53:50,462 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:53:50,683 - GraphController - INFO - Updating graph view
+2024-11-07 07:53:50,683 - GraphController - INFO - nodes=[{'data': {'id': 'a', 'label': 'a'}}, {'data': {'id': 'b', 'label': 'b'}}]
+2024-11-07 07:53:50,812 - NoiseController - INFO - Updating noise viewer layout

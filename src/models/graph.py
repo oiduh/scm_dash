@@ -25,12 +25,11 @@ class Node:
     out_nodes: list["Node"] = field(default_factory=list)
     noise: Noise = field(init=False)
     data: np.ndarray | None = None
-    mechanism_metadata: MechanismMetadata = field(
-        default_factory=MechanismMetadata,
-    )
+    mechanism_metadata: MechanismMetadata = field(init=False)
 
     def __post_init__(self) -> None:
         self.noise = Noise.default_noise(self.id_)
+        self.mechanism_metadata = MechanismMetadata(var_name=self.id_)
 
     def get_in_node_ids(self) -> list[str]:
         return [n.id_ for n in self.in_nodes]
@@ -77,7 +76,7 @@ class Node:
     def change_type(self, new_type: MechanismType) -> None:
         assert self.mechanism_metadata.state == "editable"
         self.mechanism_metadata.mechanism_type = new_type
-        self.mechanism_metadata.formulas = MechanismMetadata.reset_formulas()
+        self.mechanism_metadata.reset_formulas()
 
     def formulas_are_valid(self) -> bool:
         # data in range (-5.0, 5.0)

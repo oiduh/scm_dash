@@ -127,3 +127,7 @@ def setup_callbacks():
             raise PreventUpdate from e
 
         return MechanismBuilder().children
+
+    # TODO: new button for confirmation -> left and right
+    def confirm_mechanism():
+        raise PreventUpdate()

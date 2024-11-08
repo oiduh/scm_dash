@@ -5,7 +5,7 @@ from controllers import setup_callbacks
 from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilder, MechanismViewer
 from views.noise import NoiseBuilder, NoiseViewer
-from views.utils import Placeholder
+# from views.utils import Placeholder
 import dash_cytoscape as cyto
 
 

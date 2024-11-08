@@ -126,6 +126,7 @@ class ClassificationBuilder(html.Div):
 
 
 class MechanismViewer(html.Div):
+    # TODO: depending on chosen node on left -> only show
     def __init__(self):
         super().__init__(id="mechanism-viewer")
         nodes = graph.get_nodes()

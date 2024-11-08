@@ -51,6 +51,17 @@ TODO:
         - [ ] disable graph and noise and left mechanism on lock
     - [ ] new tab -> summary + target/source node selection
 
+    - [ ] one last rework
+        - [ ] left
+            - [ ] dropdown for available variables
+                - [ ] graph -> rework
+                - [ ] noise -> accordion for each sub-noise
+                - [ ] mechanism
+                    - [ ] confirm button for each variable
+                    - [ ] lock button at top -> confirm all and lock if OK (toggle unlock)
+            - [ ] button to add variable
+            - [ ] button to remove variable
+
 	- [ ] graph state as file
     -> simple json
 		- [ ] export import from meta files

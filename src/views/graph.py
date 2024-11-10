@@ -2,6 +2,7 @@ import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html
 from dash_cytoscape import Cytoscape
 from enum import Enum
+from dash import dcc
 
 from models.graph import graph
 
@@ -22,6 +23,135 @@ class GraphBuilder(html.Div):
             accordion.children.append(dbc.AccordionItem(NodeBuilder(id_), title=id_))
         self.children.append(accordion)
         self.children.append(html.Div(html.Button("Add Node", id="add-node-button")))
+
+
+class GraphBuilderNew(html.Div):
+    def __init__(self):
+        super().__init__(id="graph-builder-new")
+        self.style = {
+            "border": "3px green solid",
+            "margin": "3px",
+        }
+        self.children = []
+        variable_selection = VariableSelection()
+        self.children.append(variable_selection)
+        self.children.append(html.Hr()) # TODO: better distinction from rest
+        self.children.append(VariableConfig(variable_selection.selected_node))
+
+
+class VariableSelection(html.Div):
+    def __init__(self):
+        super().__init__(id="variable-selection")
+        nodes = graph.get_nodes()
+        node_ids = [node.id_ for node in nodes]
+        assert len(node_ids) > 0
+        selected_node_id = node_ids[0]
+
+        self.selected_node = selected_node_id
+        self.children = []
+        self.children.append(
+            dbc.Row([
+                dbc.Col(
+                    dcc.Dropdown(
+                        options=node_ids,
+                        value=selected_node_id,
+                        id="graph-builder-target-node",
+                        searchable=False,
+                        clearable=False
+                    )
+                ),
+                dbc.Col(html.Button("Remove Selected Node")),
+                dbc.Col(html.Button("Add New Node",id="confirm-selection")),
+            ])
+        )
+
+
+
+from dash import callback, Output, Input
+from dash.exceptions import PreventUpdate
+@callback(
+    Output("variable-config", "children", allow_duplicate=True),
+    Input("graph-builder-target-node", "value"),
+    Input("confirm-selection", "n_clicks"),
+    # prevent_initial_call=True
+    prevent_initial_call="initial_duplicate"
+)
+def select_node(selected_node_id: str, clicked):
+    print(1)
+    if not clicked:
+        raise PreventUpdate
+    print(2)
+    return VariableConfig(selected_node_id).children
+
+
+class VariableConfig(html.Div):
+    def __init__(self, selected_node_id: str):
+        super().__init__(id="variable-config")
+        selected_node = graph.get_node_by_id(selected_node_id)
+        assert selected_node is not None
+        in_node_ids = selected_node.get_in_node_ids()
+
+        can_add: list[str] = []
+        for other_node_id in in_node_ids:
+            target_node = graph.get_node_by_id(other_node_id)
+            assert target_node is not None
+            if graph.can_add_edge(selected_node, target_node):
+                can_add.append(target_node.id_)
+
+        can_remove = selected_node.get_out_node_ids()
+
+        self.children = []
+        self.children.extend([
+            dbc.Row([
+                dbc.Col([
+                    dbc.Row([
+                        dbc.Col(html.P(f"Rename Variable:")),
+                        dbc.Col(dcc.Input()), # TODO: restrictions e.g. length, first char
+                        dbc.Col(html.Button("Confirm New Name")),
+                    ]),
+                ]),
+                html.Hr()
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    dbc.Row([
+                        dbc.Col(html.P(f"In-Nodes:")),
+                        dbc.Col(html.P(','.join(in_node_ids) or '<None>')),
+                    ]),
+                    dbc.Row([
+                        dbc.Col(html.P(f"Select In-Node to Add")),
+                        dbc.Col(dcc.Dropdown(
+                            options=can_add,
+                            value=can_add[0] if len(can_add) > 0 else None,
+                            id="remove-out-node",
+                            searchable=False,
+                            clearable=False
+                        )),
+                        dbc.Col(html.Button("Add Edge"))
+                    ]),
+                ]),
+                html.Hr()
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    dbc.Row([
+                        dbc.Col(html.P(f"Out-Nodes:")),
+                        dbc.Col(html.P(','.join(can_remove) or '<None>')),
+                    ]),
+                    dbc.Row([
+                        dbc.Col(html.P(f"Select Out-Node to Remove")),
+                        dbc.Col(dcc.Dropdown(
+                            options=can_remove,
+                            value=can_remove[0] if len(can_remove) > 0 else None,
+                            id="remove-out-node",
+                            searchable=False,
+                            clearable=False
+                        )),
+                        dbc.Col(html.Button("Remove Edge"))
+                    ]),
+                ]),
+            ]),
+        ])
 
 
 class NodeBuilder(html.Div):

@@ -2,10 +2,10 @@ import dash_bootstrap_components as dbc
 from dash import Dash, html
 
 from controllers import setup_callbacks
-from views.graph import GraphBuilder, GraphViewer
+from views.graph import GraphBuilder, GraphViewer, GraphBuilderNew
 from views.mechanism import MechanismBuilder, MechanismViewer
 from views.noise import NoiseBuilder, NoiseViewer
-# from views.utils import Placeholder
+from views.utils import Placeholder
 import dash_cytoscape as cyto
 
 
@@ -31,14 +31,18 @@ app.layout = html.Div(
                             label="Graph Builder",
                             children=dbc.Row(
                                 children=[
+                                    # dbc.Col(
+                                    #     GraphBuilder(),
+                                    #     style={
+                                    #         "height": "800px",
+                                    #         "overflow": "scroll",
+                                    #     },
+                                    # ),
                                     dbc.Col(
-                                        GraphBuilder(),
-                                        style={
-                                            "height": "800px",
-                                            "overflow": "scroll",
-                                        },
+                                        GraphBuilderNew()
                                     ),
-                                    dbc.Col(GraphViewer()),
+                                    # dbc.Col(GraphViewer()),
+                                    dbc.Col(Placeholder("graph-view-place-holder"))
                                 ],
                             ),
                         ),
@@ -47,14 +51,16 @@ app.layout = html.Div(
                             label="Distribution Builder",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(
-                                        NoiseBuilder(),
-                                        style={
-                                            "height": "800px",
-                                            "overflow": "scroll",
-                                        },
-                                    ),
-                                    dbc.Col(NoiseViewer()),
+                                    # dbc.Col(
+                                    #     NoiseBuilder(),
+                                    #     style={
+                                    #         "height": "800px",
+                                    #         "overflow": "scroll",
+                                    #     },
+                                    # ),
+                                    dbc.Col(Placeholder("noise-build-place-holder")),
+                                    # dbc.Col(NoiseViewer()),
+                                    dbc.Col(Placeholder("noise-view-place-holder"))
                                 ],
                             ),
                         ),
@@ -63,14 +69,16 @@ app.layout = html.Div(
                             label="Mechanism Builder",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(
-                                        MechanismBuilder(),
-                                        style={
-                                            "height": "800px",
-                                            "overflow": "scroll",
-                                        },
-                                    ),
-                                    dbc.Col(MechanismViewer()),
+                                    # dbc.Col(
+                                    #     MechanismBuilder(),
+                                    #     style={
+                                    #         "height": "800px",
+                                    #         "overflow": "scroll",
+                                    #     },
+                                    # ),
+                                    dbc.Col(Placeholder("mechanism-view-place-holder")),
+                                    # dbc.Col(MechanismViewer()),
+                                    dbc.Col(Placeholder("mechanism-build-place-holder")),
                                 ],
                             ),
                         ),

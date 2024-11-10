@@ -5,7 +5,7 @@ from dash.exceptions import PreventUpdate
 
 from models.graph import graph
 from utils.logger import DashLogger
-from views.graph import GraphBuilder, GraphViewer
+from views.graph import GraphBuilder, GraphViewer, VariableConfig
 from views.mechanism import MechanismBuilder
 from views.noise import NoiseBuilder
 
@@ -13,6 +13,42 @@ LOGGER = DashLogger(name="GraphController", level=logging.DEBUG)
 
 
 def setup_callbacks() -> None:
+    LOGGER.info("initializing graph callbacks")
+
+    @callback(
+        Output("variable-config", "children", allow_duplicate=True),
+        Input("graph-builder-target-node", "value"),
+        Input("confirm-selection", "n_clicks"),
+        # prevent_initial_call=True
+        prevent_initial_call="initial_duplicate"
+    )
+    def select_node(selected_node_id: str, clicked):
+        LOGGER.info(f"selectin new node: {selected_node_id}")
+        if not clicked:
+            raise PreventUpdate
+        return VariableConfig(selected_node_id).children
+
+    @callback(
+        Output("variable-config", "children", allow_duplicate=True),
+        Input("confirm-selection", "n_clicks"),
+        # prevent_initial_call=True
+        prevent_initial_call="initial_duplicate"
+    )
+    def callback_test(clicked):
+        LOGGER.info("wtf")
+        if not clicked:
+            raise PreventUpdate
+        from dash import html
+        from random import randint
+
+        return html.Div(f"testing: {randint(1,10)}").children
+
+
+
+"""
+
+
+    # TODO: old callbacks -> keep for reference
     @callback(
         Output("graph-builder", "children", allow_duplicate=True),
         Output("noise-builder", "children", allow_duplicate=True),
@@ -196,3 +232,4 @@ def setup_callbacks() -> None:
             raise PreventUpdate(f"Invalid layout choice: {new_value}")
         GraphViewer.LAYOUT = new_value
         return GraphViewer()
+"""

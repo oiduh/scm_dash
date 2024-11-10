@@ -5,5 +5,5 @@ from controllers.noise import setup_callbacks as noise_callbacks
 
 def setup_callbacks():
     graph_callbacks()
-    noise_callbacks()
-    mechanism_callbacks()
+    # noise_callbacks()
+    # mechanism_callbacks()

@@ -55,6 +55,11 @@ TODO:
         - [ ] left
             - [ ] dropdown for available variables
                 - [ ] graph -> rework
+                    - [X] add node
+                    - [ ] remove node
+                    - [X] add out node
+                    - [ ] remove out node
+                    - [ ] design, proper display
                 - [ ] noise -> accordion for each sub-noise
                 - [ ] mechanism
                     - [ ] confirm button for each variable

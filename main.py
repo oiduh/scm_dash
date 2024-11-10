@@ -2,9 +2,10 @@ import dash_bootstrap_components as dbc
 from dash import Dash, html
 
 from controllers import setup_callbacks
-from views.graph import GraphBuilder, GraphViewer, GraphBuilderNew
-from views.mechanism import MechanismBuilder, MechanismViewer
-from views.noise import NoiseBuilder, NoiseViewer
+# from views.graph import GraphBuilder, GraphViewer, GraphBuilderNew
+from views.graph import GraphBuilderNew
+# from views.mechanism import MechanismBuilder, MechanismViewer
+# from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
 import dash_cytoscape as cyto
 
@@ -38,11 +39,9 @@ app.layout = html.Div(
                                     #         "overflow": "scroll",
                                     #     },
                                     # ),
-                                    dbc.Col(
-                                        GraphBuilderNew()
-                                    ),
+                                    dbc.Col(GraphBuilderNew()),
                                     # dbc.Col(GraphViewer()),
-                                    dbc.Col(Placeholder("graph-view-place-holder"))
+                                    dbc.Col(Placeholder("graph-view-place-holder")),
                                 ],
                             ),
                         ),

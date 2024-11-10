@@ -135,7 +135,7 @@ class Graph:
         free_node_ids = (id for id, node in self.nodes.items() if node is None)
         return next(free_node_ids, None)
 
-    def add_node(self) -> None:
+    def add_node(self) -> str:
         free_node_id = self.get_free_node_id()
         if free_node_id is None:
             raise Exception("Cannot add another node")
@@ -143,6 +143,7 @@ class Graph:
         new_node = Node(free_node_id, free_node_id, self)
         self.nodes[free_node_id] = new_node
         new_node.change_type("regression")
+        return new_node.id_
 
     def remove_node(self, to_remove: Node) -> None:
         """

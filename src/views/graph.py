@@ -44,6 +44,7 @@ class VariableSelection(html.Div):
         super().__init__(id="variable-selection")
         nodes = graph.get_nodes()
         node_ids = [node.id_ for node in nodes]
+        print(node_ids)
         assert len(node_ids) > 0
         selected_node_id = node_ids[0]
 
@@ -61,27 +62,9 @@ class VariableSelection(html.Div):
                     )
                 ),
                 dbc.Col(html.Button("Remove Selected Node")),
-                dbc.Col(html.Button("Add New Node",id="confirm-selection")),
+                dbc.Col(html.Button("Add New Node", id="add-new-node", n_clicks=0)),
             ])
         )
-
-
-
-from dash import callback, Output, Input
-from dash.exceptions import PreventUpdate
-@callback(
-    Output("variable-config", "children", allow_duplicate=True),
-    Input("graph-builder-target-node", "value"),
-    Input("confirm-selection", "n_clicks"),
-    # prevent_initial_call=True
-    prevent_initial_call="initial_duplicate"
-)
-def select_node(selected_node_id: str, clicked):
-    print(1)
-    if not clicked:
-        raise PreventUpdate
-    print(2)
-    return VariableConfig(selected_node_id).children
 
 
 class VariableConfig(html.Div):
@@ -92,7 +75,7 @@ class VariableConfig(html.Div):
         in_node_ids = selected_node.get_in_node_ids()
 
         can_add: list[str] = []
-        for other_node_id in in_node_ids:
+        for other_node_id in graph.get_node_ids():
             target_node = graph.get_node_by_id(other_node_id)
             assert target_node is not None
             if graph.can_add_edge(selected_node, target_node):
@@ -122,12 +105,12 @@ class VariableConfig(html.Div):
                         dbc.Col(html.P(f"Select In-Node to Add")),
                         dbc.Col(dcc.Dropdown(
                             options=can_add,
-                            value=can_add[0] if len(can_add) > 0 else None,
-                            id="remove-out-node",
+                            value=None,
+                            id="add-in-node",
                             searchable=False,
                             clearable=False
                         )),
-                        dbc.Col(html.Button("Add Edge"))
+                        dbc.Col(html.Button("Add Edge", id="add-new-edge", n_clicks=0))
                     ]),
                 ]),
                 html.Hr()
@@ -142,7 +125,7 @@ class VariableConfig(html.Div):
                         dbc.Col(html.P(f"Select Out-Node to Remove")),
                         dbc.Col(dcc.Dropdown(
                             options=can_remove,
-                            value=can_remove[0] if len(can_remove) > 0 else None,
+                            value=None,
                             id="remove-out-node",
                             searchable=False,
                             clearable=False

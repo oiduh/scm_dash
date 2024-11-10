@@ -1,13 +1,17 @@
 import logging
 
-from dash import ALL, Input, Output, State, callback, ctx
+# from dash import ALL, Input, Output, State, callback, ctx
+from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
+# from dash.exceptions import PreventUpdate
 
 from models.graph import graph
 from utils.logger import DashLogger
-from views.graph import GraphBuilder, GraphViewer, VariableConfig
-from views.mechanism import MechanismBuilder
-from views.noise import NoiseBuilder
+# from views.graph import GraphBuilder, GraphViewer, VariableConfig
+from views.graph import VariableConfig, VariableSelection
+# from views.mechanism import MechanismBuilder
+# from views.noise import NoiseBuilder
+
 
 LOGGER = DashLogger(name="GraphController", level=logging.DEBUG)
 
@@ -18,31 +22,65 @@ def setup_callbacks() -> None:
     @callback(
         Output("variable-config", "children", allow_duplicate=True),
         Input("graph-builder-target-node", "value"),
-        Input("confirm-selection", "n_clicks"),
-        # prevent_initial_call=True
         prevent_initial_call="initial_duplicate"
     )
-    def select_node(selected_node_id: str, clicked):
-        LOGGER.info(f"selectin new node: {selected_node_id}")
-        if not clicked:
-            raise PreventUpdate
+    def select_node(selected_node_id: str):
+        LOGGER.info(f"selecting new node: {selected_node_id}")
         return VariableConfig(selected_node_id).children
 
     @callback(
+        Output("variable-selection", "children", allow_duplicate=True),
         Output("variable-config", "children", allow_duplicate=True),
-        Input("confirm-selection", "n_clicks"),
-        # prevent_initial_call=True
-        prevent_initial_call="initial_duplicate"
+        Input("add-new-node", "n_clicks"),
+        prevent_initial_call="initial_duplicate",
     )
-    def callback_test(clicked):
-        LOGGER.info("wtf")
+    def add_node(clicked):
         if not clicked:
-            raise PreventUpdate
-        from dash import html
-        from random import randint
+            raise PreventUpdate()
+        try:
+            new_node_id = graph.add_node()
+            print(new_node_id)
+        except Exception as e:
+            LOGGER.exception("Failed to add a new Node")
+            raise PreventUpdate from e
 
-        return html.Div(f"testing: {randint(1,10)}").children
+        return (
+            VariableSelection().children,
+            VariableConfig(new_node_id).children
+        )
 
+    @callback(
+        Output("variable-config", "children", allow_duplicate=True),
+        Input("add-new-edge", "n_clicks"),
+        State("graph-builder-target-node", "value"),
+        State("add-in-node", "value"),
+        prevent_initial_call="initial_duplicate",
+    )
+    def add_new_edge(clicked, source_node_id: str, target_node_id: str | None):
+        if not clicked or target_node_id is None:
+            raise PreventUpdate()
+
+        print("clicked add-in-node")
+        print(f"{source_node_id=} - {target_node_id=}")
+
+        source = graph.get_node_by_id(source_node_id)
+        target = graph.get_node_by_id(target_node_id)
+        if source is None or target is None:
+            raise PreventUpdate()
+        print(source.id_)
+        print(target.id_)
+
+        if source is None or target is None:
+            LOGGER.error("Failed to find source and target node")
+            raise PreventUpdate()
+
+        try:
+            graph.add_edge(source, target)
+        except Exception as e:
+            LOGGER.exception("Failed to add edge")
+            raise PreventUpdate from e
+
+        return VariableConfig(source_node_id).children
 
 
 """
@@ -123,8 +161,6 @@ def setup_callbacks() -> None:
         prevent_initial_call=True,
     )
     def add_edge(clicked, choices, ids):
-        if any(clicked) is False:
-            raise PreventUpdate
 
         LOGGER.info("invoked 'add_edge'")
 

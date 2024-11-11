@@ -7,13 +7,22 @@ from dash.exceptions import PreventUpdate
 
 from models.graph import graph
 from utils.logger import DashLogger
-# from views.graph import GraphBuilder, GraphViewer, VariableConfig
-from views.graph import VariableConfig, VariableSelection
+from views.graph import VariableConfig, VariableSelection, GraphViewer
 # from views.mechanism import MechanismBuilder
 # from views.noise import NoiseBuilder
 
 
 LOGGER = DashLogger(name="GraphController", level=logging.DEBUG)
+
+def get_graph_data():
+    nodes = [
+        {"data": {"id": cause, "label": cause}} for cause in graph.get_node_ids()
+    ]
+    edges = []
+    for cause in graph.get_nodes():
+        for effect in cause.out_nodes:
+            edges.append({"data": {"source": cause.id_, "target": effect.id_}})
+    return nodes + edges
 
 
 def setup_callbacks() -> None:
@@ -26,11 +35,13 @@ def setup_callbacks() -> None:
     )
     def select_node(selected_node_id: str):
         LOGGER.info(f"selecting new node: {selected_node_id}")
-        return VariableConfig(selected_node_id).children
+        VariableSelection.selected_node_id = selected_node_id
+        return VariableConfig().children
 
     @callback(
         Output("variable-selection", "children", allow_duplicate=True),
         Output("variable-config", "children", allow_duplicate=True),
+        Output("network-graph", "elements", allow_duplicate=True),
         Input("add-new-node", "n_clicks"),
         prevent_initial_call="initial_duplicate",
     )
@@ -39,36 +50,62 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
         try:
             new_node_id = graph.add_node()
-            print(new_node_id)
         except Exception as e:
             LOGGER.exception("Failed to add a new Node")
             raise PreventUpdate from e
+        VariableSelection.selected_node_id = new_node_id
 
         return (
             VariableSelection().children,
-            VariableConfig(new_node_id).children
+            VariableConfig().children,
+            get_graph_data()
+        )
+
+    @callback(
+        Output("variable-selection", "children", allow_duplicate=True),
+        Output("variable-config", "children", allow_duplicate=True),
+        Output("network-graph", "elements", allow_duplicate=True),
+        Input("remove-selected-node", "n_clicks"),
+        State("graph-builder-target-node", "value"),
+        prevent_initial_call="initial_duplicate"
+    )
+    def remove_node(clicked, source_node_id: str):
+        if not clicked:
+            raise PreventUpdate()
+        nodes = graph.get_nodes()
+        if len(nodes) <= 1:
+            raise PreventUpdate("at least one node must remain")
+        try:
+            node_to_remove = graph.get_node_by_id(source_node_id)
+            assert node_to_remove
+            graph.remove_node(node_to_remove)
+        except Exception as e:
+            LOGGER.error("Faield to remove an edge")
+            raise PreventUpdate from e
+
+        VariableSelection.selected_node_id = nodes[0].id_
+        return(
+            VariableSelection().children,
+            VariableConfig().children,
+            get_graph_data()
         )
 
     @callback(
         Output("variable-config", "children", allow_duplicate=True),
+        Output("network-graph", "elements", allow_duplicate=True),
         Input("add-new-edge", "n_clicks"),
         State("graph-builder-target-node", "value"),
-        State("add-in-node", "value"),
+        State("add-out-node", "value"),
         prevent_initial_call="initial_duplicate",
     )
     def add_new_edge(clicked, source_node_id: str, target_node_id: str | None):
         if not clicked or target_node_id is None:
             raise PreventUpdate()
 
-        print("clicked add-in-node")
-        print(f"{source_node_id=} - {target_node_id=}")
-
         source = graph.get_node_by_id(source_node_id)
         target = graph.get_node_by_id(target_node_id)
         if source is None or target is None:
             raise PreventUpdate()
-        print(source.id_)
-        print(target.id_)
 
         if source is None or target is None:
             LOGGER.error("Failed to find source and target node")
@@ -80,12 +117,53 @@ def setup_callbacks() -> None:
             LOGGER.exception("Failed to add edge")
             raise PreventUpdate from e
 
-        return VariableConfig(source_node_id).children
+        return (
+            VariableConfig().children,
+            get_graph_data()
+        )
 
+    @callback(
+        Output("variable-config", "children", allow_duplicate=True),
+        Output("network-graph", "elements", allow_duplicate=True),
+        Input("remove-edge", "n_clicks"),
+        State("graph-builder-target-node", "value"),
+        State("remove-out-node", "value"),
+        prevent_initial_call="initial_duplicate",
+    )
+    def remove_edge(clicked, source_node_id: str, target_node_id: str | None):
+        if not clicked or target_node_id is None:
+            raise PreventUpdate()
+
+        source = graph.get_node_by_id(source_node_id)
+        target = graph.get_node_by_id(target_node_id)
+
+        if source is None or target is None:
+            raise PreventUpdate()
+
+        try:
+            graph.remove_edge(source, target)
+        except Exception as e:
+            LOGGER.exception("Failed to add edge")
+            raise PreventUpdate from e
+
+        return (
+            VariableConfig().children,
+            get_graph_data()
+        )
+
+    @callback(
+        Output("graph-viewer", "children"),
+        Input("layout-choices", "value"),
+    )
+    def update_layout_choice(new_value: GraphViewer.Layouts):
+        LOGGER.info("Updating graph viewer layout")
+        LOGGER.info([x.id_ for x in graph.get_nodes()])
+        if new_value not in GraphViewer.Layouts.get_all():
+            raise PreventUpdate(f"Invalid layout choice: {new_value}")
+        GraphViewer.LAYOUT = new_value
+        return GraphViewer()
 
 """
-
-
     # TODO: old callbacks -> keep for reference
     @callback(
         Output("graph-builder", "children", allow_duplicate=True),

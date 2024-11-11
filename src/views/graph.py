@@ -34,43 +34,44 @@ class GraphBuilderNew(html.Div):
         }
         self.children = []
         variable_selection = VariableSelection()
+        first_node = graph.get_nodes()[0]
+        VariableSelection.selected_node_id = first_node.id_
         self.children.append(variable_selection)
         self.children.append(html.Hr()) # TODO: better distinction from rest
-        self.children.append(VariableConfig(variable_selection.selected_node))
+        self.children.append(VariableConfig())
 
 
 class VariableSelection(html.Div):
+    selected_node: str
     def __init__(self):
         super().__init__(id="variable-selection")
         nodes = graph.get_nodes()
         node_ids = [node.id_ for node in nodes]
-        print(node_ids)
         assert len(node_ids) > 0
-        selected_node_id = node_ids[0]
+        VariableSelection.selected_node_id = node_ids[0]
 
-        self.selected_node = selected_node_id
         self.children = []
         self.children.append(
             dbc.Row([
                 dbc.Col(
                     dcc.Dropdown(
                         options=node_ids,
-                        value=selected_node_id,
+                        value=VariableSelection.selected_node_id,
                         id="graph-builder-target-node",
                         searchable=False,
                         clearable=False
                     )
                 ),
-                dbc.Col(html.Button("Remove Selected Node")),
+                dbc.Col(html.Button("Remove Selected Node", id="remove-selected-node", n_clicks=0)),
                 dbc.Col(html.Button("Add New Node", id="add-new-node", n_clicks=0)),
             ])
         )
 
 
 class VariableConfig(html.Div):
-    def __init__(self, selected_node_id: str):
+    def __init__(self):
         super().__init__(id="variable-config")
-        selected_node = graph.get_node_by_id(selected_node_id)
+        selected_node = graph.get_node_by_id(VariableSelection.selected_node_id)
         assert selected_node is not None
         in_node_ids = selected_node.get_in_node_ids()
 
@@ -102,24 +103,24 @@ class VariableConfig(html.Div):
                         dbc.Col(html.P(','.join(in_node_ids) or '<None>')),
                     ]),
                     dbc.Row([
-                        dbc.Col(html.P(f"Select In-Node to Add")),
-                        dbc.Col(dcc.Dropdown(
-                            options=can_add,
-                            value=None,
-                            id="add-in-node",
-                            searchable=False,
-                            clearable=False
-                        )),
-                        dbc.Col(html.Button("Add Edge", id="add-new-edge", n_clicks=0))
+                        dbc.Col(html.P(f"Out-Nodes:")),
+                        dbc.Col(html.P(','.join(can_remove) or '<None>')),
                     ]),
                 ]),
-                html.Hr()
+                html.Hr(),
             ]),
             dbc.Row([
                 dbc.Col([
                     dbc.Row([
-                        dbc.Col(html.P(f"Out-Nodes:")),
-                        dbc.Col(html.P(','.join(can_remove) or '<None>')),
+                        dbc.Col(html.P(f"Select Out-Node to Add")),
+                        dbc.Col(dcc.Dropdown(
+                            options=can_add,
+                            value=None,
+                            id="add-out-node",
+                            searchable=False,
+                            clearable=False
+                        )),
+                        dbc.Col(html.Button("Add Edge", id="add-new-edge", n_clicks=0)),
                     ]),
                     dbc.Row([
                         dbc.Col(html.P(f"Select Out-Node to Remove")),
@@ -130,7 +131,7 @@ class VariableConfig(html.Div):
                             searchable=False,
                             clearable=False
                         )),
-                        dbc.Col(html.Button("Remove Edge"))
+                        dbc.Col(html.Button("Remove Edge", id="remove-edge", n_clicks=0))
                     ]),
                 ]),
             ]),
@@ -266,12 +267,12 @@ class GraphViewer(html.Div):
         spread = "spread"
         # dagre = "dagre"
         # klay = "klay"
-        
+
         @classmethod
         def get_all(cls):
             return [e.value for e in cls]
 
-    LAYOUT = Layouts.circle.value
+    LAYOUT: str = Layouts.circle.value
 
     def __init__(self) -> None:
         super().__init__(id="graph-viewer")

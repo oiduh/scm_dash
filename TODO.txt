@@ -56,10 +56,12 @@ TODO:
             - [ ] dropdown for available variables
                 - [ ] graph -> rework
                     - [X] add node
-                    - [ ] remove node
+                    - [X] remove node
                     - [X] add out node
-                    - [ ] remove out node
+                    - [X] remove edge
                     - [ ] design, proper display
+                    - [ ] show graph on startup
+                    - [ ] graph layout callback
                 - [ ] noise -> accordion for each sub-noise
                 - [ ] mechanism
                     - [ ] confirm button for each variable

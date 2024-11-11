@@ -2,8 +2,7 @@ import dash_bootstrap_components as dbc
 from dash import Dash, html
 
 from controllers import setup_callbacks
-# from views.graph import GraphBuilder, GraphViewer, GraphBuilderNew
-from views.graph import GraphBuilderNew
+from views.graph import GraphBuilderNew, GraphViewer
 # from views.mechanism import MechanismBuilder, MechanismViewer
 # from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
@@ -32,16 +31,8 @@ app.layout = html.Div(
                             label="Graph Builder",
                             children=dbc.Row(
                                 children=[
-                                    # dbc.Col(
-                                    #     GraphBuilder(),
-                                    #     style={
-                                    #         "height": "800px",
-                                    #         "overflow": "scroll",
-                                    #     },
-                                    # ),
                                     dbc.Col(GraphBuilderNew()),
-                                    # dbc.Col(GraphViewer()),
-                                    dbc.Col(Placeholder("graph-view-place-holder")),
+                                    dbc.Col(GraphViewer()),
                                 ],
                             ),
                         ),

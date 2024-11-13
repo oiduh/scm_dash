@@ -2,9 +2,10 @@ import dash_bootstrap_components as dbc
 from dash import Dash, html
 
 from controllers import setup_callbacks
-from views.graph import GraphBuilderNew, GraphViewer
+from views.graph import GraphBuilder, GraphViewer
 # from views.mechanism import MechanismBuilder, MechanismViewer
 # from views.noise import NoiseBuilder, NoiseViewer
+from views.noise import NoiseBuilderNew
 from views.utils import Placeholder
 import dash_cytoscape as cyto
 
@@ -31,7 +32,7 @@ app.layout = html.Div(
                             label="Graph Builder",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(GraphBuilderNew()),
+                                    dbc.Col(GraphBuilder()),
                                     dbc.Col(GraphViewer()),
                                 ],
                             ),
@@ -41,14 +42,7 @@ app.layout = html.Div(
                             label="Distribution Builder",
                             children=dbc.Row(
                                 children=[
-                                    # dbc.Col(
-                                    #     NoiseBuilder(),
-                                    #     style={
-                                    #         "height": "800px",
-                                    #         "overflow": "scroll",
-                                    #     },
-                                    # ),
-                                    dbc.Col(Placeholder("noise-build-place-holder")),
+                                    dbc.Col(NoiseBuilderNew()),
                                     # dbc.Col(NoiseViewer()),
                                     dbc.Col(Placeholder("noise-view-place-holder"))
                                 ],

@@ -54,15 +54,20 @@ TODO:
     - [ ] one last rework
         - [ ] left
             - [ ] dropdown for available variables
-                - [ ] graph -> rework
+                - [X] graph -> rework
                     - [X] add node
                     - [X] remove node
                     - [X] add out node
                     - [X] remove edge
-                    - [ ] design, proper display
-                    - [ ] show graph on startup
-                    - [ ] graph layout callback
+                    - [X] design, proper display
+                    - [X] show graph on startup
+                    -> problem with no layer on startup
+                    - [X] graph layout callback
                 - [ ] noise -> accordion for each sub-noise
+                    - [X] same selection bar as 'graph'
+                    - [X] simple builder -> as little dict ids as possible
+                    - [ ] builder callback -> backend update
+                    - [ ] viewer
                 - [ ] mechanism
                     - [ ] confirm button for each variable
                     - [ ] lock button at top -> confirm all and lock if OK (toggle unlock)

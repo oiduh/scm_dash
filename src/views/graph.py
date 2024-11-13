@@ -8,24 +8,6 @@ from models.graph import graph
 
 
 class GraphBuilder(html.Div):
-    """singleton graph builder class"""
-
-    def __init__(self):
-        super().__init__(id="graph-builder")
-        self.style = {
-            "border": "3px green solid",
-            "margin": "3px",
-        }
-        self.children = []
-        accordion = dbc.Accordion(start_collapsed=True)
-        accordion.children = []
-        for id_ in graph.get_node_ids():  # TODO: get node names when available
-            accordion.children.append(dbc.AccordionItem(NodeBuilder(id_), title=id_))
-        self.children.append(accordion)
-        self.children.append(html.Div(html.Button("Add Node", id="add-node-button")))
-
-
-class GraphBuilderNew(html.Div):
     def __init__(self):
         super().__init__(id="graph-builder-new")
         self.style = {
@@ -39,6 +21,17 @@ class GraphBuilderNew(html.Div):
         self.children.append(variable_selection)
         self.children.append(html.Hr()) # TODO: better distinction from rest
         self.children.append(VariableConfig())
+
+    @staticmethod
+    def get_graph_data():
+        nodes = [
+            {"data": {"id": cause, "label": cause}} for cause in graph.get_node_ids()
+        ]
+        edges = []
+        for cause in graph.get_nodes():
+            for effect in cause.out_nodes:
+                edges.append({"data": {"source": cause.id_, "target": effect.id_}})
+        return nodes + edges
 
 
 class VariableSelection(html.Div):
@@ -90,8 +83,12 @@ class VariableConfig(html.Div):
                 dbc.Col([
                     dbc.Row([
                         dbc.Col(html.P(f"Rename Variable:")),
-                        dbc.Col(dcc.Input()), # TODO: restrictions e.g. length, first char
-                        dbc.Col(html.Button("Confirm New Name")),
+                        dbc.Col(dcc.Input(
+                            type="text",
+                            minLength=1,
+                            maxLength=16,
+                        )),
+                        dbc.Col(html.Button("Confirm New Name", id="confirm-new-name", n_clicks=0)),
                     ]),
                 ]),
                 html.Hr()
@@ -138,120 +135,6 @@ class VariableConfig(html.Div):
         ])
 
 
-class NodeBuilder(html.Div):
-    def __init__(self, id_: str) -> None:
-        super().__init__(id={"type": "node-builder", "index": id_})
-        self.style = {
-            "border": "3px green solid",
-            "margin": "3px",
-        }
-        source_node = graph.get_node_by_id(id_)
-        if source_node is None:
-            raise Exception("Node not found")
-
-        in_nodes = source_node.get_in_node_ids()
-        out_nodes = source_node.get_out_node_ids()
-
-        can_add = []
-        for other_node_id in graph.get_node_ids():
-            target_node = graph.get_node_by_id(other_node_id)
-            if target_node is None:
-                continue
-            if graph.can_add_edge(source_node, target_node):
-                can_add.append(
-                    {
-                        "label": target_node.id_,
-                        "value": target_node.id_,
-                        "disabled": False,
-                    }
-                )
-            else:
-                can_add.append(
-                    {
-                        "label": f"{target_node.id_} (cycle)",
-                        "value": target_node.id_,
-                        "disabled": True,
-                    }
-                )
-        can_remove = out_nodes
-        self.children = [
-            dbc.Row(
-                [
-                    dbc.Col(
-                        [
-                            dbc.Row(html.Div(f"node id: {id_}")),
-                            dbc.Row(html.Div("in nodes: " + ", ".join(in_nodes))),
-                            dbc.Row(html.Div("out nodes: " + ", ".join(out_nodes))),
-                        ]
-                    ),
-                    dbc.Col(
-                        [
-                            dbc.Row(html.Div("Add Edge")),
-                            dbc.Row(
-                                [
-                                    dbc.Col(
-                                        dcc.Dropdown(
-                                            options=can_add,
-                                            searchable=False,
-                                            id={
-                                                "type": "add-edge-choice",
-                                                "index": id_,
-                                            },
-                                        )
-                                    ),
-                                    dbc.Col(
-                                        html.Button(
-                                            "Confirm",
-                                            id={
-                                                "type": "add-edge-button",
-                                                "index": id_,
-                                            },
-                                        )
-                                    ),
-                                ],
-                                className="g-0",  # TODO: something to do with spacing?
-                            ),
-                        ]
-                    ),
-                    dbc.Col(
-                        [
-                            dbc.Row(html.Div("Remove Edge")),
-                            dbc.Row(
-                                [
-                                    dbc.Col(
-                                        dcc.Dropdown(
-                                            options=can_remove,
-                                            searchable=False,
-                                            id={
-                                                "type": "remove-edge-choice",
-                                                "index": id_,
-                                            },
-                                        )
-                                    ),
-                                    dbc.Col(
-                                        html.Button(
-                                            "Confirm",
-                                            id={
-                                                "type": "remove-edge-button",
-                                                "index": id_,
-                                            },
-                                        )
-                                    ),
-                                ],
-                                className="g-0",
-                            ),
-                        ]
-                    ),
-                ]
-            ),
-            html.Div(
-                html.Button(
-                    "Remove Node", id={"type": "remove-node-button", "index": id_}
-                )
-            ),
-        ]
-
-
 class GraphViewer(html.Div):
     """singleton graph viewer class"""
     class Layouts(str, Enum):
@@ -280,9 +163,11 @@ class GraphViewer(html.Div):
         self.children = [
             dcc.Dropdown(
                 options=self.Layouts.get_all(),
-                searchable=False,
+                value=self.LAYOUT,
                 id="layout-choices",
+                searchable=False,
                 multi=False,
+                clearable=False
             ),
             html.H3(f"Layout: {GraphViewer.LAYOUT}"),
             Cytoscape(
@@ -291,7 +176,7 @@ class GraphViewer(html.Div):
                 userPanningEnabled=False,
                 zoomingEnabled=False,
                 style={"width": "100%", "height": "700px"},
-                elements=[],
+                elements=GraphBuilder.get_graph_data(),
                 stylesheet=[
                     {"selector": "node", "style": {"label": "data(label)"}},
                     {
@@ -306,25 +191,3 @@ class GraphViewer(html.Div):
             )
         ]
 
-
-if __name__ == "__main__":
-    app = Dash(__name__, external_stylesheets=[dbc.themes.CERULEAN])
-    app.layout = html.Div(
-        [
-            html.Div("causality app"),
-            html.Hr(),
-            html.Div(
-                [
-                    dbc.Row(
-                        [
-                            dbc.Col([html.Div("PLACEHOLDER", id="first-component")]),
-                            dbc.Col([html.Div("PLACEHOLDER", id="second-component")]),
-                        ]
-                    )
-                ]
-            ),
-        ]
-    )
-    app.run(
-        debug=True,
-    )

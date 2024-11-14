@@ -13,16 +13,96 @@ def setup_callbacks():
 
     @callback(
         Output("noise-config", "children", allow_duplicate=True),
+        Output("variable-selection-noise", "children", allow_duplicate=True),
         Input("noise-builder-variable", "value"),
         Input("noise-builder-sub-variable", "value"),
         prevent_initial_call="initial_duplicate"
     )
     def variable_selection(variable: str, sub_variable: str):
-        print(variable)
-        print(sub_variable)
+        if variable != VariableSelection.variable:
+            node = graph.get_node_by_id(variable)
+            assert node is not None
+            sub_variables = node.noise.get_distribution_ids()
+            VariableSelection.sub_variable = sub_variables[0]
+        else:
+            VariableSelection.sub_variable = sub_variable
         VariableSelection.variable = variable
-        VariableSelection.sub_variable = sub_variable
+        return (
+            NoiseConfig().children,
+            VariableSelection().children
+        )
+
+    @callback(
+        Output("noise-config", "children", allow_duplicate=True),
+        Input("distribution-choice", "value"),
+        prevent_initial_call="initial_duplicate"
+    )
+    def change_distribution_type(new_distribution_type: str):
+        variable = VariableSelection.variable
+        sub_variable = VariableSelection.sub_variable
+        node = graph.get_node_by_id(variable)
+        assert node is not None
+        distribution = node.noise.get_distribution_by_id(sub_variable)
+        assert distribution is not None
+        distribution.change_distribution(new_distribution_type)
         return NoiseConfig().children
+
+    @callback(
+        Output("noise-config", "children", allow_duplicate=True),
+        Output("variable-selection-noise", "children", allow_duplicate=True),
+        Input("add-sub-variable", "n_clicks"),
+        prevent_initial_call="initial_duplicate"
+    )
+    def add_sub_variable(clicked):
+        if not clicked:
+            raise PreventUpdate()
+
+        variable = VariableSelection.variable
+        node = graph.get_node_by_id(variable)
+        assert node is not None
+        try:
+            node.noise.add_distribution()
+        except Exception as e:
+            LOGGER.exception(
+                f"Failed to add sub distribution for node with id: {variable}"
+            )
+            raise PreventUpdate from e
+
+        return (
+            NoiseConfig().children,
+            VariableSelection().children
+        )
+
+    @callback(
+        Output("noise-config", "children", allow_duplicate=True),
+        Output("variable-selection-noise", "children", allow_duplicate=True),
+        Input("remove-sub-variable", "n_clicks"),
+        prevent_initial_call="initial_duplicate"
+    )
+    def remove_sub_variable(clicked):
+        if not clicked:
+            raise PreventUpdate()
+
+        node = graph.get_node_by_id(VariableSelection.variable)
+        assert node is not None
+
+        if len(node.noise.get_distribution_ids()) == 1:
+
+            raise PreventUpdate("At least one must remain")
+        target_distribution = node.noise.get_distribution_by_id(VariableSelection.sub_variable)
+        assert target_distribution is not None
+
+        try:
+            node.noise.remove_distribution(target_distribution)
+        except Exception as e:
+            raise PreventUpdate from e
+
+        # after removing a sub variable -> assign first one
+        VariableSelection.sub_variable = node.noise.get_distribution_ids()[0]
+        return (
+            NoiseConfig().children,
+            VariableSelection().children
+        )
 
     # @callback(
     #     Output({"type": "noise-node-builder", "index": MATCH}, "children"),

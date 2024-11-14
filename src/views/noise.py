@@ -6,18 +6,18 @@ from models.graph import graph
 from models.noise import Distribution
 
 
-class NoiseBuilder(html.Div):
-    def __init__(self):
-        super().__init__(id="noise-builder")
-        self.children = []
-        accordion = dbc.Accordion(start_collapsed=True)
-        accordion.children = []
-        for name in graph.get_node_names():
-            accordion.children.append(
-                dbc.AccordionItem(NoiseContainer(name), title=name)
-            )
-        self.children.append(accordion)
-
+# class NoiseBuilder(html.Div):
+#     def __init__(self):
+#         super().__init__(id="noise-builder")
+#         self.children = []
+#         accordion = dbc.Accordion(start_collapsed=True)
+#         accordion.children = []
+#         for name in graph.get_node_names():
+#             accordion.children.append(
+#                 dbc.AccordionItem(NoiseContainer(name), title=name)
+#             )
+#         self.children.append(accordion)
+#
 
 class NoiseBuilderNew(html.Div):
     def __init__(self):

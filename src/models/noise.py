@@ -241,8 +241,7 @@ class Distribution:
 
     def change_distribution(self, name: str) -> None:
         new_distribution = Distribution.get_distribution(self.id_, name)
-        if new_distribution is None:
-            raise Exception("Unknown distribution")
+        assert new_distribution is not None
 
         self.id_ = new_distribution.id_
         self.name = new_distribution.name

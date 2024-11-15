@@ -102,8 +102,9 @@ class NoiseConfig(html.Div):
                 clearable=False
             )
         )
+        print("building noise config")
         for param in distribution.parameters.values():
-            print(param.name)
+            print(f"{param=}")
             self.children.append(
                 dbc.Col(
                     [

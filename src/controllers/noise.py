@@ -1,4 +1,5 @@
 import logging
+import json
 
 from dash import ALL, MATCH, Input, Output, State, callback, ctx
 from dash.exceptions import PreventUpdate
@@ -16,17 +17,24 @@ def setup_callbacks():
         Output("variable-selection-noise", "children", allow_duplicate=True),
         Input("noise-builder-variable", "value"),
         Input("noise-builder-sub-variable", "value"),
-        prevent_initial_call="initial_duplicate"
+        prevent_initial_call=True,
     )
-    def variable_selection(variable: str, sub_variable: str):
-        if variable != VariableSelection.variable:
-            node = graph.get_node_by_id(variable)
+    def variable_selection(variable_new: str, sub_variable_new: str):
+        variable_old = VariableSelection.variable
+        sub_variable_old = VariableSelection.sub_variable
+        if variable_new == variable_old and sub_variable_new == sub_variable_old:
+            # only update if something changed
+            raise PreventUpdate()
+
+        print("called variable_selection")
+        if variable_new != variable_old:
+            node = graph.get_node_by_id(variable_new)
             assert node is not None
             sub_variables = node.noise.get_distribution_ids()
             VariableSelection.sub_variable = sub_variables[0]
         else:
-            VariableSelection.sub_variable = sub_variable
-        VariableSelection.variable = variable
+            VariableSelection.sub_variable = sub_variable_new
+        VariableSelection.variable = variable_new
         return (
             NoiseConfig().children,
             VariableSelection().children
@@ -35,15 +43,20 @@ def setup_callbacks():
     @callback(
         Output("noise-config", "children", allow_duplicate=True),
         Input("distribution-choice", "value"),
-        prevent_initial_call="initial_duplicate"
+        prevent_initial_call=True,
     )
     def change_distribution_type(new_distribution_type: str):
+        print("called change_distribution_type")
         variable = VariableSelection.variable
         sub_variable = VariableSelection.sub_variable
         node = graph.get_node_by_id(variable)
         assert node is not None
         distribution = node.noise.get_distribution_by_id(sub_variable)
         assert distribution is not None
+        if distribution.name == new_distribution_type:
+            # only update if something changed
+            raise PreventUpdate()
+
         distribution.change_distribution(new_distribution_type)
         return NoiseConfig().children
 
@@ -51,11 +64,12 @@ def setup_callbacks():
         Output("noise-config", "children", allow_duplicate=True),
         Output("variable-selection-noise", "children", allow_duplicate=True),
         Input("add-sub-variable", "n_clicks"),
-        prevent_initial_call="initial_duplicate"
+        prevent_initial_call=True,
     )
     def add_sub_variable(clicked):
         if not clicked:
             raise PreventUpdate()
+        print("called add_sub_variable")
 
         variable = VariableSelection.variable
         node = graph.get_node_by_id(variable)
@@ -77,11 +91,12 @@ def setup_callbacks():
         Output("noise-config", "children", allow_duplicate=True),
         Output("variable-selection-noise", "children", allow_duplicate=True),
         Input("remove-sub-variable", "n_clicks"),
-        prevent_initial_call="initial_duplicate"
+        prevent_initial_call=True,
     )
     def remove_sub_variable(clicked):
         if not clicked:
             raise PreventUpdate()
+        print("called remove_sub_variable")
 
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
@@ -104,39 +119,75 @@ def setup_callbacks():
             VariableSelection().children
         )
 
-    # @callback(
-    #     Output({"type": "noise-node-builder", "index": MATCH}, "children"),
-    #     Input({"type": "distribution-choice", "index": MATCH}, "value"),
-    #     State({"type": "distribution-choice", "index": MATCH}, "id"),
-    #     prevent_initial_call=True,
-    # )
-    # def change_distribution_choice(choice, id_: dict[str, str]):
-    #     node_id, distr_id = id_.get("index", "").split("_")
-    #
-    #     LOGGER.info(f"invoked 'change_distribution' for: {node_id}_{distr_id}")
-    #
-    #     node = graph.get_node_by_id(node_id)
-    #     if node is None:
-    #         LOGGER.error(f"Failed to find node with id: {node_id}")
-    #         raise PreventUpdate
-    #
-    #     distr = node.noise.get_distribution_by_id(distr_id)
-    #     if distr is None:
-    #         LOGGER.error(
-    #             f"Failed to find distr with id: {distr_id} for node with id: {node_id}"
-    #         )
-    #         raise PreventUpdate
-    #
-    #     try:
-    #         distr.change_distribution(choice)
-    #     except Exception as e:
-    #         LOGGER.exception(
-    #             f"Failed to change distribution for node with id: {node_id}"
-    #         )
-    #         raise PreventUpdate from e
-    #
-    #     return NoiseNodeBuilder((node_id, distr_id)).children
-    #
+    @callback(
+        Output({"type": "slider", "index": MATCH}, "min"),
+        Output({"type": "slider", "index": MATCH}, "value"),
+        Output({"type": "slider", "index": MATCH}, "max"),
+        Output({"type": "slider", "index": MATCH}, "marks"),
+        Output({"type": "slider", "index": MATCH}, "tooltip"),
+        Output({"type": "input-min", "index": MATCH}, "value"),
+        Output({"type": "input-value", "index": MATCH}, "value"),
+        Output({"type": "input-max", "index": MATCH}, "value"),
+        Input({"type": "input-min", "index": MATCH}, "value"),
+        Input({"type": "input-value", "index": MATCH}, "value"),
+        Input({"type": "input-max", "index": MATCH}, "value"),
+        Input({"type": "slider", "index": MATCH}, "value"),
+        State({"type": "input-value", "index": MATCH}, "id"),
+        prevent_initial_call=True,
+    )
+    def input_update(input_min, input_value, input_max, slider_value, input_id):
+        print("called input_update")
+        variable = VariableSelection.variable
+        sub_variable = VariableSelection.sub_variable
+        param = input_id.get("index")
+
+        node = graph.get_node_by_id(variable)
+        assert node is not None
+        distribution = node.noise.get_distribution_by_id(sub_variable)
+        assert distribution is not None
+
+        current_ = distribution.parameters[param].current
+        min_ = distribution.parameters[param].min
+        max_ = distribution.parameters[param].max
+
+        if input_value is not None and current_ != input_value:
+            new_value = input_value
+        elif current_ != slider_value:
+            new_value = slider_value
+        else:
+            new_value = current_
+
+        new_value = min(max_, max(min_, max(min(new_value, input_max), input_min)))
+        new_min = max(min(new_value, input_min), min_)
+        new_max = min(max(new_value, input_max), max_)
+
+        target_parameter = distribution.get_parameter_by_name(param)
+        assert target_parameter is not None
+        target_parameter.min = new_min
+        target_parameter.max = new_max
+        target_parameter.current = new_value
+        target_parameter.slider_min = new_min
+        target_parameter.slider_max = new_max
+
+        marks = (
+            {
+                new_min: str(new_min),
+                new_max: str(new_max),
+            },
+        )
+        tooltip = ({"placement": "top", "always_visible": True},)
+        return (
+            new_min,
+            new_value,
+            new_max,
+            marks[0],
+            tooltip[0],
+            new_min,
+            new_value,
+            new_max,
+        )
+
+
     # @callback(
     #     Output({"type": "slider", "index": MATCH}, "min"),
     #     Output({"type": "slider", "index": MATCH}, "value"),

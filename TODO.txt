@@ -66,15 +66,15 @@ TODO:
                 - [ ] noise -> accordion for each sub-noise
                     - [X] same selection bar as 'graph'
                     - [X] simple builder -> as little dict ids as possible
-                    - [ ] builder
+                    - [X] builder
                         - [X] change distribution type
                         - [X] add sub variable
                         - [X] remove selected sub variable -> at least 1 remains
-                        - [ ] input callback
-                            - [ ] min
-                            - [ ] max
-                            - [ ] value
-                        - [ ] slider callback
+                        - [X] input callback
+                            - [X] min
+                            - [X] max
+                            - [X] value
+                        - [X] slider callback
                     - [ ] viewer
                     - [ ] apply callbacks also to graph stuff -> adding variables to selector
                 - [ ] mechanism

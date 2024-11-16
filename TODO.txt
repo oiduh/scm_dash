@@ -56,13 +56,21 @@ TODO:
             - [ ] dropdown for available variables
                 - [ ] graph -> rework
                     - [X] add node
-                    - [ ] remove node -> at least one remains
+                    - [X] remove node -> at least one remains + bug fix
                     - [X] add out node
                     - [X] remove edge
                     - [X] design, proper display
                     - [X] show graph on startup
                     -> problem with no layer on startup
                     - [X] graph layout callback
+                    - [X] rename function
+                        - [X] correct backend
+                        -> must be unique name across all variables
+                        -> cannot have same name as id
+                        -> must start with letter
+                        -> cannot exceed e.g. 16 letters
+                        - [X] display if avaialable (with id in paren)
+                    - [ ] callback logs
                 - [ ] noise -> accordion for each sub-noise
                     - [X] same selection bar as 'graph'
                     - [X] simple builder -> as little dict ids as possible
@@ -76,7 +84,12 @@ TODO:
                             - [X] value
                         - [X] slider callback
                     - [ ] viewer
-                    - [ ] apply callbacks also to graph stuff -> adding variables to selector
+                        -> rethink whole process:
+                        -> generating new data for each mininal change too much?
+                        -> test how quick this works
+                        -> how to display distribution and sub distribution separately and nicely
+                    - [X] apply callbacks also to graph stuff -> adding variables to selector
+                    - [ ] callback logs
                 - [ ] mechanism
                     - [ ] confirm button for each variable
                     - [ ] lock button at top -> confirm all and lock if OK (toggle unlock)

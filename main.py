@@ -4,8 +4,7 @@ from dash import Dash, html
 from controllers import setup_callbacks
 from views.graph import GraphBuilder, GraphViewer
 # from views.mechanism import MechanismBuilder, MechanismViewer
-# from views.noise import NoiseBuilder, NoiseViewer
-from views.noise import NoiseBuilderNew
+from views.noise import NoiseBuilderNew, NoiseViewer
 from views.utils import Placeholder
 import dash_cytoscape as cyto
 
@@ -43,8 +42,8 @@ app.layout = html.Div(
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(NoiseBuilderNew()),
-                                    # dbc.Col(NoiseViewer()),
-                                    dbc.Col(Placeholder("noise-view-place-holder"))
+                                    dbc.Col(NoiseViewer()),
+                                    # dbc.Col(Placeholder("noise-view-place-holder"))
                                 ],
                             ),
                         ),

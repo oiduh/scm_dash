@@ -18,9 +18,9 @@ from models.noise import Noise
 @dataclass
 class Node:
     id_: str
-    name: str  # TODO: custom node name
     graph: "Graph"
 
+    name: str | None = None
     in_nodes: list["Node"] = field(default_factory=list)
     out_nodes: list["Node"] = field(default_factory=list)
     noise: Noise = field(init=False)
@@ -122,7 +122,7 @@ class Graph:
         return [node.id_ for node in self.get_nodes()]
 
     def get_node_names(self) -> list[str]:
-        return [node.name for node in self.get_nodes()]
+        return [node.name for node in self.get_nodes() if node.name is not None]
 
     def get_node_by_id(self, id_: str) -> Node | None:
         return self.nodes.get(id_)
@@ -140,7 +140,7 @@ class Graph:
         if free_node_id is None:
             raise Exception("Cannot add another node")
 
-        new_node = Node(free_node_id, free_node_id, self)
+        new_node = Node(free_node_id, self)
         self.nodes[free_node_id] = new_node
         new_node.change_type("regression")
         return new_node.id_

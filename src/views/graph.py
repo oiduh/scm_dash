@@ -25,7 +25,9 @@ class GraphBuilder(html.Div):
     @staticmethod
     def get_graph_data():
         nodes = [
-            {"data": {"id": cause, "label": cause}} for cause in graph.get_node_ids()
+            {
+                "data": {"id": cause.id_, "label": cause.name or cause.id_}
+            } for cause in graph.get_nodes()
         ]
         edges = []
         for cause in graph.get_nodes():
@@ -35,20 +37,21 @@ class GraphBuilder(html.Div):
 
 
 class VariableSelection(html.Div):
-    selected_node: str
+    selected_node_id: str | None = None
     def __init__(self):
-        super().__init__(id="variable-selection")
+        super().__init__(id="variable-selection-graph")
         nodes = graph.get_nodes()
-        node_ids = [node.id_ for node in nodes]
+        node_ids = graph.get_node_ids()
         assert len(node_ids) > 0
-        VariableSelection.selected_node_id = node_ids[0]
+        if VariableSelection.selected_node_id is None:
+            VariableSelection.selected_node_id = node_ids[0]
 
         self.children = []
         self.children.append(
             dbc.Row([
                 dbc.Col(
                     dcc.Dropdown(
-                        options=node_ids,
+                        options={x.id_: x.name or x.id_ for x in nodes},
                         value=VariableSelection.selected_node_id,
                         id="graph-builder-target-node",
                         searchable=False,
@@ -63,19 +66,19 @@ class VariableSelection(html.Div):
 
 class VariableConfig(html.Div):
     def __init__(self):
-        super().__init__(id="variable-config")
+        super().__init__(id="variable-config-graph")
         selected_node = graph.get_node_by_id(VariableSelection.selected_node_id)
         assert selected_node is not None
-        in_node_ids = selected_node.get_in_node_ids()
 
-        can_add: list[str] = []
+        can_add: dict[str, str] = {}
         for other_node_id in graph.get_node_ids():
             target_node = graph.get_node_by_id(other_node_id)
             assert target_node is not None
             if graph.can_add_edge(selected_node, target_node):
-                can_add.append(target_node.id_)
+                can_add[target_node.id_] = target_node.name or target_node.id_
 
-        can_remove = selected_node.get_out_node_ids()
+        displayed_in_nodes = {x.id_: x.name or x.id_ for x in selected_node.in_nodes}
+        displayed_out_nodes = {x.id_: x.name or x.id_ for x in selected_node.out_nodes}
 
         self.children = []
         self.children.extend([
@@ -84,6 +87,8 @@ class VariableConfig(html.Div):
                     dbc.Row([
                         dbc.Col(html.P(f"Rename Variable:")),
                         dbc.Col(dcc.Input(
+                            value="",
+                            id="variable-name",
                             type="text",
                             minLength=1,
                             maxLength=16,
@@ -97,11 +102,11 @@ class VariableConfig(html.Div):
                 dbc.Col([
                     dbc.Row([
                         dbc.Col(html.P(f"In-Nodes:")),
-                        dbc.Col(html.P(','.join(in_node_ids) or '<None>')),
+                        dbc.Col(html.P(','.join(displayed_in_nodes) or '<None>')),
                     ]),
                     dbc.Row([
                         dbc.Col(html.P(f"Out-Nodes:")),
-                        dbc.Col(html.P(','.join(can_remove) or '<None>')),
+                        dbc.Col(html.P(','.join(displayed_out_nodes) or '<None>')),
                     ]),
                 ]),
                 html.Hr(),
@@ -122,7 +127,7 @@ class VariableConfig(html.Div):
                     dbc.Row([
                         dbc.Col(html.P(f"Select Out-Node to Remove")),
                         dbc.Col(dcc.Dropdown(
-                            options=can_remove,
+                            options=displayed_out_nodes,
                             value=None,
                             id="remove-out-node",
                             searchable=False,

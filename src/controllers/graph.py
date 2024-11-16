@@ -1,15 +1,22 @@
 import logging
+import string
 
 # from dash import ALL, Input, Output, State, callback, ctx
 from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
+from scipy.stats import distributions
 # from dash.exceptions import PreventUpdate
 
 from models.graph import graph
 from utils.logger import DashLogger
-from views.graph import VariableConfig, VariableSelection, GraphViewer, GraphBuilder
+from views.graph import (
+    VariableConfig,
+    VariableSelection as VariableSelectionGraph,
+    GraphViewer,
+    GraphBuilder,
+)
+from views.noise import VariableSelection as VariableSelectionNoise
 # from views.mechanism import MechanismBuilder
-# from views.noise import NoiseBuilder
 
 
 LOGGER = DashLogger(name="GraphController", level=logging.DEBUG)
@@ -19,19 +26,24 @@ def setup_callbacks() -> None:
     LOGGER.info("initializing graph callbacks")
 
     @callback(
-        Output("variable-config", "children", allow_duplicate=True),
+        Output("variable-config-graph", "children", allow_duplicate=True),
         Input("graph-builder-target-node", "value"),
         prevent_initial_call="initial_duplicate"
     )
     def select_node(selected_node_id: str):
+        if selected_node_id == VariableSelectionGraph.selected_node_id:
+            # just in case
+            raise PreventUpdate()
+
         LOGGER.info(f"selecting new node: {selected_node_id}")
-        VariableSelection.selected_node_id = selected_node_id
+        VariableSelectionGraph.selected_node_id = selected_node_id
         return VariableConfig().children
 
     @callback(
-        Output("variable-selection", "children", allow_duplicate=True),
-        Output("variable-config", "children", allow_duplicate=True),
+        Output("variable-selection-graph", "children", allow_duplicate=True),
+        Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
+        Output("variable-selection-noise", "children", allow_duplicate=True),
         Input("add-new-node", "n_clicks"),
         prevent_initial_call="initial_duplicate",
     )
@@ -43,18 +55,20 @@ def setup_callbacks() -> None:
         except Exception as e:
             LOGGER.exception("Failed to add a new Node")
             raise PreventUpdate from e
-        VariableSelection.selected_node_id = new_node_id
+        VariableSelectionGraph.selected_node_id = new_node_id
 
         return (
-            VariableSelection().children,
+            VariableSelectionGraph().children,
             VariableConfig().children,
-            GraphBuilder.get_graph_data()
+            GraphBuilder.get_graph_data(),
+            VariableSelectionNoise().children,
         )
 
     @callback(
-        Output("variable-selection", "children", allow_duplicate=True),
-        Output("variable-config", "children", allow_duplicate=True),
+        Output("variable-selection-graph", "children", allow_duplicate=True),
+        Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
+        Output("variable-selection-noise", "children", allow_duplicate=True),
         Input("remove-selected-node", "n_clicks"),
         State("graph-builder-target-node", "value"),
         prevent_initial_call="initial_duplicate"
@@ -63,7 +77,7 @@ def setup_callbacks() -> None:
         if not clicked:
             raise PreventUpdate()
         nodes = graph.get_nodes()
-        if len(nodes) <= 1:
+        if len(nodes) == 1:
             raise PreventUpdate("at least one node must remain")
         try:
             node_to_remove = graph.get_node_by_id(source_node_id)
@@ -73,15 +87,23 @@ def setup_callbacks() -> None:
             LOGGER.error("Faield to remove an edge")
             raise PreventUpdate from e
 
-        VariableSelection.selected_node_id = nodes[0].id_
+        nodes = graph.get_nodes()  # get updated nodes
+        new_selection = nodes[0]
+        VariableSelectionGraph.selected_node_id = new_selection.id_
+        if node_to_remove.id_ == VariableSelectionNoise.variable:
+            VariableSelectionNoise.variable = new_selection.id_
+            distribution = new_selection.noise.get_distributions()[0]
+            VariableSelectionNoise.sub_variable = distribution.id_
+
         return(
-            VariableSelection().children,
+            VariableSelectionGraph().children,
             VariableConfig().children,
-            GraphBuilder.get_graph_data()
+            GraphBuilder.get_graph_data(),
+            VariableSelectionNoise().children,
         )
 
     @callback(
-        Output("variable-config", "children", allow_duplicate=True),
+        Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
         Input("add-new-edge", "n_clicks"),
         State("graph-builder-target-node", "value"),
@@ -113,7 +135,7 @@ def setup_callbacks() -> None:
         )
 
     @callback(
-        Output("variable-config", "children", allow_duplicate=True),
+        Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
         Input("remove-edge", "n_clicks"),
         State("graph-builder-target-node", "value"),
@@ -151,12 +173,38 @@ def setup_callbacks() -> None:
         if new_value not in GraphViewer.Layouts.get_all():
             raise PreventUpdate(f"Invalid layout choice: {new_value}")
         GraphViewer.LAYOUT = new_value
-        return GraphViewer()
+        return GraphViewer().children
 
-    # @callback(
-    #     Output(),
-    #     Input(),
-    #     State()
-    # )
-    # def confirm_new_name():
-    #     pass
+    @callback(
+        Output("variable-selection-graph", "children", allow_duplicate=True),
+        Output("variable-config-graph", "children", allow_duplicate=True),
+        Output("network-graph", "elements", allow_duplicate=True),
+        Output("variable-selection-noise", "children", allow_duplicate=True),
+        Input("confirm-new-name", "n_clicks"),
+        State("variable-name", "value"),
+        prevent_initial_call="initial_duplicate"
+    )
+    def confirm_new_name(clicked, new_name: str | None):
+        if not clicked or not new_name:
+            raise PreventUpdate()
+
+        if new_name[0] not in string.ascii_letters:
+            raise PreventUpdate("first char must be ascii letter")
+
+        if len(new_name) == 1:
+            raise PreventUpdate("custom name must be longer than 1 char")
+
+
+        names_used = graph.get_node_names()
+        if new_name in names_used:
+            raise PreventUpdate("name already used")
+
+        node = graph.get_node_by_id(VariableSelectionGraph.selected_node_id)
+        assert node is not None
+        node.name = new_name
+        return (
+            VariableSelectionGraph().children,
+            VariableConfig().children,
+            GraphBuilder.get_graph_data(),
+            VariableSelectionNoise().children
+        )

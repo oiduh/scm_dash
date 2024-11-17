@@ -7,19 +7,6 @@ from models.graph import graph
 from models.noise import Distribution
 
 
-# class NoiseBuilder(html.Div):
-#     def __init__(self):
-#         super().__init__(id="noise-builder")
-#         self.children = []
-#         accordion = dbc.Accordion(start_collapsed=True)
-#         accordion.children = []
-#         for name in graph.get_node_names():
-#             accordion.children.append(
-#                 dbc.AccordionItem(NoiseContainer(name), title=name)
-#             )
-#         self.children.append(accordion)
-#
-
 class NoiseBuilderNew(html.Div):
     def __init__(self):
         super().__init__(id="noise-builder-new")
@@ -210,27 +197,30 @@ class NoiseViewer(html.Div):
         # 2) combined distribution
         # 3) save axes option(?)
         self.children = []
-        if len(noise.get_distributions()) == 1:
-            var_data, _ = noise.generate_data(VariableSelection.sub_variable)
-            var_figure = ff.create_distplot(
-                [var_data], [param], show_rug=False, bin_size=0.2, colors=["blue"]
-            )
-            self.children = [
-                html.H3(f"variable: {param}"),
-                dcc.Graph("graph-var", figure=var_figure),
-            ]
-        else:
-            var_data, sub_var_data = noise.generate_data(VariableSelection.sub_variable)
-            var_figure = ff.create_distplot(
-                [var_data], [param], show_rug=False, bin_size=0.2, colors=["blue"]
-            )
-            sub_var_figure = ff.create_distplot(
-                [sub_var_data], [VariableSelection.sub_variable], show_rug=False, bin_size=0.2, colors=["red"]
-            )
-            self.children = [
-                html.H3(f"variable: {param}"),
-                dcc.Graph("graph-var", figure=var_figure),
-                html.H3(f"sub_variable: {VariableSelection.sub_variable}"),
-                dcc.Graph("graph-sub-var", figure=sub_var_figure),
-            ]
+        var_data = noise.generate_data()
 
+        combined_data = ff.create_distplot(
+            [np.array(list(var_data.values())).flatten()], [param], show_rug=False, bin_size=0.2, colors=["blue"]
+        )
+
+        sub_distr_ids = noise.get_distribution_ids()
+        try:
+            index = int(VariableSelection.sub_variable)
+        except:
+            raise Exception("not int")
+
+        extracted_data = np.array([np.array(x) for x in var_data.values()])
+        labels = sub_distr_ids
+        colors = ['rgba(0,255,0,0.3)'] * len(sub_distr_ids)
+        colors[index] = 'rgba(255,0,0,0.95)'
+        individual_data = ff.create_distplot(
+            extracted_data, labels, show_rug=False, bin_size=0.2, colors=colors
+        )
+
+
+        self.children = [
+            html.H3(f"combined: {param}"),
+            dcc.Graph("graph-combined", figure=combined_data),
+            html.H3(f"individual with focus on: {VariableSelection.sub_variable}"),
+            dcc.Graph("graph-individual", figure=individual_data),
+        ]

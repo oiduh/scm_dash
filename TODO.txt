@@ -83,16 +83,27 @@ TODO:
                             - [X] max
                             - [X] value
                         - [X] slider callback
-                    - [ ] viewer
+                    - [X] viewer
                         -> rethink whole process:
                         -> generating new data for each mininal change too much?
                         -> test how quick this works
                         -> how to display distribution and sub distribution separately and nicely
+                        -> new final idea: return all sub distributions indidually and process them
+                           when creating the view
+                           we should have 2 graphs: 1 combined (all) and 1 with individuals where
+                           only the selected has a different color
                     - [X] apply callbacks also to graph stuff -> adding variables to selector
-                    - [ ] callback logs
+                     [ ] callback logs
                 - [ ] mechanism
                     - [ ] confirm button for each variable
                     - [ ] lock button at top -> confirm all and lock if OK (toggle unlock)
+                - [ ] fixes
+                    - [ ] graph
+                        - [ ] respect the maximum size of the defaults
+                        -> reproduce: max out slider and then change -> result: cannot go back to default max (uniform)
+                        - [ ] uniform distribution
+                        -> adjust min and max values considering paramerter scale is distance and not endpoint
+                        - [ ] all distribution types update short description about parameters
             - [ ] button to add variable
             - [ ] button to remove variable
 

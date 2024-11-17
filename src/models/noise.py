@@ -312,25 +312,20 @@ class Noise:
             raise Exception("Cannot remove this distribution")
         self.sub_distributions[to_remove.id_] = None
 
-    def generate_data(self, sub_variable: str) -> tuple[np.ndarray[Any, np.dtype[np.float64]], np.ndarray[Any, np.dtype[np.float64]]]:
+    def generate_data(self) -> dict[str, np.ndarray]:
         distributions = self.get_distributions()
         partition, rest = divmod(CONSTANTS.NR_DATA_POINTS, len(distributions))
         x = [partition for _ in range(len(distributions))]
         y = [1 if idx < rest else 0 for idx, _ in enumerate(range(len(distributions)))]
         buckets = [a + b for a, b in zip(x, y)]
-        values: list[float] = []
-        sub_distribution = self.get_distribution_by_id(sub_variable)
-        assert sub_distribution is not None
-        sub_variable_values: list[float] = []
+        values: dict[str, np.ndarray] = {}
         for distribution, nr_points in zip(distributions, buckets):
             parameter_values = {
                 v.name: v.current for v in distribution.parameters.values()
             }
             # TODO: setting for seed via UI?
             np.random.seed(0)
-            new_values = distribution.generator.rvs(**parameter_values, size=nr_points)
-            values.append(new_values)
-            if distribution.id_ == sub_variable:
-                sub_variable_values.append(new_values)
+            new_values: np.ndarray = distribution.generator.rvs(**parameter_values, size=nr_points)  # type: ignore
+            values[distribution.id_] = new_values
 
-        return np.array(values).flatten(), np.array(sub_variable_values).flatten()
+        return values

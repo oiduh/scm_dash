@@ -35,7 +35,7 @@ def setup_callbacks() -> None:
             # just in case
             raise PreventUpdate()
 
-        LOGGER.info(f"selecting new node: {selected_node_id}")
+        LOGGER.info(f"Selecting new node: {selected_node_id}")
         VariableSelectionGraph.selected_node_id = selected_node_id
         return VariableConfig().children
 
@@ -52,6 +52,7 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
         try:
             new_node_id = graph.add_node()
+            LOGGER.info(f"Added new node with id: {new_node_id}")
         except Exception as e:
             LOGGER.exception("Failed to add a new Node")
             raise PreventUpdate from e
@@ -76,6 +77,7 @@ def setup_callbacks() -> None:
     def remove_node(clicked, source_node_id: str):
         if not clicked:
             raise PreventUpdate()
+
         nodes = graph.get_nodes()
         if len(nodes) == 1:
             raise PreventUpdate("at least one node must remain")
@@ -95,6 +97,7 @@ def setup_callbacks() -> None:
             distribution = new_selection.noise.get_distributions()[0]
             VariableSelectionNoise.sub_variable = distribution.id_
 
+        LOGGER.info(f"Removed node with id: {source_node_id}")
         return(
             VariableSelectionGraph().children,
             VariableConfig().children,
@@ -129,6 +132,7 @@ def setup_callbacks() -> None:
             LOGGER.exception("Failed to add edge")
             raise PreventUpdate from e
 
+        LOGGER.info(f"Added edge from id={source_node_id} to id={target_node_id}")
         return (
             VariableConfig().children,
             GraphBuilder.get_graph_data()
@@ -158,6 +162,7 @@ def setup_callbacks() -> None:
             LOGGER.exception("Failed to add edge")
             raise PreventUpdate from e
 
+        LOGGER.info(f"Removed edge from id={source_node_id} to id={target_node_id}")
         return (
             VariableConfig().children,
             GraphBuilder.get_graph_data()
@@ -168,11 +173,10 @@ def setup_callbacks() -> None:
         Input("layout-choices", "value"),
     )
     def update_layout_choice(new_value: GraphViewer.Layouts):
-        LOGGER.info("Updating graph viewer layout")
-        LOGGER.info([x.id_ for x in graph.get_nodes()])
         if new_value not in GraphViewer.Layouts.get_all():
             raise PreventUpdate(f"Invalid layout choice: {new_value}")
         GraphViewer.LAYOUT = new_value
+        LOGGER.info(f"Updating graph viewer layout to: {new_value}")
         return GraphViewer().children
 
     @callback(
@@ -189,18 +193,26 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
 
         if new_name[0] not in string.ascii_letters:
-            raise PreventUpdate("first char must be ascii letter")
+            LOGGER.warning(f"First char must be ascii letter, found: '{new_name[0]}'")
+            raise PreventUpdate()
 
         if len(new_name) == 1:
-            raise PreventUpdate("custom name must be longer than 1 char")
+            LOGGER.warning("Custom name must be longer than 1 char")
+            raise PreventUpdate()
 
+        if VariableSelectionGraph.selected_node_id is None:
+            LOGGER.error("No variable selected")
+            raise PreventUpdate()
 
         names_used = graph.get_node_names()
         if new_name in names_used:
-            raise PreventUpdate("name already used")
+            LOGGER.warning(f"Name already used: {new_name}")
+            raise PreventUpdate()
 
         node = graph.get_node_by_id(VariableSelectionGraph.selected_node_id)
         assert node is not None
+
+        LOGGER.warning(f"Changed name for variable with id={node.id_}, from={node.name} to={new_name}")
         node.name = new_name
         return (
             VariableSelectionGraph().children,

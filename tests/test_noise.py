@@ -1,5 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch
+import numpy as np
 
 import matplotlib.pyplot as plt
 
@@ -48,6 +49,7 @@ class DataTest(TestCase):
         param_scale.change_current(3.0)
 
         values = noise.generate_data()
+        values = np.array(list(values.values())).flatten()
         self.assertEqual(len(values), 120)
 
         # check graph in files
@@ -70,6 +72,7 @@ class DataTest(TestCase):
         param_loc.change_current(3)
 
         values = noise.generate_data()
+        values = np.array(list(values.values())).flatten()
         self.assertEqual(len(values), 120)
         # check graph in files
         plt.hist(values)
@@ -95,6 +98,7 @@ class DataTest(TestCase):
         param_loc.change_current(4)
 
         values = noise.generate_data()
+        values = np.array(list(values.values())).flatten()
         self.assertEqual(len(values), 120)
         # check graph in files
         plt.hist(values)

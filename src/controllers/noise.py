@@ -33,6 +33,8 @@ def setup_callbacks():
         else:
             VariableSelection.sub_variable = sub_variable_new
         VariableSelection.variable = variable_new
+
+        LOGGER.info(f"Selected node with id: {VariableSelection.variable}_{VariableSelection.sub_variable}")
         return (
             NoiseConfig().children,
             VariableSelection().children
@@ -55,6 +57,10 @@ def setup_callbacks():
             raise PreventUpdate()
 
         distribution.change_distribution(new_distribution_type)
+        LOGGER.info(
+            "Changed distribution for node with"
+            f"id={VariableSelection.variable}_{VariableSelection.sub_variable} to type={new_distribution_type}"
+        )
         return NoiseConfig().children
 
     @callback(
@@ -71,13 +77,14 @@ def setup_callbacks():
         node = graph.get_node_by_id(variable)
         assert node is not None
         try:
-            node.noise.add_distribution()
+            new_sub_variable = node.noise.add_distribution()
         except Exception as e:
             LOGGER.exception(
                 f"Failed to add sub distribution for node with id: {variable}"
             )
             raise PreventUpdate from e
 
+        LOGGER.info(f"Added new sub variable with id={VariableSelection.variable}_{new_sub_variable}")
         return (
             NoiseConfig().children,
             VariableSelection().children
@@ -109,6 +116,7 @@ def setup_callbacks():
 
         # after removing a sub variable -> assign first one
         VariableSelection.sub_variable = node.noise.get_distribution_ids()[0]
+        LOGGER.info(f"Removed sub variable with id={VariableSelection.variable}_{VariableSelection.sub_variable}")
         return (
             NoiseConfig().children,
             VariableSelection().children
@@ -157,8 +165,8 @@ def setup_callbacks():
 
         target_parameter = distribution.get_parameter_by_name(param)
         assert target_parameter is not None
-        target_parameter.min = new_min
-        target_parameter.max = new_max
+        # target_parameter.min = new_min
+        # target_parameter.max = new_max
         target_parameter.current = new_value
         target_parameter.slider_min = new_min
         target_parameter.slider_max = new_max
@@ -170,6 +178,9 @@ def setup_callbacks():
             },
         )
         tooltip = ({"placement": "top", "always_visible": True},)
+        LOGGER.info(
+            f"Updated values for node with id={VariableSelection.variable}_{VariableSelection.sub_variable}: {target_parameter.__dict__}"
+        )
         return (
             new_min,
             new_value,

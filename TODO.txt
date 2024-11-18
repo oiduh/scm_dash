@@ -3,7 +3,6 @@ TODO:
     - [X] mechanism -> data generation process
         - [X] gather root nodes
         - [X] generate data for root nodes
-        - [X] gather all in node data -> noise + processed data
         - [X] repeat for rest of nodes
         - [X] tests for pipeline
         - [X] replace one hot encoding -> can be done later
@@ -54,7 +53,7 @@ TODO:
     - [ ] one last rework
         - [ ] left
             - [ ] dropdown for available variables
-                - [ ] graph -> rework
+                - [X] graph -> rework
                     - [X] add node
                     - [X] remove node -> at least one remains + bug fix
                     - [X] add out node
@@ -70,7 +69,7 @@ TODO:
                         -> must start with letter
                         -> cannot exceed e.g. 16 letters
                         - [X] display if avaialable (with id in paren)
-                    - [ ] callback logs
+                    - [X] callback logs
                 - [ ] noise -> accordion for each sub-noise
                     - [X] same selection bar as 'graph'
                     - [X] simple builder -> as little dict ids as possible
@@ -93,17 +92,40 @@ TODO:
                            we should have 2 graphs: 1 combined (all) and 1 with individuals where
                            only the selected has a different color
                     - [X] apply callbacks also to graph stuff -> adding variables to selector
-                     [ ] callback logs
+                    - [X] callback logs
+                    - [X] fix tests
                 - [ ] mechanism
-                    - [ ] confirm button for each variable
+                    - [ ] builder
+                        - [ ] variable selection (similar to others)
+                        - [ ] mechanism type
+                        - [ ] mechanism config
+                            - [ ] regression
+                            -> should be same as previously
+                            - [ ] classification
+                            -> add class
+                            -> remove class
+                            -> a proper 'else', even if empty
                     - [ ] lock button at top -> confirm all and lock if OK (toggle unlock)
+                - [ ] finish tab
+                    - [ ] short summary of graph structure
+                    -> no changes necessary
+                    - [ ] short summary of root noise
+                    -> no changes necessary
+                    - [ ] short summary of mechanism
+                    -> check if all confirmed
+                    - [ ] lock in
+                    -> generate data
+
                 - [ ] fixes
                     - [ ] graph
-                        - [ ] respect the maximum size of the defaults
+                        - [X] respect the maximum size of the defaults
                         -> reproduce: max out slider and then change -> result: cannot go back to default max (uniform)
-                        - [ ] uniform distribution
-                        -> adjust min and max values considering paramerter scale is distance and not endpoint
                         - [ ] all distribution types update short description about parameters
+                        - [ ] general distributions
+                        -> instead of making 'random' values for limit to some uniform values
+                        -> scaling can be done in the mechanism part
+                        -> need to know which variables to limit, which not
+                        -> might be useful for uniform distribution where we can just keep a constant
             - [ ] button to add variable
             - [ ] button to remove variable
 

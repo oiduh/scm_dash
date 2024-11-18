@@ -140,7 +140,7 @@ class Graph:
         if free_node_id is None:
             raise Exception("Cannot add another node")
 
-        new_node = Node(free_node_id, self)
+        new_node = Node(free_node_id, self, free_node_id)
         self.nodes[free_node_id] = new_node
         new_node.change_type("regression")
         return new_node.id_
@@ -265,7 +265,7 @@ class Graph:
                     raise Exception(f"Failed to find node with id: {node_id}")
 
                 inputs: dict[str, np.ndarray] = {
-                    f"n_{node_id}": node.noise.generate_data()
+                    f"n_{node_id}": np.array(list(node.noise.generate_data().values())).flatten()
                 }
 
                 for in_node_id in node.get_in_node_ids():

@@ -39,7 +39,7 @@ class GraphTest(TestCase):
         self.assertIsNone(graph.get_node_by_name("b"))
 
         with self.assertRaises(Exception):
-            graph.remove_node(Node("b", "b", graph))
+            graph.remove_node(Node("b", graph, "b"))
 
         mechanism = node.mechanism_metadata
         valid_formula = mechanism.get_class_by_id("0")
@@ -48,7 +48,7 @@ class GraphTest(TestCase):
         invalid_formula = mechanism.get_class_by_id("1")
         assert invalid_formula is None
 
-        graph.remove_node(Node("a", "a", graph))
+        graph.remove_node(Node("a", graph, "a"))
 
         self.assertListEqual(graph.get_node_ids(), [])
         self.assertListEqual(graph.get_node_names(), [])
@@ -66,9 +66,7 @@ class GraphTest(TestCase):
         assert free_node is None
 
         self.assertListEqual(graph.get_node_ids(), [x for x in string.ascii_lowercase])
-        self.assertListEqual(
-            graph.get_node_names(), [x for x in string.ascii_lowercase]
-        )
+        self.assertListEqual(graph.get_node_names(), [x for x in string.ascii_lowercase])
 
         for letter in string.ascii_lowercase:
             by_id = graph.get_node_by_id(letter)
@@ -79,7 +77,7 @@ class GraphTest(TestCase):
             self.assertEqual(by_name.name, letter)
 
         for letter in string.ascii_lowercase:
-            graph.remove_node(Node(letter, letter, graph))
+            graph.remove_node(Node(letter, graph, letter))
 
         self.assertListEqual(graph.get_node_ids(), [])
         self.assertListEqual(graph.get_node_names(), [])
@@ -93,10 +91,10 @@ class GraphTest(TestCase):
 
         self.assertListEqual(graph.get_node_ids(), ["a", "b", "c"])
 
-        graph.remove_node(Node("a", "a", graph))
+        graph.remove_node(Node("a", graph, "a"))
         self.assertListEqual(graph.get_node_ids(), ["b", "c"])
 
-        graph.remove_node(Node("b", "b", graph))
+        graph.remove_node(Node("b", graph, "b"))
         self.assertListEqual(graph.get_node_ids(), ["c"])
 
         graph.add_node()
@@ -107,15 +105,15 @@ class GraphTest(TestCase):
 
         with self.assertRaises(Exception):
             graph.can_add_edge(
-                Node("a", "a", graph),
-                Node("b", "b", graph),
+                Node("a", graph, "a"),
+                Node("b", graph, "b"),
             )
 
         graph.add_node()  # a
         node_a = graph.get_node_by_id("a")
         assert node_a is not None
         with self.assertRaises(Exception):
-            graph.can_add_edge(node_a, Node("b", "b", graph))
+            graph.can_add_edge(node_a, Node("b", graph, "b"))
         self.assertFalse(graph.can_add_edge(node_a, node_a))
 
         graph.add_node()  # b

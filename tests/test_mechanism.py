@@ -25,7 +25,8 @@ class RegresionMechanismTest(TestCase):
             [-2.9, 0.0],
         ]
         for input, expected in zip(inputs, expecteds):
-            regression = RegressionMechanism(formulas, input)
+            data = {k: np.array(v) for k, v in input.items()}
+            regression = RegressionMechanism(formulas, data)
             result = regression.transform()
             assert result.error is None
             assert result.values is not None
@@ -46,7 +47,8 @@ class RegresionMechanismTest(TestCase):
             [0.935, -13.058],
         ]
         for input, expected in zip(inputs, expecteds):
-            regression = RegressionMechanism(formulas, input)
+            data = {k: np.array(v) for k, v in input.items()}
+            regression = RegressionMechanism(formulas, data)
             result = regression.transform()
             assert result.error is None
             assert result.values is not None
@@ -71,7 +73,8 @@ class RegresionMechanismTest(TestCase):
             [90.28, 65.98, 46.48, 31.18, 19.48, 10.78, 30.48, 25.98, 22.68, 19.98],
         ]
         for input, expected in zip(inputs, expecteds):
-            regression = RegressionMechanism(formulas, input)
+            data = {k: np.array(v) for k, v in input.items()}
+            regression = RegressionMechanism(formulas, data)
             result = regression.transform()
             assert result.error is None
             assert result.values is not None
@@ -90,7 +93,8 @@ class RegresionMechanismTest(TestCase):
             [48.34318, 0.27614],
         ]
         for input, expected in zip(inputs, expecteds):
-            regression = RegressionMechanism(formulas, input)
+            data = {k: np.array(v) for k, v in input.items()}
+            regression = RegressionMechanism(formulas, data)
             result = regression.transform()
             assert result.error is None
             assert result.values is not None
@@ -141,7 +145,8 @@ class RegresionMechanismTest(TestCase):
         b_in_nodes_ids = b.get_in_node_ids()
         b_in_nodes = [graph.get_node_by_id(x) for x in b_in_nodes_ids]
         inputs = {
-            node.id_: node.noise.generate_data().tolist()
+            # node.id_: node.noise.generate_data().tolist()
+            node.id_: np.array(list(node.noise.generate_data().values())).flatten()
             for node in b_in_nodes
             if node is not None
         }
@@ -317,7 +322,7 @@ class ClassficationMechanismTest(TestCase):
         b_in_nodes_ids = b.get_in_node_ids()
         b_in_nodes = [graph.get_node_by_id(x) for x in b_in_nodes_ids]
         inputs = {
-            node.id_: node.noise.generate_data().tolist()
+            node.id_: np.array(list(node.noise.generate_data().values())).flatten()
             for node in b_in_nodes
             if node is not None
         }

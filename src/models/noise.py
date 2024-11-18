@@ -291,7 +291,7 @@ class Noise:
         ]
         return free_ids[0] if len(free_ids) > 0 else None
 
-    def add_distribution(self) -> None:
+    def add_distribution(self) -> str:
         """
         Exception:
             cannot add another sub distribution
@@ -302,6 +302,7 @@ class Noise:
         self.sub_distributions[free_id] = Distribution.get_distribution(
             free_id, "normal"
         )
+        return free_id
 
     def remove_distribution(self, to_remove: Distribution) -> None:
         """

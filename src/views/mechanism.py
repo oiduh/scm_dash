@@ -1,6 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import html
-from dash.dcc import RadioItems
+from dash import html, dcc
 
 from models.graph import graph
 
@@ -16,6 +15,54 @@ class MechanismBuilder(html.Div):
                 dbc.AccordionItem([MechanismContainer(id_)], title=id_)
             )
         self.children.append(accordion)
+
+
+class MechanismBuilderNew(html.Div):
+    def __init__(self):
+        super().__init__(id="mechanism-builder-new")
+        self.children = []
+        self.children.extend([
+            VariableSelection(),
+            html.Hr(),
+            MechanismConfig()
+        ])
+
+
+class VariableSelection(html.Div):
+    variable: str | None = None
+    def __init__(self):
+        super().__init__(id="variable-selection-noise")
+        nodes = graph.get_nodes()
+        node_ids = graph.get_node_ids()
+        assert len(node_ids) > 0
+        if VariableSelection.variable is None:
+            VariableSelection.variable = node_ids[0]
+
+        self.children = []
+        self.children.append(
+            dbc.Row([
+                dbc.Col(
+                    dcc.Dropdown(
+                        options={x.id_: x.name or x.id_ for x in nodes},
+                        value=VariableSelection.variable,
+                        id="mechanism-builder-target-node",
+                        searchable=False,
+                        clearable=False
+                    )
+                ),
+                dbc.Col(html.Button("Confirm Mechanism", id="confirm-mechanism", n_clicks=0)),
+                dbc.Col(html.P("some placeholder for verification")),
+            ])
+        )
+
+
+class MechanismConfig(html.Div):
+    def __init__(self):
+        super().__init__(id="mechanism-config")
+        self.children = []
+        self.children.append(
+            html.P(f"currently selected node: {VariableSelection.variable}")
+        )
 
 
 class MechanismContainer(html.Div):

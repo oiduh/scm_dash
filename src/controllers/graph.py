@@ -26,18 +26,29 @@ def setup_callbacks() -> None:
     LOGGER.info("initializing graph callbacks")
 
     @callback(
+        Output("variable-selection-graph", "children", allow_duplicate=True),
+        Output("variable-selection-noise", "children", allow_duplicate=True),
         Output("variable-config-graph", "children", allow_duplicate=True),
         Input("graph-builder-target-node", "value"),
         prevent_initial_call="initial_duplicate"
     )
     def select_node(selected_node_id: str):
         if selected_node_id == VariableSelectionGraph.selected_node_id:
-            # just in case
-            raise PreventUpdate()
+            # this is called on startup/refresh: keep custom names
+            # TODO: add mechanism selection once finished
+            return (
+                VariableSelectionGraph().children,
+                VariableSelectionNoise().children,
+                VariableConfig().children
+            )
 
         LOGGER.info(f"Selecting new node: {selected_node_id}")
         VariableSelectionGraph.selected_node_id = selected_node_id
-        return VariableConfig().children
+        return (
+            VariableSelectionGraph().children,
+            VariableSelectionNoise().children,
+            VariableConfig().children
+        )
 
     @callback(
         Output("variable-selection-graph", "children", allow_duplicate=True),

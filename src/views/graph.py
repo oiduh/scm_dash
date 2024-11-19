@@ -67,6 +67,7 @@ class VariableSelection(html.Div):
 class VariableConfig(html.Div):
     def __init__(self):
         super().__init__(id="variable-config-graph")
+        assert VariableSelection.selected_node_id is not None
         selected_node = graph.get_node_by_id(VariableSelection.selected_node_id)
         assert selected_node is not None
 
@@ -77,8 +78,11 @@ class VariableConfig(html.Div):
             if graph.can_add_edge(selected_node, target_node):
                 can_add[target_node.id_] = target_node.name or target_node.id_
 
-        displayed_in_nodes = {x.id_: x.name or x.id_ for x in selected_node.in_nodes}
-        displayed_out_nodes = {x.id_: x.name or x.id_ for x in selected_node.out_nodes}
+        displayed_in_nodes = [x.name or x.id_ for x in selected_node.in_nodes]
+        displayed_out_nodes = [x.name or x.id_ for x in selected_node.out_nodes]
+
+        print(f"{displayed_in_nodes}")
+        print(f"{displayed_out_nodes}")
 
         self.children = []
         self.children.extend([

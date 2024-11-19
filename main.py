@@ -3,7 +3,7 @@ from dash import Dash, html
 
 from controllers import setup_callbacks
 from views.graph import GraphBuilder, GraphViewer
-# from views.mechanism import MechanismBuilder, MechanismViewer
+from views.mechanism import MechanismBuilderNew
 from views.noise import NoiseBuilderNew, NoiseViewer
 from views.utils import Placeholder
 import dash_cytoscape as cyto
@@ -43,7 +43,6 @@ app.layout = html.Div(
                                 children=[
                                     dbc.Col(NoiseBuilderNew()),
                                     dbc.Col(NoiseViewer()),
-                                    # dbc.Col(Placeholder("noise-view-place-holder"))
                                 ],
                             ),
                         ),
@@ -59,7 +58,7 @@ app.layout = html.Div(
                                     #         "overflow": "scroll",
                                     #     },
                                     # ),
-                                    dbc.Col(Placeholder("mechanism-view-place-holder")),
+                                    dbc.Col(MechanismBuilderNew()),
                                     # dbc.Col(MechanismViewer()),
                                     dbc.Col(Placeholder("mechanism-build-place-holder")),
                                 ],

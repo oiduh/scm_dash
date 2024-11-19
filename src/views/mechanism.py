@@ -2,44 +2,30 @@ import dash_bootstrap_components as dbc
 from dash import html, dcc
 
 from models.graph import graph
-
-
-class MechanismBuilder(html.Div):
-    def __init__(self):
-        super().__init__(id="mechanism-builder")
-        self.children = []
-        accordion = dbc.Accordion(start_collapsed=True)
-        accordion.children = []
-        for id_ in graph.get_node_ids():
-            accordion.children.append(
-                dbc.AccordionItem([MechanismContainer(id_)], title=id_)
-            )
-        self.children.append(accordion)
+from models.mechanism import MechanismType
 
 
 class MechanismBuilderNew(html.Div):
     def __init__(self):
         super().__init__(id="mechanism-builder-new")
-        self.children = []
-        self.children.extend([
+        self.children = [
             VariableSelection(),
             html.Hr(),
             MechanismConfig()
-        ])
+        ]
 
 
 class VariableSelection(html.Div):
     variable: str | None = None
     def __init__(self):
-        super().__init__(id="variable-selection-noise")
+        super().__init__(id="variable-selection-mechanism")
         nodes = graph.get_nodes()
         node_ids = graph.get_node_ids()
         assert len(node_ids) > 0
         if VariableSelection.variable is None:
             VariableSelection.variable = node_ids[0]
 
-        self.children = []
-        self.children.append(
+        self.children = [
             dbc.Row([
                 dbc.Col(
                     dcc.Dropdown(
@@ -53,97 +39,84 @@ class VariableSelection(html.Div):
                 dbc.Col(html.Button("Confirm Mechanism", id="confirm-mechanism", n_clicks=0)),
                 dbc.Col(html.P("some placeholder for verification")),
             ])
-        )
+        ]
 
 
 class MechanismConfig(html.Div):
+    mechanism_type: MechanismType | None = None
     def __init__(self):
         super().__init__(id="mechanism-config")
-        self.children = []
-        self.children.append(
-            html.P(f"currently selected node: {VariableSelection.variable}")
-        )
-
-
-class MechanismContainer(html.Div):
-    def __init__(self, id_: str):
-        super().__init__(id={"type": "mechanism-container", "index": id_})
-        node = graph.get_node_by_id(id_)
-        if node is None:
-            raise Exception("Node not found")
-
-        causes = node.get_in_node_ids()
-        causes.append(f"n_{id_}")
+        assert VariableSelection.variable is not None
+        node = graph.get_node_by_id(VariableSelection.variable)
+        assert node is not None
+        displayed_names = [x.name or x.id_ for x in node.in_nodes]
+        if MechanismConfig.mechanism_type is None:
+            MechanismConfig.mechanism_type = node.mechanism_metadata.mechanism_type
 
         self.children = [
-            RadioItems(
-                ["regression", "classification"],
-                value=node.mechanism_metadata.mechanism_type,
-                id={"type": "mechanism-choice", "index": id_},
+            dbc.Row(
+                dcc.RadioItems(
+                    options=["regression", "classification"],
+                    value=MechanismConfig.mechanism_type,
+                    id="mechanism-choice",
+                ),
             ),
-            html.Hr(),
-            html.P(f"Causes: {', '.join(causes)}"),
-            MechanismInput(id_),
-            html.Hr(),
-            html.Button("confirm", id={"type": "confirm-mechanism", "index": id_})
+            dbc.Row(html.Hr()),
+            dbc.Row(html.P(f"Causes: {', '.join(displayed_names)}")),
+            dbc.Row(MechanismInput()),
         ]
 
 
 class MechanismInput(html.Div):
-    def __init__(self, id_: str):
-        super().__init__(id={"type": "mechanism-input", "index": id_})
-        node = graph.get_node_by_id(id_)
-        if node is None:
-            raise Exception("Node not found")
+    def __init__(self):
+        super().__init__(id="mechanism-input")
+        assert VariableSelection.variable is not None
+        node = graph.get_node_by_id(VariableSelection.variable)
+        assert node is not None
 
         match node.mechanism_metadata.mechanism_type:
             case "regression":
-                self.children = RegressionBuilder(id_)
+                self.children = RegressionBuilder()
             case "classification":
-                self.children = ClassificationBuilder(id_)
-            case _:
-                raise Exception("Invalid mechanism type found")  # type: ignore
+                self.children = ClassificationBuilder()
 
 
 class RegressionBuilder(html.Div):
-    def __init__(self, id_: str):
-        super().__init__(id={"type": "regression-builder", "index": id_})
-        node = graph.get_node_by_id(id_)
-        if node is None:
-            raise Exception("Node not found")
+    def __init__(self):
+        super().__init__(id="regression-builder")
+        assert VariableSelection.variable is not None
+        node = graph.get_node_by_id(VariableSelection.variable)
+        assert node is not None
 
-        causes = node.get_in_node_ids()
-        causes.append(f"n_{id_}")
+        displayed_names = [x.name or x.id_ for x in node.in_nodes]
+        displayed_names.append(f"n_{node.name or node.id_}")
 
         formula = node.mechanism_metadata.formulas.get("0")
-        if formula is None:
-            raise Exception("Formula not found")
+        assert formula is not None
 
         self.children = [
-            html.P(f"mechanism({', '.join(causes)})="),
-            dbc.Col(
-                [
-                    dbc.Row(
-                        dbc.Textarea(
-                            id={"type": "regression-input", "index": id_},
-                            value=formula,
-                            debounce=False,
-                            required=True,
-                        )
-                    ),
-                ]
-            ),
+            html.P(f"mechanism({', '.join(displayed_names)})="),
+            dbc.Col([
+                dbc.Row(
+                    dbc.Textarea(
+                        id="regression-input",
+                        value=formula,
+                        debounce=False,
+                        required=True,
+                    )
+                ),
+            ]),
         ]
 
 
 class ClassificationBuilder(html.Div):
-    def __init__(self, id_: str):
-        super().__init__(id={"type": "classification-builder", "index": id_})
+    def __init__(self):
+        super().__init__(id="classification-builder")
         self.children = []
         self.children.append(html.P("classification: "))
-        node = graph.get_node_by_id(id_)
-        if node is None:
-            raise Exception("Node not found")
+        assert VariableSelection.variable is not None
+        node = graph.get_node_by_id(VariableSelection.variable)
+        assert node is not None
 
         for c, f in node.mechanism_metadata.get_formulas().items():
             self.children.extend(
@@ -152,12 +125,12 @@ class ClassificationBuilder(html.Div):
                     dbc.Col(
                         [
                             dbc.Textarea(
-                                id={"type": "classification-input", "index": id_},
+                                id={"type": "classification-input", "index": c},
                                 value=f,
                             ),
                             html.Button(
                                 "Remove Class",
-                                id={"type": "remove-class", "index": f"{id_}_{c}"},
+                                id={"type": "remove-class", "index": c},
                             ),
                         ]
                     ),
@@ -168,7 +141,7 @@ class ClassificationBuilder(html.Div):
             html.P("else: 'TODO -> rest that dont fit in other classes'")
         )
         self.children.append(
-            html.Button("Add Class", id={"type": "add-class", "index": id_})
+            html.Button("Add Class", id="add-class")
         )
 
 

@@ -70,7 +70,7 @@ TODO:
                         -> cannot exceed e.g. 16 letters
                         - [X] display if avaialable (with id in paren)
                     - [X] callback logs
-                - [ ] noise -> accordion for each sub-noise
+                - [X] noise -> accordion for each sub-noise
                     - [X] same selection bar as 'graph'
                     - [X] simple builder -> as little dict ids as possible
                     - [X] builder
@@ -96,15 +96,17 @@ TODO:
                     - [X] fix tests
                 - [ ] mechanism
                     - [ ] builder
-                        - [ ] variable selection (similar to others)
-                        - [ ] mechanism type
+                        - [X] variable selection (similar to others)
+                        - [X] mechanism type
                         - [ ] mechanism config
-                            - [ ] regression
+                            - [X] view regression
                             -> should be same as previously
-                            - [ ] classification
-                            -> add class
-                            -> remove class
-                            -> a proper 'else', even if empty
+                            - [X] view classification
+                            - [ ] make classification look better
+                            -> define todo more
+                            - [ ] callbacks regression
+                            - [ ] callbacks classification
+                    - [ ] viewer
                     - [ ] lock button at top -> confirm all and lock if OK (toggle unlock)
                 - [ ] finish tab
                     - [ ] short summary of graph structure

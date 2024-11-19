@@ -16,7 +16,7 @@ from views.graph import (
     GraphBuilder,
 )
 from views.noise import VariableSelection as VariableSelectionNoise
-# from views.mechanism import MechanismBuilder
+from views.mechanism import VariableSelection as VariableSelectionMechanism
 
 
 LOGGER = DashLogger(name="GraphController", level=logging.DEBUG)
@@ -28,6 +28,7 @@ def setup_callbacks() -> None:
     @callback(
         Output("variable-selection-graph", "children", allow_duplicate=True),
         Output("variable-selection-noise", "children", allow_duplicate=True),
+        Output("variable-selection-mechanism", "children", allow_duplicate=True),
         Output("variable-config-graph", "children", allow_duplicate=True),
         Input("graph-builder-target-node", "value"),
         prevent_initial_call="initial_duplicate"
@@ -39,14 +40,17 @@ def setup_callbacks() -> None:
             return (
                 VariableSelectionGraph().children,
                 VariableSelectionNoise().children,
+                VariableSelectionMechanism().children,
                 VariableConfig().children
             )
 
         LOGGER.info(f"Selecting new node: {selected_node_id}")
         VariableSelectionGraph.selected_node_id = selected_node_id
+        VariableSelectionMechanism.variable = selected_node_id
         return (
             VariableSelectionGraph().children,
             VariableSelectionNoise().children,
+            VariableSelectionMechanism().children,
             VariableConfig().children
         )
 

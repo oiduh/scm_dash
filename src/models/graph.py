@@ -89,8 +89,10 @@ class Node:
         match self.mechanism_metadata.mechanism_type:
             case "regression":
                 mechanism = RegressionMechanism(formulas, data)
+                print("reg")
             case "classification":
                 mechanism = ClassificationMechanism(formulas, data)
+                print("cls")
         # we do not care about the data, only if the data generation failed
         return mechanism.transform().error is None
 

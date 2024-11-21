@@ -46,12 +46,16 @@ def setup_callbacks():
 
     @callback(
         Output("mechanism-config", "children", allow_duplicate=True),
+        Output("variable-selection-mechanism", "children", allow_duplicate=True),
         Input("mechanism-choice", "value"),
         prevent_initial_call=True
     )
     def choose_mechanism(new_mechanism: MechanismType):
         if MechanismConfig.mechanism_type == new_mechanism:
-            return MechanismConfig().children
+            return (
+                MechanismConfig().children,
+                VariableSelection().children
+            )
 
         assert VariableSelection.variable is not None
         node = graph.get_node_by_id(VariableSelection.variable)
@@ -63,7 +67,10 @@ def setup_callbacks():
         # TODO: not sure if reset is desired
         node.mechanism_metadata.reset_formulas()
         MechanismConfig.mechanism_type = new_mechanism
-        return MechanismConfig().children
+        return (
+            MechanismConfig().children,
+            VariableSelection().children
+        )
 
     @callback(
         Output("classification-builder", "children", allow_duplicate=True),
@@ -123,6 +130,57 @@ def setup_callbacks():
         return ClassificationBuilder().children
 
 
-    # TODO: new button for confirmation -> left and right
-    def confirm_mechanism():
+    @callback(
+        Output("mechanism-config", "children", allow_duplicate=True),
+        Input("confirm-classification", "n_clicks"),
+        State({"type": "classification-input", "index": ALL}, "value"),
+        State({"type": "classification-input", "index": ALL}, "id"),
+        prevent_initial_call=True,
+    )
+    def confirm_classification_mechanism(clicked, classification_inputs, classification_ids):
+        if not clicked:
+            raise PreventUpdate()
+
+        assert VariableSelection.variable is not None
+        print(f"confirm mechanism for: {VariableSelection.variable}")
+        node = graph.get_node_by_id(VariableSelection.variable)
+        assert node is not None
+
+        classification_ids = [x["index"] for x in classification_ids]
+        new_formulas = {
+            c_id: c_input for c_id, c_input in zip(classification_ids, classification_inputs)
+        }
+        for c_id, c_input in new_formulas.items():
+            node.mechanism_metadata.formulas[c_id] = c_input
+
+        if node.formulas_are_valid():
+            print("VALID")
+        else:
+            print("IN-VALID")
+
         raise PreventUpdate()
+
+    @callback(
+        Output("mechanism-config", "children", allow_duplicate=True),
+        Input("confirm-regression", "n_clicks"),
+        State("regression-input", "value"),
+        prevent_initial_call=True,
+    )
+    def confirm_regression_mechanism(clicked, regression_input):
+        if not clicked:
+            raise PreventUpdate()
+
+        assert VariableSelection.variable is not None
+        print(f"confirm mechanism for: {VariableSelection.variable}")
+        node = graph.get_node_by_id(VariableSelection.variable)
+        assert node is not None
+
+        print(regression_input)
+
+        if node.formulas_are_valid():
+            print("VALID")
+        else:
+            print("IN-VALID")
+
+        raise PreventUpdate()
+

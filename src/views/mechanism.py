@@ -29,6 +29,14 @@ class VariableSelection(html.Div):
         if VariableSelection.variable is None:
             VariableSelection.variable = node_ids[0]
 
+        node = graph.get_node_by_id(VariableSelection.variable)
+        assert node is not None
+
+        if node.mechanism_metadata.mechanism_type == "regression":
+            button_id = "confirm-regression"
+        else:
+            button_id = "confirm-classification"
+
         self.children = [
             dbc.Row([
                 dbc.Col(
@@ -40,7 +48,7 @@ class VariableSelection(html.Div):
                         clearable=False
                     )
                 ),
-                dbc.Col(html.Button("Confirm Mechanism", id="confirm-mechanism", n_clicks=0)),
+                dbc.Col(html.Button("Confirm Mechanism", id=button_id, n_clicks=0)),
                 dbc.Col(html.P("some placeholder for verification")),
             ])
         ]

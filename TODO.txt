@@ -108,8 +108,12 @@ TODO:
                                 - [X] classification - add class
                                 - [X] classification - remove class
                                 -> at least one class should remain
-                                - [ ] check formula button 
-                                - [ ] ...
+                                - [ ] check formula button
+                                -> no individual checks for classification
+                                -> change viewer errors if any occur
+                                -> display currently confirmed formulas on right
+                                   on the left editable version
+                                - [ ] 
                             - [ ] callbacks classification
                     - [ ] viewer
                     - [ ] lock button at top -> confirm all and lock if OK (toggle unlock)

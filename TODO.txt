@@ -102,9 +102,14 @@ TODO:
                             - [X] view regression
                             -> should be same as previously
                             - [X] view classification
-                            - [ ] make classification look better
-                            -> define todo more
                             - [ ] callbacks regression
+                                - [X] select variable
+                                - [X] select mechanism type
+                                - [X] classification - add class
+                                - [X] classification - remove class
+                                -> at least one class should remain
+                                - [ ] check formula button 
+                                - [ ] ...
                             - [ ] callbacks classification
                     - [ ] viewer
                     - [ ] lock button at top -> confirm all and lock if OK (toggle unlock)

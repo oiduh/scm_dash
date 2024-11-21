@@ -4,7 +4,7 @@ from dash import Dash, html
 from controllers import setup_callbacks
 from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilderNew
-from views.noise import NoiseBuilderNew, NoiseViewer
+from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
 import dash_cytoscape as cyto
 
@@ -16,6 +16,7 @@ app = Dash(
     __name__,
     external_stylesheets=[dbc.themes.CERULEAN],
     prevent_initial_callbacks=True,
+    suppress_callback_exceptions=True
 )
 app.layout = html.Div(
     [
@@ -41,7 +42,7 @@ app.layout = html.Div(
                             label="Distribution Builder",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(NoiseBuilderNew()),
+                                    dbc.Col(NoiseBuilder()),
                                     dbc.Col(NoiseViewer()),
                                 ],
                             ),
@@ -51,13 +52,6 @@ app.layout = html.Div(
                             label="Mechanism Builder",
                             children=dbc.Row(
                                 children=[
-                                    # dbc.Col(
-                                    #     MechanismBuilder(),
-                                    #     style={
-                                    #         "height": "800px",
-                                    #         "overflow": "scroll",
-                                    #     },
-                                    # ),
                                     dbc.Col(MechanismBuilderNew()),
                                     # dbc.Col(MechanismViewer()),
                                     dbc.Col(Placeholder("mechanism-build-place-holder")),

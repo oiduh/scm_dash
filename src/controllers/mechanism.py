@@ -3,11 +3,13 @@ from typing import Literal
 
 from dash import ALL, MATCH, Input, Output, State, callback, ctx
 from dash.exceptions import PreventUpdate
+from flask.app import cli
 
 from models.graph import graph
 from models.mechanism import MechanismType
 from utils.logger import DashLogger
 from views.mechanism import (
+    ClassificationBuilder,
     MechanismConfig,
     VariableSelection
 )
@@ -21,7 +23,7 @@ def setup_callbacks():
         Output("variable-selection-mechanism", "children", allow_duplicate=True),
         Output("mechanism-config", "children", allow_duplicate=True),
         Input("mechanism-builder-target-node", "value"),
-        prevent_initial_call="initial_duplicate"
+        prevent_initial_call=True
     )
     def select_node(selected_node_id: str):
         if selected_node_id == VariableSelection.variable:
@@ -45,7 +47,7 @@ def setup_callbacks():
     @callback(
         Output("mechanism-config", "children", allow_duplicate=True),
         Input("mechanism-choice", "value"),
-        prevent_initial_call="initial_duplicate"
+        prevent_initial_call=True
     )
     def choose_mechanism(new_mechanism: MechanismType):
         if MechanismConfig.mechanism_type == new_mechanism:
@@ -55,121 +57,72 @@ def setup_callbacks():
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
 
+        LOGGER.info(f"Choosing new mechanism: {new_mechanism}")
+
         node.mechanism_metadata.mechanism_type = new_mechanism
+        # TODO: not sure if reset is desired
+        node.mechanism_metadata.reset_formulas()
         MechanismConfig.mechanism_type = new_mechanism
         return MechanismConfig().children
 
-    # @callback(
-    #     Output(
-    #         {"type": "mechanism-input", "index": MATCH},
-    #         "children",
-    #         allow_duplicate=True,
-    #     ),
-    #     Input({"type": "mechanism-choice", "index": MATCH}, "value"),
-    #     State({"type": "mechanism-choice", "index": MATCH}, "id"),
-    #     prevent_initial_call=True,
-    # )
-    # def change_mechanism_type(
-    #     choice: Literal["regression", "classification"], id_: dict[str, str]
-    # ):
-    #     if choice not in ["regression", "classification"]:
-    #         raise PreventUpdate("Invalid choice")
-    #
-    #     node_id = id_.get("index", None)
-    #     if node_id is None:
-    #         raise PreventUpdate("Node not found")
-    #
-    #     LOGGER.info(f"Invoked 'change_mechanism_type' for node with id: {node_id}")
-    #
-    #     node = graph.get_node_by_id(node_id)
-    #     if node is None:
-    #         LOGGER.error(f"Failed to find node with id: {node_id}")
-    #         raise PreventUpdate("Node not found")
-    #
-    #     node.change_type(choice)
-    #     if choice == "regression":
-    #         return RegressionBuilder(node_id).children
-    #     else:
-    #         return ClassificationBuilder(node_id).children
-    #
-    # @callback(
-    #     Output(
-    #         {"type": "mechanism-input", "index": MATCH},
-    #         "children",
-    #         allow_duplicate=True,
-    #     ),
-    #     Input({"type": "add-class", "index": MATCH}, "n_clicks"),
-    #     State({"type": "add-class", "index": MATCH}, "id"),
-    #     prevent_initial_call=True,
-    # )
-    # def add_class(clicked, id: dict[str, str]):
-    #     if not clicked:
-    #         raise PreventUpdate
-    #
-    #     node_id = id.get("index", None)
-    #     if node_id is None:
-    #         raise PreventUpdate("Node id not found")
-    #
-    #     LOGGER.info(f"Invoked 'add_class' for node with id: {node_id}")
-    #
-    #     node = graph.get_node_by_id(node_id)
-    #     if node is None:
-    #         LOGGER.error(f"Failed to find node with id: {node_id}")
-    #         raise PreventUpdate("Node not found")
-    #
-    #     mechanism = node.mechanism_metadata
-    #     if mechanism.get_next_free_class_id() is None:
-    #         LOGGER.error("Max limit of sub classes reached")
-    #         raise PreventUpdate
-    #
-    #     try:
-    #         mechanism.add_class()
-    #     except Exception as e:
-    #         LOGGER.exception("Failed to add class")
-    #         raise PreventUpdate from e
-    #
-    #     return MechanismInput(node_id).children
-    #
-    # @callback(
-    #     Output("mechanism-builder", "children", allow_duplicate=True),
-    #     Input({"type": "remove-class", "index": ALL}, "n_clicks"),
-    #     State({"type": "remove-class", "index": ALL}, "id"),
-    #     prevent_initial_call=True,
-    # )
-    # def remove_class(clicked, id: dict[str, str]):
-    #     if not any(clicked):
-    #         raise PreventUpdate
-    #
-    #     triggered_node: dict | None = ctx.triggered_id
-    #     if triggered_node is None:
-    #         raise PreventUpdate
-    #
-    #     index = triggered_node.get("index", None)
-    #     if index is None:
-    #         raise PreventUpdate
-    #
-    #     node_id, class_id = index.split("_")
-    #
-    #     LOGGER.info(f"Invoked 'remove_class' for node with id: {node_id}_{class_id}")
-    #
-    #     node = graph.get_node_by_id(node_id)
-    #     if node is None:
-    #         LOGGER.error(f"Failed to find node with id: {node_id}")
-    #         raise PreventUpdate("Node not found")
-    #
-    #     mechanism = node.mechanism_metadata
-    #     if mechanism.get_class_by_id(class_id) is None:
-    #         LOGGER.error(f"Failed to find class with id: {class_id}")
-    #         raise PreventUpdate
-    #
-    #     try:
-    #         mechanism.remove_class(class_id)
-    #     except Exception as e:
-    #         LOGGER.exception(f"Failed to remove class")
-    #         raise PreventUpdate from e
-    #
-    #     return MechanismBuilder().children
-    #
-    # # TODO: new button for confirmation -> left and right
-    # def confirm_mechanism():
-    #     raise PreventUpdate()
+    @callback(
+        Output("classification-builder", "children", allow_duplicate=True),
+        Input("add-class", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def add_class(clicked):
+        if not clicked:
+            raise PreventUpdate()
+
+        LOGGER.info(f"Adding Class: {VariableSelection.variable}")
+
+        assert VariableSelection.variable is not None
+        node = graph.get_node_by_id(VariableSelection.variable)
+        assert node is not None
+
+        mechanism = node.mechanism_metadata
+        if mechanism.get_next_free_class_id() is None:
+            LOGGER.error("Max limit of sub classes reached")
+            raise PreventUpdate
+
+        try:
+            mechanism.add_class()
+        except Exception as e:
+            LOGGER.exception("Failed to add class")
+            raise PreventUpdate from e
+
+        return ClassificationBuilder().children
+
+    @callback(
+        Output("classification-builder", "children", allow_duplicate=True),
+        Input({"type": "remove-class", "index": ALL}, "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def remove_class(clicked):
+        print(clicked)
+        if not any(clicked):
+            raise PreventUpdate()
+
+        assert isinstance(ctx.triggered_id, dict)
+        class_index = ctx.triggered_id.get("index")
+        assert class_index is not None
+        assert VariableSelection.variable is not None
+        node = graph.get_node_by_id(VariableSelection.variable)
+        assert node is not None
+
+        formulas = node.mechanism_metadata.get_formulas().values()
+        if len(formulas) == 1:
+            raise PreventUpdate()
+
+        try:
+            node.mechanism_metadata.remove_class(class_index)
+        except Exception:
+            LOGGER.error("Failed to remove class")
+            raise PreventUpdate()
+
+        return ClassificationBuilder().children
+
+
+    # TODO: new button for confirmation -> left and right
+    def confirm_mechanism():
+        raise PreventUpdate()

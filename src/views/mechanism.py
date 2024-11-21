@@ -8,6 +8,10 @@ from models.mechanism import MechanismType
 class MechanismBuilderNew(html.Div):
     def __init__(self):
         super().__init__(id="mechanism-builder-new")
+        self.style = {
+            "border": "3px green solid",
+            "margin": "3px",
+        }
         self.children = [
             VariableSelection(),
             html.Hr(),
@@ -53,18 +57,40 @@ class MechanismConfig(html.Div):
         if MechanismConfig.mechanism_type is None:
             MechanismConfig.mechanism_type = node.mechanism_metadata.mechanism_type
 
-        self.children = [
-            dbc.Row(
-                dcc.RadioItems(
-                    options=["regression", "classification"],
-                    value=MechanismConfig.mechanism_type,
-                    id="mechanism-choice",
-                ),
-            ),
+        self.children = []
+        if MechanismConfig.mechanism_type == "regression":
+            self.children.append(
+                dbc.Row([
+                    dbc.Col(
+                        dcc.RadioItems(
+                            options=["regression", "classification"],
+                            value=MechanismConfig.mechanism_type,
+                            id="mechanism-choice",
+                        ),
+                    ),
+                ])
+            )
+        else:
+            self.children.append(
+                dbc.Row([
+                    dbc.Col(
+                        dcc.RadioItems(
+                            options=["regression", "classification"],
+                            value=MechanismConfig.mechanism_type,
+                            id="mechanism-choice",
+                        ),
+                    ),
+                    dbc.Col(
+                        html.Button("Add Class", id="add-class", n_clicks=0)
+                    ),
+                ])
+            )
+
+        self.children.extend([
             dbc.Row(html.Hr()),
             dbc.Row(html.P(f"Causes: {', '.join(displayed_names)}")),
             dbc.Row(MechanismInput()),
-        ]
+        ])
 
 
 class MechanismInput(html.Div):
@@ -98,11 +124,13 @@ class RegressionBuilder(html.Div):
             html.P(f"mechanism({', '.join(displayed_names)})="),
             dbc.Col([
                 dbc.Row(
-                    dbc.Textarea(
-                        id="regression-input",
-                        value=formula,
-                        debounce=False,
-                        required=True,
+                    dbc.Col(
+                        dbc.Textarea(
+                            id="regression-input",
+                            value=formula,
+                            debounce=False,
+                            required=True,
+                        )
                     )
                 ),
             ]),
@@ -113,11 +141,9 @@ class ClassificationBuilder(html.Div):
     def __init__(self):
         super().__init__(id="classification-builder")
         self.children = []
-        self.children.append(html.P("classification: "))
         assert VariableSelection.variable is not None
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
-
         for c, f in node.mechanism_metadata.get_formulas().items():
             self.children.extend(
                 [
@@ -131,6 +157,7 @@ class ClassificationBuilder(html.Div):
                             html.Button(
                                 "Remove Class",
                                 id={"type": "remove-class", "index": c},
+                                n_clicks=0,
                             ),
                         ]
                     ),
@@ -139,9 +166,6 @@ class ClassificationBuilder(html.Div):
         self.children.append(
             # TODO: fix this shit
             html.P("else: 'TODO -> rest that dont fit in other classes'")
-        )
-        self.children.append(
-            html.Button("Add Class", id="add-class")
         )
 
 

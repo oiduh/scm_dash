@@ -3,7 +3,7 @@ from dash import Dash, html
 
 from controllers import setup_callbacks
 from views.graph import GraphBuilder, GraphViewer
-from views.mechanism import MechanismBuilderNew
+from views.mechanism import MechanismBuilder, MechanismViewer
 from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
 import dash_cytoscape as cyto
@@ -52,9 +52,8 @@ app.layout = html.Div(
                             label="Mechanism Builder",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(MechanismBuilderNew()),
-                                    # dbc.Col(MechanismViewer()),
-                                    dbc.Col(Placeholder("mechanism-build-place-holder")),
+                                    dbc.Col(MechanismBuilder()),
+                                    dbc.Col(MechanismViewer()),
                                 ],
                             ),
                         ),

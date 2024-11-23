@@ -16,7 +16,7 @@ from views.graph import (
     GraphBuilder,
 )
 from views.noise import VariableSelection as VariableSelectionNoise
-from views.mechanism import VariableSelection as VariableSelectionMechanism
+from views.mechanism import MechanismConfig, VariableSelection as VariableSelectionMechanism
 
 
 LOGGER = DashLogger(name="GraphController", level=logging.DEBUG)
@@ -41,17 +41,16 @@ def setup_callbacks() -> None:
                 VariableSelectionGraph().children,
                 VariableSelectionNoise().children,
                 VariableSelectionMechanism().children,
-                VariableConfig().children
+                VariableConfig().children,
             )
 
         LOGGER.info(f"Selecting new node: {selected_node_id}")
         VariableSelectionGraph.selected_node_id = selected_node_id
-        VariableSelectionMechanism.variable = selected_node_id
         return (
             VariableSelectionGraph().children,
             VariableSelectionNoise().children,
             VariableSelectionMechanism().children,
-            VariableConfig().children
+            VariableConfig().children,
         )
 
     @callback(
@@ -59,6 +58,7 @@ def setup_callbacks() -> None:
         Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
         Output("variable-selection-noise", "children", allow_duplicate=True),
+        Output("mechanism-config", "children", allow_duplicate=True),
         Input("add-new-node", "n_clicks"),
         prevent_initial_call="initial_duplicate",
     )
@@ -78,6 +78,7 @@ def setup_callbacks() -> None:
             VariableConfig().children,
             GraphBuilder.get_graph_data(),
             VariableSelectionNoise().children,
+            MechanismConfig().children
         )
 
     @callback(
@@ -85,6 +86,7 @@ def setup_callbacks() -> None:
         Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
         Output("variable-selection-noise", "children", allow_duplicate=True),
+        Output("mechanism-config", "children", allow_duplicate=True),
         Input("remove-selected-node", "n_clicks"),
         State("graph-builder-target-node", "value"),
         prevent_initial_call="initial_duplicate"
@@ -118,11 +120,13 @@ def setup_callbacks() -> None:
             VariableConfig().children,
             GraphBuilder.get_graph_data(),
             VariableSelectionNoise().children,
+            MechanismConfig().children,
         )
 
     @callback(
         Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
+        Output("mechanism-config", "children", allow_duplicate=True),
         Input("add-new-edge", "n_clicks"),
         State("graph-builder-target-node", "value"),
         State("add-out-node", "value"),
@@ -150,12 +154,14 @@ def setup_callbacks() -> None:
         LOGGER.info(f"Added edge from id={source_node_id} to id={target_node_id}")
         return (
             VariableConfig().children,
-            GraphBuilder.get_graph_data()
+            GraphBuilder.get_graph_data(),
+            MechanismConfig().children
         )
 
     @callback(
         Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
+        Output("mechanism-config", "children", allow_duplicate=True),
         Input("remove-edge", "n_clicks"),
         State("graph-builder-target-node", "value"),
         State("remove-out-node", "value"),
@@ -180,7 +186,8 @@ def setup_callbacks() -> None:
         LOGGER.info(f"Removed edge from id={source_node_id} to id={target_node_id}")
         return (
             VariableConfig().children,
-            GraphBuilder.get_graph_data()
+            GraphBuilder.get_graph_data(),
+            MechanismConfig().children
         )
 
     @callback(
@@ -199,6 +206,7 @@ def setup_callbacks() -> None:
         Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
         Output("variable-selection-noise", "children", allow_duplicate=True),
+        Output("mechanism-config", "children", allow_duplicate=True),
         Input("confirm-new-name", "n_clicks"),
         State("variable-name", "value"),
         prevent_initial_call="initial_duplicate"
@@ -233,5 +241,6 @@ def setup_callbacks() -> None:
             VariableSelectionGraph().children,
             VariableConfig().children,
             GraphBuilder.get_graph_data(),
-            VariableSelectionNoise().children
+            VariableSelectionNoise().children,
+            MechanismConfig().children
         )

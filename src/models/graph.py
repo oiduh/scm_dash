@@ -8,6 +8,7 @@ import pandas as pd
 from models.mechanism import (
     ClassificationMechanism,
     MechanismMetadata,
+    MechanismResult,
     MechanismState,
     MechanismType,
     RegressionMechanism,
@@ -78,7 +79,7 @@ class Node:
         self.mechanism_metadata.mechanism_type = new_type
         self.mechanism_metadata.reset_formulas()
 
-    def formulas_are_valid(self) -> bool:
+    def formulas_are_valid(self) -> MechanismResult:
         # data in range (-5.0, 5.0)
         # just a sanity check, values might not be correct for actual outcome
         input_ids = []
@@ -89,12 +90,10 @@ class Node:
         match self.mechanism_metadata.mechanism_type:
             case "regression":
                 mechanism = RegressionMechanism(formulas, data)
-                print("reg")
             case "classification":
                 mechanism = ClassificationMechanism(formulas, data)
-                print("cls")
         # we do not care about the data, only if the data generation failed
-        return mechanism.transform().error is None
+        return mechanism.transform()
 
     def change_state(self, new_state: MechanismState) -> None:
         """

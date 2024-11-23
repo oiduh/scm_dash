@@ -5,9 +5,9 @@ from models.graph import graph
 from models.mechanism import MechanismType
 
 
-class MechanismBuilderNew(html.Div):
+class MechanismBuilder(html.Div):
     def __init__(self):
-        super().__init__(id="mechanism-builder-new")
+        super().__init__(id="mechanism-builder")
         self.style = {
             "border": "3px green solid",
             "margin": "3px",
@@ -181,24 +181,23 @@ class MechanismViewer(html.Div):
     # TODO: depending on chosen node on left -> only show
     def __init__(self):
         super().__init__(id="mechanism-viewer")
-        nodes = graph.get_nodes()
+        assert VariableSelection.variable is not None
+        node = graph.get_node_by_id(VariableSelection.variable)
+        assert node is not None
+        
+        in_nodes = [x.name or x.id_ for x in node.in_nodes]
+        in_nodes.append(f"n_{node.name or node.id_}")
+        causes = ", ".join(in_nodes)
+
         self.children = []
-        for node in nodes:
-            node_id = node.id_
-            in_node_ids = [in_node_id for in_node_id in node.get_in_node_ids()]
-            in_node_ids.append(f"n_{node_id}")
-            mechanism_metadata = node.mechanism_metadata
-            if mechanism_metadata.mechanism_type == "regression":
-                # one formula
-                # TODO: getting formulas can be None -> proper getter + check
-                formula = list(mechanism_metadata.formulas.values())[0]
-                assert formula is not None
-                formula = f"{node_id} = f_{node_id}({', '.join(in_node_ids)}) = {formula}"
-                self.children.append(html.P(formula))
-            else:
-                # multiple formulas
-                formulas = list(mechanism_metadata.formulas.values())
-                for formula in formulas:
-                    if formula is not None:
-                        self.children.append(html.P(formula))
-            self.children.append(html.Hr())
+        formulas = node.mechanism_metadata.get_formulas()
+        mechanism_type = node.mechanism_metadata.mechanism_type
+        if mechanism_type == "regression":
+            self.children.append(
+                html.P(f"f({causes}) = {list(formulas.values())[0]}")
+            )
+        else:
+            for class_id, formula in formulas.items():
+                self.children.append(
+                    html.P(f"f_{class_id}({causes}) = {formula}")
+            )

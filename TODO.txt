@@ -51,6 +51,7 @@ TODO:
     - [ ] new tab -> summary + target/source node selection
 
     - [ ] one last rework
+        - [ ] lexer + parser for formulas 
         - [ ] left
             - [ ] dropdown for available variables
                 - [X] graph -> rework
@@ -98,25 +99,31 @@ TODO:
                     - [ ] builder
                         - [X] variable selection (similar to others)
                         - [X] mechanism type
-                        - [ ] mechanism config
+                        - [X] mechanism config
                             - [X] view regression
                             -> should be same as previously
                             - [X] view classification
-                            - [ ] callbacks regression
+                            - [X] callbacks 
                                 - [X] select variable
                                 - [X] select mechanism type
                                 - [X] classification - add class
                                 - [X] classification - remove class
                                 -> at least one class should remain
-                                - [ ] check formula button
+                                - [X] check formula button
                                 -> no individual checks for classification
                                 -> change viewer errors if any occur
                                 -> display currently confirmed formulas on right
                                    on the left editable version
-                                - [ ] 
-                            - [ ] callbacks classification
-                    - [ ] viewer
+                                -> confirm also saves the formula from the input
+                    - [ ] viewer per variable chosen on builder
+                        - [ ] display initial formulas
+                        -> problem with names vs ids
+                        -> generally if name availble, use name else id_
+                        - [ ] update on each confirm (correct)
+                        - [ ] display errors
                     - [ ] lock button at top -> confirm all and lock if OK (toggle unlock)
+                - [ ] test run
+                    - [ ] check if whole data process works
                 - [ ] finish tab
                     - [ ] short summary of graph structure
                     -> no changes necessary

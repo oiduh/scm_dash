@@ -11,6 +11,7 @@ from utils.logger import DashLogger
 from views.mechanism import (
     ClassificationBuilder,
     MechanismConfig,
+    MechanismViewer,
     VariableSelection
 )
 
@@ -22,6 +23,7 @@ def setup_callbacks():
     @callback(
         Output("variable-selection-mechanism", "children", allow_duplicate=True),
         Output("mechanism-config", "children", allow_duplicate=True),
+        Output("mechanism-viewer", "children", allow_duplicate=True),
         Input("mechanism-builder-target-node", "value"),
         prevent_initial_call=True
     )
@@ -31,7 +33,8 @@ def setup_callbacks():
             # TODO: add mechanism selection once finished
             return (
                 VariableSelection().children,
-                MechanismConfig().children
+                MechanismConfig().children,
+                MechanismViewer().children
             )
 
         LOGGER.info(f"Selecting new node: {selected_node_id}")
@@ -41,12 +44,14 @@ def setup_callbacks():
         MechanismConfig.mechanism_type = node.mechanism_metadata.mechanism_type
         return (
             VariableSelection().children,
-            MechanismConfig().children
+            MechanismConfig().children,
+            MechanismViewer().children
         )
 
     @callback(
         Output("mechanism-config", "children", allow_duplicate=True),
         Output("variable-selection-mechanism", "children", allow_duplicate=True),
+        Output("mechanism-viewer", "children", allow_duplicate=True),
         Input("mechanism-choice", "value"),
         prevent_initial_call=True
     )
@@ -54,7 +59,8 @@ def setup_callbacks():
         if MechanismConfig.mechanism_type == new_mechanism:
             return (
                 MechanismConfig().children,
-                VariableSelection().children
+                VariableSelection().children,
+                MechanismViewer().children
             )
 
         assert VariableSelection.variable is not None
@@ -69,11 +75,13 @@ def setup_callbacks():
         MechanismConfig.mechanism_type = new_mechanism
         return (
             MechanismConfig().children,
-            VariableSelection().children
+            VariableSelection().children,
+            MechanismViewer().children
         )
 
     @callback(
         Output("classification-builder", "children", allow_duplicate=True),
+        Output("mechanism-viewer", "children", allow_duplicate=True),
         Input("add-class", "n_clicks"),
         prevent_initial_call=True,
     )
@@ -98,10 +106,14 @@ def setup_callbacks():
             LOGGER.exception("Failed to add class")
             raise PreventUpdate from e
 
-        return ClassificationBuilder().children
+        return (
+            ClassificationBuilder().children,
+            MechanismViewer().children
+        )
 
     @callback(
         Output("classification-builder", "children", allow_duplicate=True),
+        Output("mechanism-viewer", "children", allow_duplicate=True),
         Input({"type": "remove-class", "index": ALL}, "n_clicks"),
         prevent_initial_call=True,
     )
@@ -127,11 +139,15 @@ def setup_callbacks():
             LOGGER.error("Failed to remove class")
             raise PreventUpdate()
 
-        return ClassificationBuilder().children
+        return (
+            ClassificationBuilder().children,
+            MechanismViewer().children,
+        )
 
 
     @callback(
         Output("mechanism-config", "children", allow_duplicate=True),
+        Output("mechanism-viewer", "children", allow_duplicate=True),
         Input("confirm-classification", "n_clicks"),
         State({"type": "classification-input", "index": ALL}, "value"),
         State({"type": "classification-input", "index": ALL}, "id"),
@@ -142,7 +158,6 @@ def setup_callbacks():
             raise PreventUpdate()
 
         assert VariableSelection.variable is not None
-        print(f"confirm mechanism for: {VariableSelection.variable}")
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
 
@@ -153,15 +168,18 @@ def setup_callbacks():
         for c_id, c_input in new_formulas.items():
             node.mechanism_metadata.formulas[c_id] = c_input
 
-        if node.formulas_are_valid():
-            print("VALID")
-        else:
-            print("IN-VALID")
+        mechanism_check = node.formulas_are_valid()
+        node.mechanism_metadata.valid = mechanism_check.error is None
+        print(f"error: {mechanism_check.error}")
 
-        raise PreventUpdate()
+        return (
+            MechanismConfig().children,
+            MechanismViewer().children,
+        )
 
     @callback(
         Output("mechanism-config", "children", allow_duplicate=True),
+        Output("mechanism-viewer", "children", allow_duplicate=True),
         Input("confirm-regression", "n_clicks"),
         State("regression-input", "value"),
         prevent_initial_call=True,
@@ -171,16 +189,16 @@ def setup_callbacks():
             raise PreventUpdate()
 
         assert VariableSelection.variable is not None
-        print(f"confirm mechanism for: {VariableSelection.variable}")
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
 
-        print(regression_input)
+        node.mechanism_metadata.formulas["0"] = regression_input
+        mechanism_check = node.formulas_are_valid()
+        node.mechanism_metadata.valid = mechanism_check.error is None
+        print(f"error: {mechanism_check.error}")
 
-        if node.formulas_are_valid():
-            print("VALID")
-        else:
-            print("IN-VALID")
-
-        raise PreventUpdate()
+        return (
+            MechanismConfig().children,
+            MechanismViewer().children,
+        )
 

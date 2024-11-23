@@ -100,7 +100,7 @@ class MechanismMetadata:
 @dataclass
 class MechanismResult:
     values: NDArray | None
-    error: str | None
+    error: Literal["class_overlap", "invalid_formula"] | None
 
 
 class BaseMechanism:
@@ -118,13 +118,15 @@ class RegressionMechanism(BaseMechanism):
         tree = ast.parse(self.formulas[0])
         for node in ast.walk(tree):
             # replace variables with inputs
+            if isinstance(node, ast.Name):
+                print(node.id)
             if isinstance(node, ast.Name) and node.id in self.inputs.keys():
                 node.id = f'self.values["{node.id}"]'
         new_formula = ast.unparse(tree)
         try:
             result: NDArray[np.float64] = eval(new_formula)
         except:
-            return MechanismResult(None, "Failed to evaluate formula")
+            return MechanismResult(None, "invalid_formula")
 
         return MechanismResult(result, None)
 
@@ -137,7 +139,6 @@ class ClassificationMechanism(BaseMechanism):
             len(list(self.inputs.values())[0]), fill_value=-1, dtype=np.int32
         )
 
-        failed_indices: list[int] = []
         for idx, formula in enumerate(self.formulas):
             tree = ast.parse(formula)
             for node in ast.walk(tree):
@@ -147,20 +148,17 @@ class ClassificationMechanism(BaseMechanism):
             try:
                 result: np.ndarray[Any, np.dtype[np.bool_]] = eval(new_formula)
                 assert result.dtype == np.bool_, "NOT A BOOL"
-                for idx_, x in enumerate(result):
-                    if bool(x) is True:
-                        if results[idx_] != -1:
-                            raise
-                        else:
-                            results[idx_] = idx
             except:
-                failed_indices.append(idx)
+                return MechanismResult(None, "invalid_formula")
 
-        if len(failed_indices) > 0:
-            return MechanismResult(
-                None, f"Failed to evaluate classes: {failed_indices}"
-            )
+            for idx_, x in enumerate(result):
+                if bool(x) is True:
+                    if results[idx_] != -1:
+                        return MechanismResult(None, "class_overlap")
+                    else:
+                        results[idx_] = idx
 
+        # fill all unassigned results to 'other'
         else_class_idx = len(self.formulas)
         for idx_, x in enumerate(results):
             if x == -1:

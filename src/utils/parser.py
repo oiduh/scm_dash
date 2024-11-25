@@ -27,15 +27,16 @@ class Parser:
 
         # Build the lexer and parser
         lex.lex(module=self, debug=self.debug)
-        yacc.yacc(module=self,
-                  debug=self.debug,
-                  debugfile=self.debugfile)
+        self.parser = yacc.yacc(module=self,
+                                debug=self.debug,
+                                debugfile=self.debugfile)
 
     def run_example(self, example: str, names: dict[str, np.ndarray]):
         self.errors = set()
         self.names = names
         try:
-            yacc.parse(example)
+            # yacc.parse(example)
+            return self.parser.parse(example)
         except Exception as e:
             self.errors.add(e)
 
@@ -227,7 +228,8 @@ if __name__ == '__main__':
     # print(calc.errors)
     # calc.run_example("-~((a <= 2) & (a >= -2))", names)
     # print(calc.errors)
-    calc.run_example("~((a <= b) & (a >= -2))", names)
+    x = calc.run_example("~((a <= b) & (a >= -2))", names)
+    print(f"{x=}")
     print(calc.errors)
     # calc.run_example("a ", names)
     # calc.run_example("sin(a)", names)

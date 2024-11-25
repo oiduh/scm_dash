@@ -53,11 +53,12 @@ TODO:
     - [ ] one last rework
         - [ ] lexer + parser for formulas 
             - [X] google if simple grammar module available
-            - [ ] use ply and extend simple calc example
-                - [ ] regression (grammar 1)
-                -> NOT using bool operator
-                - [ ] classification (grammar 2)
-                -> using bool operator
+            - [X] use ply and extend simple calc example
+            - [X] some simple test cases with numpy
+            - [ ] find out if result can be returned
+            - [ ] include in mechanism confirmation
+            - [ ] include in data generation
+            - [ ] make some test cases
         - [ ] left
             - [ ] dropdown for available variables
                 - [X] graph -> rework

@@ -52,6 +52,12 @@ TODO:
 
     - [ ] one last rework
         - [ ] lexer + parser for formulas 
+            - [X] google if simple grammar module available
+            - [ ] use ply and extend simple calc example
+                - [ ] regression (grammar 1)
+                -> NOT using bool operator
+                - [ ] classification (grammar 2)
+                -> using bool operator
         - [ ] left
             - [ ] dropdown for available variables
                 - [X] graph -> rework

@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'leftPLUSMINUSleftTIMESDIVIDEleftEXPrightUMINUSDIVIDE EQUALS EXP LPAREN MINUS NAME NUMBER PLUS RPAREN TIMESstatement : NAME EQUALS expressionstatement : expression\n        expression : expression PLUS expression\n                  | expression MINUS expression\n                  | expression TIMES expression\n                  | expression DIVIDE expression\n                  | expression EXP expression\n        expression : MINUS expression %prec UMINUSexpression : LPAREN expression RPARENexpression : NUMBERexpression : NAME'
+_lr_signature = 'leftEQUALSNOT_EQUALSLESSGREATERLESS_EQUALSGREATER_EQUALSleftORleftXORleftANDleftLEFT_SHIFTRIGHT_SHIFTleftPLUSMINUSleftTIMESDIVIDEINT_DIVMODULOleftEXPrightUMINUSUNOTAND DIVIDE EQUALS EXP GREATER GREATER_EQUALS INT_DIV LEFT_SHIFT LESS LESS_EQUALS LPAREN MINUS MODULO NAME NOT NOT_EQUALS NUMBER OR PLUS RIGHT_SHIFT RPAREN TIMES XORstatement : expression\n        expression : expression PLUS expression\n                  | expression MINUS expression\n                  | expression TIMES expression\n                  | expression DIVIDE expression\n                  | expression INT_DIV expression\n                  | expression EXP expression\n                  | expression MODULO expression\n                  | expression EQUALS expression\n                  | expression NOT_EQUALS expression\n                  | expression LESS expression\n                  | expression GREATER expression\n                  | expression LESS_EQUALS expression\n                  | expression GREATER_EQUALS expression\n                  | expression LEFT_SHIFT expression\n                  | expression RIGHT_SHIFT expression\n                  | expression AND expression\n                  | expression XOR expression\n                  | expression OR expression\n        expression : MINUS expression %prec UMINUSexpression : NOT expression %prec UNOTexpression : LPAREN expression RPARENexpression : NUMBERexpression : NAME LPAREN expression RPARENexpression : NAME'
     
-_lr_action_items = {'NAME':([0,4,5,7,8,9,10,11,12,],[2,14,14,14,14,14,14,14,14,]),'MINUS':([0,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,],[4,-11,9,4,4,-10,4,4,4,4,4,4,-8,-11,9,9,-3,-4,-5,-6,-7,-9,]),'LPAREN':([0,4,5,7,8,9,10,11,12,],[5,5,5,5,5,5,5,5,5,]),'NUMBER':([0,4,5,7,8,9,10,11,12,],[6,6,6,6,6,6,6,6,6,]),'$end':([1,2,3,6,13,14,16,17,18,19,20,21,22,],[0,-11,-2,-10,-8,-11,-1,-3,-4,-5,-6,-7,-9,]),'EQUALS':([2,],[7,]),'PLUS':([2,3,6,13,14,15,16,17,18,19,20,21,22,],[-11,8,-10,-8,-11,8,8,-3,-4,-5,-6,-7,-9,]),'TIMES':([2,3,6,13,14,15,16,17,18,19,20,21,22,],[-11,10,-10,-8,-11,10,10,10,10,-5,-6,-7,-9,]),'DIVIDE':([2,3,6,13,14,15,16,17,18,19,20,21,22,],[-11,11,-10,-8,-11,11,11,11,11,-5,-6,-7,-9,]),'EXP':([2,3,6,13,14,15,16,17,18,19,20,21,22,],[-11,12,-10,-8,-11,12,12,12,12,12,12,-7,-9,]),'RPAREN':([6,13,14,15,17,18,19,20,21,22,],[-10,-8,-11,22,-3,-4,-5,-6,-7,-9,]),}
+_lr_action_items = {'MINUS':([0,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[3,9,3,3,3,-23,-25,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,-20,-21,9,3,-2,-3,-4,-5,-6,-7,-8,9,9,9,9,9,9,9,9,9,9,9,-22,9,-24,]),'NOT':([0,3,4,5,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,29,],[4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,]),'LPAREN':([0,3,4,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,29,],[5,5,5,5,29,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,]),'NUMBER':([0,3,4,5,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,29,],[6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,]),'NAME':([0,3,4,5,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,29,],[7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,]),'$end':([1,2,6,7,26,27,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,50,],[0,-1,-23,-25,-20,-21,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-22,-24,]),'PLUS':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[8,-23,-25,-20,-21,8,-2,-3,-4,-5,-6,-7,-8,8,8,8,8,8,8,8,8,8,8,8,-22,8,-24,]),'TIMES':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[10,-23,-25,-20,-21,10,10,10,-4,-5,-6,-7,-8,10,10,10,10,10,10,10,10,10,10,10,-22,10,-24,]),'DIVIDE':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[11,-23,-25,-20,-21,11,11,11,-4,-5,-6,-7,-8,11,11,11,11,11,11,11,11,11,11,11,-22,11,-24,]),'INT_DIV':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[12,-23,-25,-20,-21,12,12,12,-4,-5,-6,-7,-8,12,12,12,12,12,12,12,12,12,12,12,-22,12,-24,]),'EXP':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[13,-23,-25,-20,-21,13,13,13,13,13,13,-7,13,13,13,13,13,13,13,13,13,13,13,13,-22,13,-24,]),'MODULO':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[14,-23,-25,-20,-21,14,14,14,-4,-5,-6,-7,-8,14,14,14,14,14,14,14,14,14,14,14,-22,14,-24,]),'EQUALS':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[15,-23,-25,-20,-21,15,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-22,15,-24,]),'NOT_EQUALS':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[16,-23,-25,-20,-21,16,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-22,16,-24,]),'LESS':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[17,-23,-25,-20,-21,17,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-22,17,-24,]),'GREATER':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[18,-23,-25,-20,-21,18,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-22,18,-24,]),'LESS_EQUALS':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[19,-23,-25,-20,-21,19,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-22,19,-24,]),'GREATER_EQUALS':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[20,-23,-25,-20,-21,20,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-22,20,-24,]),'LEFT_SHIFT':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[21,-23,-25,-20,-21,21,-2,-3,-4,-5,-6,-7,-8,21,21,21,21,21,21,-15,-16,21,21,21,-22,21,-24,]),'RIGHT_SHIFT':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[22,-23,-25,-20,-21,22,-2,-3,-4,-5,-6,-7,-8,22,22,22,22,22,22,-15,-16,22,22,22,-22,22,-24,]),'AND':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[23,-23,-25,-20,-21,23,-2,-3,-4,-5,-6,-7,-8,23,23,23,23,23,23,-15,-16,-17,23,23,-22,23,-24,]),'XOR':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[24,-23,-25,-20,-21,24,-2,-3,-4,-5,-6,-7,-8,24,24,24,24,24,24,-15,-16,-17,-18,24,-22,24,-24,]),'OR':([2,6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[25,-23,-25,-20,-21,25,-2,-3,-4,-5,-6,-7,-8,25,25,25,25,25,25,-15,-16,-17,-18,-19,-22,25,-24,]),'RPAREN':([6,7,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,],[-23,-25,-20,-21,48,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-22,50,-24,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'statement':([0,],[1,]),'expression':([0,4,5,7,8,9,10,11,12,],[3,13,15,16,17,18,19,20,21,]),}
+_lr_goto_items = {'statement':([0,],[1,]),'expression':([0,3,4,5,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,29,],[2,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,49,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -27,15 +27,29 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> statement","S'",1,None,None,None),
-  ('statement -> NAME EQUALS expression','statement',3,'p_statement_assign','parser.py',91),
-  ('statement -> expression','statement',1,'p_statement_expr','parser.py',95),
-  ('expression -> expression PLUS expression','expression',3,'p_expression_binop','parser.py',100),
-  ('expression -> expression MINUS expression','expression',3,'p_expression_binop','parser.py',101),
-  ('expression -> expression TIMES expression','expression',3,'p_expression_binop','parser.py',102),
-  ('expression -> expression DIVIDE expression','expression',3,'p_expression_binop','parser.py',103),
-  ('expression -> expression EXP expression','expression',3,'p_expression_binop','parser.py',104),
-  ('expression -> MINUS expression','expression',2,'p_expression_uminus','parser.py',119),
-  ('expression -> LPAREN expression RPAREN','expression',3,'p_expression_group','parser.py',123),
-  ('expression -> NUMBER','expression',1,'p_expression_number','parser.py',127),
-  ('expression -> NAME','expression',1,'p_expression_name','parser.py',131),
+  ('statement -> expression','statement',1,'p_statement_expr','parser.py',108),
+  ('expression -> expression PLUS expression','expression',3,'p_expression_binop','parser.py',113),
+  ('expression -> expression MINUS expression','expression',3,'p_expression_binop','parser.py',114),
+  ('expression -> expression TIMES expression','expression',3,'p_expression_binop','parser.py',115),
+  ('expression -> expression DIVIDE expression','expression',3,'p_expression_binop','parser.py',116),
+  ('expression -> expression INT_DIV expression','expression',3,'p_expression_binop','parser.py',117),
+  ('expression -> expression EXP expression','expression',3,'p_expression_binop','parser.py',118),
+  ('expression -> expression MODULO expression','expression',3,'p_expression_binop','parser.py',119),
+  ('expression -> expression EQUALS expression','expression',3,'p_expression_binop','parser.py',120),
+  ('expression -> expression NOT_EQUALS expression','expression',3,'p_expression_binop','parser.py',121),
+  ('expression -> expression LESS expression','expression',3,'p_expression_binop','parser.py',122),
+  ('expression -> expression GREATER expression','expression',3,'p_expression_binop','parser.py',123),
+  ('expression -> expression LESS_EQUALS expression','expression',3,'p_expression_binop','parser.py',124),
+  ('expression -> expression GREATER_EQUALS expression','expression',3,'p_expression_binop','parser.py',125),
+  ('expression -> expression LEFT_SHIFT expression','expression',3,'p_expression_binop','parser.py',126),
+  ('expression -> expression RIGHT_SHIFT expression','expression',3,'p_expression_binop','parser.py',127),
+  ('expression -> expression AND expression','expression',3,'p_expression_binop','parser.py',128),
+  ('expression -> expression XOR expression','expression',3,'p_expression_binop','parser.py',129),
+  ('expression -> expression OR expression','expression',3,'p_expression_binop','parser.py',130),
+  ('expression -> MINUS expression','expression',2,'p_expression_uminus','parser.py',171),
+  ('expression -> NOT expression','expression',2,'p_expression_unot','parser.py',175),
+  ('expression -> LPAREN expression RPAREN','expression',3,'p_expression_group','parser.py',179),
+  ('expression -> NUMBER','expression',1,'p_expression_number','parser.py',183),
+  ('expression -> NAME LPAREN expression RPAREN','expression',4,'p_expression_func','parser.py',187),
+  ('expression -> NAME','expression',1,'p_expression_name','parser.py',192),
 ]

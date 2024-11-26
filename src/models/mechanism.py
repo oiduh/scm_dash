@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 import numpy as np
 from numpy.typing import NDArray
+from utils.parser import Calc
 
 #
 # supported 'builtin' functions
@@ -18,7 +19,6 @@ tan = np.tan
 arcsin = np.arcsin
 arccos = np.arccos
 arctan = np.arctan
-arctan2 = np.arctan2
 
 # hyperbolic
 sinh = np.sinh
@@ -41,7 +41,6 @@ log2 = np.log2
 
 # misc
 sqrt = np.sqrt
-clip = np.clip
 cbrt = np.cbrt
 fabs = np.fabs
 
@@ -115,11 +114,14 @@ class BaseMechanism:
 
 class RegressionMechanism(BaseMechanism):
     def transform(self) -> MechanismResult:
+        calc = Calc()
+        calc.run_example(self.formulas[0], self.inputs)
+        if len(calc.errors) > 0:
+            return MechanismResult(None, "invalid_formula")
+
         tree = ast.parse(self.formulas[0])
         for node in ast.walk(tree):
             # replace variables with inputs
-            if isinstance(node, ast.Name):
-                print(node.id)
             if isinstance(node, ast.Name) and node.id in self.inputs.keys():
                 node.id = f'self.values["{node.id}"]'
         new_formula = ast.unparse(tree)
@@ -135,6 +137,14 @@ class ClassificationMechanism(BaseMechanism):
     def transform(self) -> MechanismResult:
         # dimensions: x(number of classes), y(number of inputs) -> each input can have own dimension
         self.inputs = {k: np.array(v).flatten() for k, v in self.inputs.items()}
+
+        calc = Calc()
+        for formula in self.formulas:
+            calc.run_example(formula, self.inputs)
+        if len(calc.errors) > 0:
+            print(calc.errors)
+            return MechanismResult(None, "invalid_formula")
+
         results = np.full(
             len(list(self.inputs.values())[0]), fill_value=-1, dtype=np.int32
         )
@@ -148,7 +158,7 @@ class ClassificationMechanism(BaseMechanism):
             try:
                 result: np.ndarray[Any, np.dtype[np.bool_]] = eval(new_formula)
                 assert result.dtype == np.bool_, "NOT A BOOL"
-            except:
+            except Exception:
                 return MechanismResult(None, "invalid_formula")
 
             for idx_, x in enumerate(result):

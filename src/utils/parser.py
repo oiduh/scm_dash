@@ -3,7 +3,30 @@ import ply.yacc as yacc
 import os
 import numpy as np
 
-sin = np.sin
+funcs = {
+    "sin": np.sin,
+    "cos": np.cos,
+    "tan": np.tan,
+    "arcsin": np.arcsin,
+    "arccos": np.arccos,
+    "arctan": np.arctan,
+    "sinh": np.sinh,
+    "cosh": np.cosh,
+    "tanh": np.tanh,
+    "arcsinh": np.arcsinh,
+    "arccosh": np.arccosh,
+    "arctanh": np.arctanh,
+    "round": np.round,
+    "floor": np.floor,
+    "ceil": np.ceil,
+    "exp": np.exp,
+    "log": np.log,
+    "log10": np.log10,
+    "log2": np.log2,
+    "sqrt": np.sqrt,
+    "cbrt": np.cbrt,
+    "fabs": np.fabs,
+}
 
 
 class Parser:
@@ -44,7 +67,7 @@ class Parser:
 class Calc(Parser):
 
     tokens = (
-        'NAME', 'NUMBER',
+        'NAME', 'INTEGER', 'FLOAT',
         'PLUS', 'MINUS', 'EXP', 'TIMES', 'DIVIDE', 'INT_DIV', 'MODULO',
         'EQUALS', 'NOT_EQUALS', 'LESS', 'GREATER', 'LESS_EQUALS', 'GREATER_EQUALS',
         'NOT', 'AND', 'OR', 'XOR', 'LEFT_SHIFT', 'RIGHT_SHIFT',
@@ -76,15 +99,22 @@ class Calc(Parser):
     t_LEFT_SHIFT = r'<<'
     t_RIGHT_SHIFT = r'>>'
 
-    def t_NUMBER(self, t):
+    def t_FLOAT(self, t):
+        r'(\d*\.\d+)|(\d+\.\d*)'
+        try:
+            t.value = float(t.value)
+        except ValueError:
+            self.errors.add("invalid float value %s" % t.value)
+            t.value = 0.0
+        return t
+
+    def t_INTEGER(self, t):
         r'\d+'
         try:
             t.value = int(t.value)
         except ValueError:
-            print("Integer value too large %s" % t.value)
-            self.errors.add("Integer value too large %s" % t.value)
+            self.errors.add("invalid integer value %s" % t.value)
             t.value = 0
-        # print "parsed number %s" % repr(t.value)
         return t
 
     t_ignore = " \t"
@@ -94,7 +124,6 @@ class Calc(Parser):
         t.lexer.lineno += t.value.count("\n")
 
     def t_error(self, t):
-        print("Illegal character '%s'" % t.value[0])
         self.errors.add("Illegal character '%s'" % t.value[0])
         t.lexer.skip(1)
 
@@ -114,7 +143,7 @@ class Calc(Parser):
 
     def p_statement_expr(self, p):
         'statement : expression'
-        print(p[1])
+        p[1]
 
     def p_expression_binop(self, p):
         """
@@ -137,7 +166,6 @@ class Calc(Parser):
                   | expression XOR expression
                   | expression OR expression
         """
-        # print [repr(p[i]) for i in range(0,4)]
         if p[2] == '+':
             p[0] = p[1] + p[3]
         elif p[2] == '-':
@@ -188,30 +216,37 @@ class Calc(Parser):
         p[0] = p[2]
 
     def p_expression_number(self, p):
-        'expression : NUMBER'
+        '''expression : FLOAT
+                     | INTEGER
+        '''
         p[0] = p[1]
 
     def p_expression_func(self, p):
         'expression : NAME LPAREN expression RPAREN'
-        if p[1] == 'sin':
-            p[0] = np.sin(p[3])
+        try:
+            if p[1] in funcs.keys():
+                p[0] = funcs[p[1]](p[3])
+            else:
+                self.errors.add("Illegal function '%s'" % p[1])
+                p[0] = 0
+        except Exception as e:
+            self.errors.add(e)
+            p[0] = 0
+
 
     def p_expression_name(self, p):
         'expression : NAME'
         try:
             p[0] = self.names[p[1]]
         except LookupError:
-            print("Undefined name '%s'" % p[1])
             self.errors.add("Undefined name '%s'" % p[1])
             p[0] = 0
 
     def p_error(self, p):
         if p:
             self.errors.add("Syntax error at '%s'" % p.value)
-            print("Syntax error at '%s'" % p.value)
         else:
             self.errors.add("Syntax error at EOF")
-            print("Syntax error at EOF")
 
 
 if __name__ == '__main__':
@@ -228,8 +263,12 @@ if __name__ == '__main__':
     # print(calc.errors)
     # calc.run_example("-~((a <= 2) & (a >= -2))", names)
     # print(calc.errors)
-    x = calc.run_example("~((a <= b) & (a >= -2))", names)
-    print(f"{x=}")
-    print(calc.errors)
+    # x = calc.run_example("~((a <= b) & (a >= -2))", names)
+    # print(f"{x=}")
+    # print(calc.errors)
     # calc.run_example("a ", names)
     # calc.run_example("sin(a)", names)
+    # print(calc.errors)
+    # print(names['a'])
+    # calc.run_example("arcsin(a)", names)
+    # print(calc.errors)

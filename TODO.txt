@@ -55,8 +55,9 @@ TODO:
             - [X] google if simple grammar module available
             - [X] use ply and extend simple calc example
             - [X] some simple test cases with numpy
-            - [ ] find out if result can be returned
-            - [ ] include in mechanism confirmation
+            - [X] find out if result can be returned
+            -> not really, but does not matter
+            - [X] include in mechanism confirmation
             - [ ] include in data generation
             - [ ] make some test cases
         - [ ] left

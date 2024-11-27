@@ -58,8 +58,6 @@ TODO:
             - [X] find out if result can be returned
             -> not really, but does not matter
             - [X] include in mechanism confirmation
-            - [ ] include in data generation
-            - [ ] make some test cases
         - [ ] left
             - [ ] dropdown for available variables
                 - [X] graph -> rework
@@ -124,10 +122,14 @@ TODO:
                                    on the left editable version
                                 -> confirm also saves the formula from the input
                     - [ ] viewer per variable chosen on builder
-                        - [ ] display initial formulas
+                        - [X] display initial formulas
                         -> problem with names vs ids
                         -> generally if name availble, use name else id_
-                        - [ ] update on each confirm (correct)
+                        -> initial values removed, instead add help functionality
+                        - [ ] latexify formulas
+                        -> simple replace or utils function with sympy
+                        - [ ] add help functionality e.g. tooltip
+                        - [X] update on each confirm (correct)
                         - [ ] display errors
                     - [ ] lock button at top -> confirm all and lock if OK (toggle unlock)
                 - [ ] test run

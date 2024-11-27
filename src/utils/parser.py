@@ -141,6 +141,22 @@ class Calc(Parser):
         ('right', 'UMINUS', 'UNOT'),
     )
 
+    def p_expression_group(self, p):
+        'expression : LPAREN expression RPAREN'
+        p[0] = p[2]
+
+    def p_expression_func(self, p):
+        'expression : NAME LPAREN expression RPAREN'
+        try:
+            if p[1] in funcs.keys():
+                p[0] = funcs[p[1]](p[3])
+            else:
+                self.errors.add("Illegal function '%s'" % p[1])
+                p[0] = 0
+        except Exception as e:
+            self.errors.add(e)
+            p[0] = 0
+
     def p_statement_expr(self, p):
         'statement : expression'
         p[1]
@@ -211,28 +227,11 @@ class Calc(Parser):
         'expression : NOT expression %prec UNOT'
         p[0] = ~p[2]
 
-    def p_expression_group(self, p):
-        'expression : LPAREN expression RPAREN'
-        p[0] = p[2]
-
     def p_expression_number(self, p):
         '''expression : FLOAT
                      | INTEGER
         '''
         p[0] = p[1]
-
-    def p_expression_func(self, p):
-        'expression : NAME LPAREN expression RPAREN'
-        try:
-            if p[1] in funcs.keys():
-                p[0] = funcs[p[1]](p[3])
-            else:
-                self.errors.add("Illegal function '%s'" % p[1])
-                p[0] = 0
-        except Exception as e:
-            self.errors.add(e)
-            p[0] = 0
-
 
     def p_expression_name(self, p):
         'expression : NAME'

@@ -83,10 +83,15 @@ class Node:
         # data in range (-5.0, 5.0)
         # just a sanity check, values might not be correct for actual outcome
         input_ids = []
-        input_ids.append(f"n_{self.id_}")  # add noise to inputs as well
-        input_ids.extend(self.get_in_node_ids())
+        input_ids.append(f"n_{self.name or self.id_}")  # add noise to inputs as well
+        input_ids.extend([x.name or x.id_ for x in self.in_nodes])
         data = {node_id: (np.random.rand(1000) - 0.5) * 10 for node_id in input_ids}
         formulas = list(self.mechanism_metadata.get_formulas().values())
+
+        # TODO: manipulate the data here -> use name over ids
+        print(f"{formulas=}")
+        print(f"{data.keys()=}")
+
         match self.mechanism_metadata.mechanism_type:
             case "regression":
                 mechanism = RegressionMechanism(formulas, data)
@@ -112,8 +117,7 @@ class Node:
 @dataclass
 class Graph:
     nodes: dict[str, Node | None] = field(
-        default_factory=lambda: {str(id): None for id in string.ascii_lowercase}
-    )
+        default_factory=lambda: {str(id): None for id in string.ascii_lowercase})
     data: None = None
 
     def get_nodes(self) -> list[Node]:

@@ -63,9 +63,9 @@ class MechanismMetadata:
     def reset_formulas(self) -> None:
         new_formulas: dict[str, str | None] = {id_: None for id_ in string.digits}
         if self.mechanism_type == "regression":
-            new_formulas["0"] = f"n_{self.var_name}"
+            new_formulas["0"] = "<None>"
         else:
-            new_formulas["0"] = f"n_{self.var_name} > 0.0"
+            new_formulas["0"] = "<None>"
         self.formulas = new_formulas
 
     def get_formulas(self):
@@ -87,7 +87,7 @@ class MechanismMetadata:
         free_id = self.get_next_free_class_id()
         if free_id is None:
             raise Exception("Cannot add another class")
-        self.formulas[free_id] = f"n_{self.var_name} > 0.0"
+        self.formulas[free_id] = "<None>"
 
     def remove_class(self, class_id: str) -> None:
         assert self.state == "editable"
@@ -139,8 +139,12 @@ class ClassificationMechanism(BaseMechanism):
         self.inputs = {k: np.array(v).flatten() for k, v in self.inputs.items()}
 
         calc = Calc()
+        print()
+        print(f"{self.inputs=}")
         for formula in self.formulas:
+            print(f"{formula=}")
             calc.run_example(formula, self.inputs)
+        print()
         if len(calc.errors) > 0:
             print(calc.errors)
             return MechanismResult(None, "invalid_formula")

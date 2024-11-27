@@ -194,7 +194,7 @@ class NoiseViewer(html.Div):
         assert source_node is not None
 
         noise = source_node.noise
-        param = noise.id_
+        node_name = source_node.name or source_node.id_
 
         # TODO: 2 graphs
         # 1) inidiviual sub variable distribution
@@ -204,7 +204,7 @@ class NoiseViewer(html.Div):
         var_data = noise.generate_data()
 
         combined_data = ff.create_distplot(
-            [np.array(list(var_data.values())).flatten()], [param], show_rug=False, bin_size=0.2, colors=["blue"]
+            [np.array(list(var_data.values())).flatten()], [node_name], show_rug=False, bin_size=0.2, colors=["blue"]
         )
 
         sub_distr_ids = noise.get_distribution_ids()
@@ -223,7 +223,7 @@ class NoiseViewer(html.Div):
 
 
         self.children = [
-            html.H3(f"combined: {param}"),
+            html.H3(f"combined: {node_name}"),
             dcc.Graph("graph-combined", figure=combined_data),
             html.H3(f"individual with focus on: {VariableSelection.sub_variable}"),
             dcc.Graph("graph-individual", figure=individual_data),

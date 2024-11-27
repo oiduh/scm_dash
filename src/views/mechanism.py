@@ -61,7 +61,6 @@ class MechanismConfig(html.Div):
         assert VariableSelection.variable is not None
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
-        displayed_names = [x.name or x.id_ for x in node.in_nodes]
         if MechanismConfig.mechanism_type is None:
             MechanismConfig.mechanism_type = node.mechanism_metadata.mechanism_type
 
@@ -96,7 +95,6 @@ class MechanismConfig(html.Div):
 
         self.children.extend([
             dbc.Row(html.Hr()),
-            dbc.Row(html.P(f"Causes: {', '.join(displayed_names)}")),
             dbc.Row(MechanismInput()),
         ])
 
@@ -123,13 +121,13 @@ class RegressionBuilder(html.Div):
         assert node is not None
 
         displayed_names = [x.name or x.id_ for x in node.in_nodes]
-        displayed_names.append(f"n_{node.name or node.id_}")
+        displayed_names.append(f"n_{{ {node.name or node.id_} }}")
 
         formula = node.mechanism_metadata.formulas.get("0")
         assert formula is not None
 
         self.children = [
-            html.P(f"mechanism({', '.join(displayed_names)})="),
+            dcc.Markdown(f"$$f({', '.join(displayed_names)})=$$", mathjax=True),
             dbc.Col([
                 dbc.Row(
                     dbc.Col(
@@ -152,24 +150,23 @@ class ClassificationBuilder(html.Div):
         assert VariableSelection.variable is not None
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
+        displayed_names = [x.name or x.id_ for x in node.in_nodes]
+        displayed_names.append(f"n_{{ {node.name or node.id_} }}")
+        displayed_names = ", ".join(displayed_names)
         for c, f in node.mechanism_metadata.get_formulas().items():
-            self.children.extend(
-                [
-                    html.P(f"class_{c}"),
+            self.children.append(
+                dbc.Row([
                     dbc.Col(
-                        [
-                            dbc.Textarea(
-                                id={"type": "classification-input", "index": c},
-                                value=f,
-                            ),
-                            html.Button(
-                                "Remove Class",
-                                id={"type": "remove-class", "index": c},
-                                n_clicks=0,
-                            ),
-                        ]
+                        dcc.Markdown(f"$$class_{{{c}}}: f({displayed_names})=$$", mathjax=True),
+                        width="auto", style={"paddingTop": "10px"}
                     ),
-                ]
+                    dbc.Col(dbc.Input(
+                        id={"type": "classification-input", "index": c}, value=f
+                    )),
+                    dbc.Col(
+                        html.Button("Remove Class", id={"type": "remove-class", "index": c}, n_clicks=0),
+                        width="auto")
+                ], align="center", className="g-0")
             )
         self.children.append(
             # TODO: fix this shit
@@ -184,20 +181,35 @@ class MechanismViewer(html.Div):
         assert VariableSelection.variable is not None
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
-        
+
         in_nodes = [x.name or x.id_ for x in node.in_nodes]
-        in_nodes.append(f"n_{node.name or node.id_}")
+        in_nodes.append(f"n_{{ {node.name or node.id_} }}")
         causes = ", ".join(in_nodes)
 
         self.children = []
+        self.children.append(
+            dbc.Alert(
+                "this is warning",
+                color="warning"
+            )
+        )
+        self.children.append(
+            dbc.Alert(
+                "this is danger",
+                color="danger"
+            )
+        )
         formulas = node.mechanism_metadata.get_formulas()
         mechanism_type = node.mechanism_metadata.mechanism_type
         if mechanism_type == "regression":
             self.children.append(
-                html.P(f"f({causes}) = {list(formulas.values())[0]}")
+                dcc.Markdown(f"$$f({causes}) = {list(formulas.values())[0]}$$", mathjax=True)
             )
         else:
+            to_replace = node.name or node.id_
             for class_id, formula in formulas.items():
+                # TODO: replace all python formulas with equivalent latex formulas
+                formula = formula.replace(f"n_{to_replace}", f"n_{{ {to_replace} }}").replace("&", "\wedge")
                 self.children.append(
-                    html.P(f"f_{class_id}({causes}) = {formula}")
+                    dcc.Markdown(f"$$f_{{ {class_id} }}({causes}) = {formula}$$", mathjax=True)
             )

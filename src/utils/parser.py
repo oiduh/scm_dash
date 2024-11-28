@@ -25,7 +25,7 @@ funcs = {
     "log2": np.log2,
     "sqrt": np.sqrt,
     "cbrt": np.cbrt,
-    "fabs": np.fabs,
+    "abs": np.fabs
 }
 
 

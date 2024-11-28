@@ -3,6 +3,7 @@ from dash import html, dcc
 
 from models.graph import graph
 from models.mechanism import MechanismType
+from utils.latexify import py_to_latex
 
 
 class MechanismBuilder(html.Div):
@@ -183,7 +184,7 @@ class MechanismViewer(html.Div):
         assert node is not None
 
         in_nodes = [x.name or x.id_ for x in node.in_nodes]
-        in_nodes.append(f"n_{{ {node.name or node.id_} }}")
+        in_nodes.append(f"n_{node.name or node.id_}")
         causes = ", ".join(in_nodes)
 
         self.children = []
@@ -209,7 +210,11 @@ class MechanismViewer(html.Div):
             to_replace = node.name or node.id_
             for class_id, formula in formulas.items():
                 # TODO: replace all python formulas with equivalent latex formulas
-                formula = formula.replace(f"n_{to_replace}", f"n_{{ {to_replace} }}").replace("&", "\wedge")
+                # formula = formula.replace(f"n_{to_replace}", f"n_{{ {to_replace} }}").replace("&", "\wedge")
+                try:
+                    latex_formulas = py_to_latex(formula, in_nodes)
+                except:
+                    latex_formulas = "\\text{<invalid>}"
                 self.children.append(
-                    dcc.Markdown(f"$$f_{{ {class_id} }}({causes}) = {formula}$$", mathjax=True)
+                    dcc.Markdown(f"$$f_{{ {class_id} }}({causes}) = {latex_formulas}$$", mathjax=True)
             )

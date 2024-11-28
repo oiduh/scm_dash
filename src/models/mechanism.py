@@ -42,7 +42,7 @@ log2 = np.log2
 # misc
 sqrt = np.sqrt
 cbrt = np.cbrt
-fabs = np.fabs
+abs = np.fabs
 
 
 MechanismType = Literal["regression", "classification"]

@@ -67,19 +67,26 @@ class MechanismConfig(html.Div):
 
         self.children = []
         if MechanismConfig.mechanism_type == "regression":
-            self.children.append(
-                dbc.Row([
-                    dbc.Col(
-                        dcc.RadioItems(
-                            options=["regression", "classification"],
-                            value=MechanismConfig.mechanism_type,
-                            id="mechanism-choice",
+            self.children.extend(
+                [
+                    dbc.Row([
+                        dbc.Col(
+                            dcc.RadioItems(
+                                options=["regression", "classification"],
+                                value=MechanismConfig.mechanism_type,
+                                id="mechanism-choice",
+                            ),
                         ),
-                    ),
-                ])
+                    ]),
+                    dbc.Row(html.Button("toggle help", id="toggle-help-regression")),
+                    dbc.Row(dbc.Collapse(
+                        dbc.Card(dbc.CardBody("some regression tips")),
+                        id="collapse-regression", is_open=False
+                    )),
+                ],
             )
         else:
-            self.children.append(
+            self.children.extend([
                 dbc.Row([
                     dbc.Col(
                         dcc.RadioItems(
@@ -91,8 +98,14 @@ class MechanismConfig(html.Div):
                     dbc.Col(
                         html.Button("Add Class", id="add-class", n_clicks=0)
                     ),
-                ])
-            )
+                ]),
+
+                dbc.Row(html.Button("toggle help", id="toggle-help-classification")),
+                dbc.Row(dbc.Collapse(
+                    dbc.Card(dbc.CardBody("some classfication tips")),
+                    id="collapse-classification", is_open=False
+                )),
+            ])
 
         self.children.extend([
             dbc.Row(html.Hr()),
@@ -128,19 +141,13 @@ class RegressionBuilder(html.Div):
         assert formula is not None
 
         self.children = [
-            dcc.Markdown(f"$$f({', '.join(displayed_names)})=$$", mathjax=True),
-            dbc.Col([
-                dbc.Row(
-                    dbc.Col(
-                        dbc.Textarea(
-                            id="regression-input",
-                            value=formula,
-                            debounce=False,
-                            required=True,
-                        )
-                    )
+            dbc.Row([
+                dbc.Col(
+                    dcc.Markdown(f"$$f({', '.join(displayed_names)}):=$$", mathjax=True),
+                    width="auto", style={"paddingTop": "10px"}
                 ),
-            ]),
+                dbc.Col(dbc.Input(id="regression-input", value=formula)),
+            ])
         ]
 
 
@@ -158,7 +165,7 @@ class ClassificationBuilder(html.Div):
             self.children.append(
                 dbc.Row([
                     dbc.Col(
-                        dcc.Markdown(f"$$class_{{{c}}}: f({displayed_names})=$$", mathjax=True),
+                        dcc.Markdown(f"$$class_{{{c}}}: f({displayed_names}):=$$", mathjax=True),
                         width="auto", style={"paddingTop": "10px"}
                     ),
                     dbc.Col(dbc.Input(
@@ -203,18 +210,25 @@ class MechanismViewer(html.Div):
         formulas = node.mechanism_metadata.get_formulas()
         mechanism_type = node.mechanism_metadata.mechanism_type
         if mechanism_type == "regression":
+            try:
+                x = py_to_latex(f"f({causes})", in_nodes)
+                y = py_to_latex(f"{list(formulas.values())[0]}", in_nodes)
+                latex_formula = x + ":=" + y
+            except:
+                latex_formula = py_to_latex(f"f({causes})", in_nodes) + " := \\text{<invalid>}"
             self.children.append(
-                dcc.Markdown(f"$$f({causes}) = {list(formulas.values())[0]}$$", mathjax=True)
+                dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
             )
         else:
-            to_replace = node.name or node.id_
             for class_id, formula in formulas.items():
                 # TODO: replace all python formulas with equivalent latex formulas
                 # formula = formula.replace(f"n_{to_replace}", f"n_{{ {to_replace} }}").replace("&", "\wedge")
                 try:
-                    latex_formulas = py_to_latex(formula, in_nodes)
+                    x = py_to_latex(f"f_{class_id}({causes})", in_nodes)
+                    y = py_to_latex(f"{formula}", in_nodes)
+                    latex_formula = x + ":=" + y
                 except:
-                    latex_formulas = "\\text{<invalid>}"
+                    latex_formula = py_to_latex(f"f_{class_id}({causes})", in_nodes) + " := \\text{<invalid>}"
                 self.children.append(
-                    dcc.Markdown(f"$$f_{{ {class_id} }}({causes}) = {latex_formulas}$$", mathjax=True)
+                    dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
             )

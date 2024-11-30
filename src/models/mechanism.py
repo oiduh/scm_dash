@@ -63,9 +63,9 @@ class MechanismMetadata:
     def reset_formulas(self) -> None:
         new_formulas: dict[str, str | None] = {id_: None for id_ in string.digits}
         if self.mechanism_type == "regression":
-            new_formulas["0"] = "<None>"
+            new_formulas["0"] = "<invalid>"
         else:
-            new_formulas["0"] = "<None>"
+            new_formulas["0"] = "<invalid>"
         self.formulas = new_formulas
 
     def get_formulas(self):
@@ -87,7 +87,7 @@ class MechanismMetadata:
         free_id = self.get_next_free_class_id()
         if free_id is None:
             raise Exception("Cannot add another class")
-        self.formulas[free_id] = "<None>"
+        self.formulas[free_id] = "<invalid>"
 
     def remove_class(self, class_id: str) -> None:
         assert self.state == "editable"

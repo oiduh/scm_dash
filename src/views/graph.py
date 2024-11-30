@@ -106,11 +106,11 @@ class VariableConfig(html.Div):
                 dbc.Col([
                     dbc.Row([
                         dbc.Col(html.P(f"In-Nodes:")),
-                        dbc.Col(html.P(','.join(displayed_in_nodes) or '<None>')),
+                        dbc.Col(html.P(','.join(displayed_in_nodes) or '<invalid>')),
                     ]),
                     dbc.Row([
                         dbc.Col(html.P(f"Out-Nodes:")),
-                        dbc.Col(html.P(','.join(displayed_out_nodes) or '<None>')),
+                        dbc.Col(html.P(','.join(displayed_out_nodes) or '<invalid>')),
                     ]),
                 ]),
                 html.Hr(),

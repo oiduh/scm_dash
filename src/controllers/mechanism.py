@@ -202,3 +202,25 @@ def setup_callbacks():
             MechanismViewer().children,
         )
 
+    @callback(
+        Output("collapse-regression", "is_open", allow_duplicate=True),
+        Input("toggle-help-regression", "n_clicks"),
+        State("collapse-regression", "is_open"),
+        prevent_initial_call=True,
+    )
+    def toggle_regression_help(clicked, is_open: bool):
+        if not clicked:
+            raise PreventUpdate()
+        return not is_open
+
+    @callback(
+        Output("collapse-classification", "is_open", allow_duplicate=True),
+        Input("toggle-help-classification", "n_clicks"),
+        State("collapse-classification", "is_open"),
+        prevent_initial_call=True,
+    )
+    def toggle_classification_help(clicked, is_open: bool):
+        if not clicked:
+            raise PreventUpdate()
+        return not is_open
+

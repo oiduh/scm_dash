@@ -102,7 +102,7 @@ TODO:
                     - [X] callback logs
                     - [X] fix tests
                 - [ ] mechanism
-                    - [ ] builder
+                    - [X] builder
                         - [X] variable selection (similar to others)
                         - [X] mechanism type
                         - [X] mechanism config
@@ -126,9 +126,21 @@ TODO:
                         -> problem with names vs ids
                         -> generally if name availble, use name else id_
                         -> initial values removed, instead add help functionality
-                        - [ ] latexify formulas
+                        - [X] latexify formulas
                         -> simple replace or utils function with sympy
+                            - [X] fix equals operator for latex
+                            -> sympy evaluates by simplifying, but we do not want that
+                            -> use parse_expr with param evaluate=False
+                            - [X] latexify whole markdown text, not just the formula
+                            - [X] also for regression
                         - [ ] add help functionality e.g. tooltip
+                            - [ ] button
+                            - [ ] collapsible content
+                            - [ ] toggle callback
+                            - [ ] useful info 
+                            -> available variables (maybe no toggle but fixed)
+                            -> all functions
+                            -> difference between reg and class
                         - [X] update on each confirm (correct)
                         - [ ] display errors
                     - [ ] lock button at top -> confirm all and lock if OK (toggle unlock)

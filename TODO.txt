@@ -50,16 +50,16 @@ TODO:
         - [ ] disable graph and noise and left mechanism on lock
     - [ ] new tab -> summary + target/source node selection
 
-    - [ ] one last rework
-        - [ ] lexer + parser for formulas 
+    - [X] one last rework
+        - [X] lexer + parser for formulas 
             - [X] google if simple grammar module available
             - [X] use ply and extend simple calc example
             - [X] some simple test cases with numpy
             - [X] find out if result can be returned
             -> not really, but does not matter
             - [X] include in mechanism confirmation
-        - [ ] left
-            - [ ] dropdown for available variables
+        - [X] left
+            - [X] dropdown for available variables
                 - [X] graph -> rework
                     - [X] add node
                     - [X] remove node -> at least one remains + bug fix
@@ -121,7 +121,7 @@ TODO:
                                 -> display currently confirmed formulas on right
                                    on the left editable version
                                 -> confirm also saves the formula from the input
-                    - [ ] viewer per variable chosen on builder
+                    - [X] viewer per variable chosen on builder
                         - [X] display initial formulas
                         -> problem with names vs ids
                         -> generally if name availble, use name else id_
@@ -133,41 +133,37 @@ TODO:
                             -> use parse_expr with param evaluate=False
                             - [X] latexify whole markdown text, not just the formula
                             - [X] also for regression
-                        - [ ] add help functionality e.g. tooltip
-                            - [ ] button
-                            - [ ] collapsible content
-                            - [ ] toggle callback
-                            - [ ] useful info 
+                        - [X] add help functionality e.g. tooltip
+                            - [X] button
+                            - [X] collapsible content
+                            - [X] toggle callback
+                            - [X] useful info 
                             -> available variables (maybe no toggle but fixed)
                             -> all functions
                             -> difference between reg and class
                         - [X] update on each confirm (correct)
-                        - [ ] display errors
-                    - [ ] lock button at top -> confirm all and lock if OK (toggle unlock)
-                - [ ] test run
-                    - [ ] check if whole data process works
-                - [ ] finish tab
-                    - [ ] short summary of graph structure
-                    -> no changes necessary
-                    - [ ] short summary of root noise
-                    -> no changes necessary
-                    - [ ] short summary of mechanism
-                    -> check if all confirmed
-                    - [ ] lock in
-                    -> generate data
+                        - [X] display errors
 
-                - [ ] fixes
-                    - [ ] graph
-                        - [X] respect the maximum size of the defaults
-                        -> reproduce: max out slider and then change -> result: cannot go back to default max (uniform)
-                        - [ ] all distribution types update short description about parameters
-                        - [ ] general distributions
-                        -> instead of making 'random' values for limit to some uniform values
-                        -> scaling can be done in the mechanism part
-                        -> need to know which variables to limit, which not
-                        -> might be useful for uniform distribution where we can just keep a constant
-            - [ ] button to add variable
-            - [ ] button to remove variable
+    - [ ] finish tab
+        - [ ] short summary of graph structure
+        -> no changes necessary
+        - [ ] short summary of root noise
+        -> no changes necessary
+        - [ ] short summary of mechanism
+        -> check if all confirmed
+        - [ ] lock in
+        -> generate data
+
+    - [ ] fixes
+        - [ ] graph
+            - [X] respect the maximum size of the defaults
+            -> reproduce: max out slider and then change -> result: cannot go back to default max (uniform)
+            - [ ] all distribution types update short description about parameters
+            - [ ] general distributions
+            -> instead of making 'random' values for limit to some uniform values
+            -> scaling can be done in the mechanism part
+            -> need to know which variables to limit, which not
+            -> might be useful for uniform distribution where we can just keep a constant
 
 	- [ ] graph state as file
     -> simple json

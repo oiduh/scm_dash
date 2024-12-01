@@ -5,6 +5,8 @@ from models.graph import graph
 from models.mechanism import MechanismType
 from utils.latexify import py_to_latex
 
+from utils.parser import funcs
+
 
 class MechanismBuilder(html.Div):
     def __init__(self):
@@ -57,6 +59,12 @@ class VariableSelection(html.Div):
 
 class MechanismConfig(html.Div):
     mechanism_type: MechanismType | None = None
+    operators_regression: str = ", ".join(["+", "-", "*", "/", "**", "//", "%"])
+    operators_classfication: str = ", ".join(
+        ["+", "-", "*", "/", "**", "//", "%", ">", "<", ">=", "<=", "==", "!=", "&", "|", "^"]
+    )
+    functions: str = ", ".join(funcs.keys())
+    is_open: bool = False
     def __init__(self):
         super().__init__(id="mechanism-config")
         assert VariableSelection.variable is not None
@@ -64,6 +72,12 @@ class MechanismConfig(html.Div):
         assert node is not None
         if MechanismConfig.mechanism_type is None:
             MechanismConfig.mechanism_type = node.mechanism_metadata.mechanism_type
+
+        causes = [x.name or x.id_ for x in node.in_nodes]
+        causes.append(f"n_{node.name or node.id_}")
+        causes = ", ".join(causes)
+
+        print(f"is_open: {MechanismConfig.is_open}")
 
         self.children = []
         if MechanismConfig.mechanism_type == "regression":
@@ -80,8 +94,21 @@ class MechanismConfig(html.Div):
                     ]),
                     dbc.Row(html.Button("toggle help", id="toggle-help-regression")),
                     dbc.Row(dbc.Collapse(
-                        dbc.Card(dbc.CardBody("some regression tips")),
-                        id="collapse-regression", is_open=False
+                        [
+                            dbc.Card([
+                                dbc.CardHeader("Causes:"),
+                                dbc.CardBody(causes)
+                            ]),
+                            dbc.Card([
+                                dbc.CardHeader("Operators:"),
+                                dbc.CardBody(MechanismConfig.operators_regression)
+                            ]),
+                            dbc.Card([
+                                dbc.CardHeader("Functions:"),
+                                dbc.CardBody(MechanismConfig.functions)
+                            ]),
+                        ],
+                        id="collapse-regression", is_open=MechanismConfig.is_open
                     )),
                 ],
             )
@@ -102,8 +129,28 @@ class MechanismConfig(html.Div):
 
                 dbc.Row(html.Button("toggle help", id="toggle-help-classification")),
                 dbc.Row(dbc.Collapse(
-                    dbc.Card(dbc.CardBody("some classfication tips")),
-                    id="collapse-classification", is_open=False
+                    [
+                        dbc.Card([
+                            dbc.CardHeader("Causes:"),
+                            dbc.CardBody(causes)
+                        ]),
+                        dbc.Card([
+                            dbc.CardHeader("Operators:"),
+                            dbc.CardBody(MechanismConfig.operators_classfication)
+                        ]),
+                        dbc.Card([
+                            dbc.CardHeader("Functions:"),
+                            dbc.CardBody(MechanismConfig.functions)
+                        ]),
+                        dbc.Card([
+                            dbc.CardHeader("Note:"),
+                            dbc.CardBody(
+                                "expressions evaluated to booleans need to wrapped in parenthesis e.g.:\n"
+                                "'(a > 3) & (b > 2)' works, but 'a > 3 & b > 2' does not work"
+                            )
+                        ]),
+                    ],
+                    id="collapse-classification", is_open=MechanismConfig.is_open
                 )),
             ])
 
@@ -177,12 +224,12 @@ class ClassificationBuilder(html.Div):
                 ], align="center", className="g-0")
             )
         self.children.append(
-            # TODO: fix this shit
-            html.P("else: 'TODO -> rest that dont fit in other classes'")
+            dcc.Markdown("$$class_{else}: \\text{all data points not classified by the above functions}$$", mathjax=True)
         )
 
 
 class MechanismViewer(html.Div):
+    error: str | None = "invalid formula"
     # TODO: depending on chosen node on left -> only show
     def __init__(self):
         super().__init__(id="mechanism-viewer")
@@ -195,18 +242,11 @@ class MechanismViewer(html.Div):
         causes = ", ".join(in_nodes)
 
         self.children = []
-        self.children.append(
-            dbc.Alert(
-                "this is warning",
-                color="warning"
-            )
-        )
-        self.children.append(
-            dbc.Alert(
-                "this is danger",
-                color="danger"
-            )
-        )
+        if MechanismViewer.error is not None:
+            self.children.append(dbc.Alert(MechanismViewer.error, color="danger"))
+        else:
+            self.children.append(dbc.Alert("mechanism OK", color="success"))
+
         formulas = node.mechanism_metadata.get_formulas()
         mechanism_type = node.mechanism_metadata.mechanism_type
         if mechanism_type == "regression":

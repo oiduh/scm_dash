@@ -1,3 +1,4 @@
+from typing import Literal
 import ply.lex as lex
 import ply.yacc as yacc
 import os
@@ -18,7 +19,7 @@ funcs = {
     "arctanh": np.arctanh,
     "round": np.round,
     "floor": np.floor,
-    "ceil": np.ceil,
+    "ceiling": np.ceil,
     "exp": np.exp,
     "log": np.log,
     "log10": np.log10,
@@ -36,9 +37,10 @@ class Parser:
     tokens = ()
     precedence = ()
 
-    def __init__(self, **kw):
+    def __init__(self, mechanism_type: Literal["regression", "classfication"], **kw):
         self.debug = kw.get('debug', 0)
         self.names = {}
+        self.mechanism_type = mechanism_type
         self.errors = set()
         try:
             modname = os.path.split(os.path.splitext(__file__)[0])[
@@ -50,15 +52,16 @@ class Parser:
 
         # Build the lexer and parser
         lex.lex(module=self, debug=self.debug)
-        self.parser = yacc.yacc(module=self,
-                                debug=self.debug,
-                                debugfile=self.debugfile)
+        self.parser = yacc.yacc(
+            module=self,
+            debug=self.debug,
+            debugfile=self.debugfile
+        )
 
     def run_example(self, example: str, names: dict[str, np.ndarray]):
         self.errors = set()
         self.names = names
         try:
-            # yacc.parse(example)
             return self.parser.parse(example)
         except Exception as e:
             self.errors.add(e)
@@ -70,7 +73,7 @@ class Calc(Parser):
         'NAME', 'INTEGER', 'FLOAT',
         'PLUS', 'MINUS', 'EXP', 'TIMES', 'DIVIDE', 'INT_DIV', 'MODULO',
         'EQUALS', 'NOT_EQUALS', 'LESS', 'GREATER', 'LESS_EQUALS', 'GREATER_EQUALS',
-        'NOT', 'AND', 'OR', 'XOR', 'LEFT_SHIFT', 'RIGHT_SHIFT',
+        'NOT', 'AND', 'OR', 'XOR',
         'LPAREN', 'RPAREN',
     )
 
@@ -96,8 +99,6 @@ class Calc(Parser):
     t_XOR = r'\^'
     t_LPAREN = r'\('
     t_RPAREN = r'\)'
-    t_LEFT_SHIFT = r'<<'
-    t_RIGHT_SHIFT = r'>>'
 
     def t_FLOAT(self, t):
         r'(\d*\.\d+)|(\d+\.\d*)'
@@ -134,7 +135,6 @@ class Calc(Parser):
         ('left', 'OR'),
         ('left', 'XOR'),
         ('left', 'AND'),
-        ('left', 'LEFT_SHIFT', 'RIGHT_SHIFT'),
         ('left', 'PLUS', 'MINUS'),
         ('left', 'TIMES', 'DIVIDE', 'INT_DIV', 'MODULO'),
         ('left', 'EXP'),
@@ -176,8 +176,6 @@ class Calc(Parser):
                   | expression GREATER expression
                   | expression LESS_EQUALS expression
                   | expression GREATER_EQUALS expression
-                  | expression LEFT_SHIFT expression
-                  | expression RIGHT_SHIFT expression
                   | expression AND expression
                   | expression XOR expression
                   | expression OR expression
@@ -196,6 +194,8 @@ class Calc(Parser):
             p[0] = p[1] // p[3]
         elif p[2] == '%':
             p[0] = p[1] % p[3]
+        elif self.mechanism_type == "regression":
+            self.errors.add("operator evaluating to bool not allowed in regression")
         elif p[2] == '==':
             p[0] = p[1] == p[3]
         elif p[2] == '!=':
@@ -208,10 +208,6 @@ class Calc(Parser):
             p[0] = p[1] <= p[3]
         elif p[2] == '>=':
             p[0] = p[1] >= p[3]
-        elif p[2] == '<<':
-            p[0] = p[1] << p[3]
-        elif p[2] == '>>':
-            p[0] = p[1] >> p[3]
         elif p[2] == '&':
             p[0] = p[1] & p[3]
         elif p[2] == '^':

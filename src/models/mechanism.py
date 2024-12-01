@@ -31,7 +31,7 @@ arctanh = np.arctanh
 # rounding
 round = np.round
 floor = np.floor
-ceil = np.ceil
+ceiling = np.ceil
 
 # exponents and logarithms
 exp = np.exp
@@ -67,6 +67,7 @@ class MechanismMetadata:
         else:
             new_formulas["0"] = "<invalid>"
         self.formulas = new_formulas
+        self.valid = False
 
     def get_formulas(self):
         return {k: v for k, v in self.formulas.items() if v is not None}
@@ -88,12 +89,14 @@ class MechanismMetadata:
         if free_id is None:
             raise Exception("Cannot add another class")
         self.formulas[free_id] = "<invalid>"
+        self.valid = False
 
     def remove_class(self, class_id: str) -> None:
         assert self.state == "editable"
         if class_id not in self.formulas.keys() or self.formulas[class_id] is None:
             raise Exception("Cannot remove this class")
         self.formulas[class_id] = None
+        self.valid = False
 
 
 @dataclass
@@ -114,7 +117,7 @@ class BaseMechanism:
 
 class RegressionMechanism(BaseMechanism):
     def transform(self) -> MechanismResult:
-        calc = Calc()
+        calc = Calc(mechanism_type="regression")
         calc.run_example(self.formulas[0], self.inputs)
         if len(calc.errors) > 0:
             return MechanismResult(None, "invalid_formula")
@@ -138,13 +141,9 @@ class ClassificationMechanism(BaseMechanism):
         # dimensions: x(number of classes), y(number of inputs) -> each input can have own dimension
         self.inputs = {k: np.array(v).flatten() for k, v in self.inputs.items()}
 
-        calc = Calc()
-        print()
-        print(f"{self.inputs=}")
+        calc = Calc("classfication")
         for formula in self.formulas:
-            print(f"{formula=}")
             calc.run_example(formula, self.inputs)
-        print()
         if len(calc.errors) > 0:
             print(calc.errors)
             return MechanismResult(None, "invalid_formula")

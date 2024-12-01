@@ -30,7 +30,6 @@ def setup_callbacks():
     def select_node(selected_node_id: str):
         if selected_node_id == VariableSelection.variable:
             # this is called on startup/refresh: keep custom names
-            # TODO: add mechanism selection once finished
             return (
                 VariableSelection().children,
                 MechanismConfig().children,
@@ -42,6 +41,8 @@ def setup_callbacks():
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
         MechanismConfig.mechanism_type = node.mechanism_metadata.mechanism_type
+        MechanismConfig.is_open = False  # closed on default
+        MechanismViewer.error = "invalid_formula"
         return (
             VariableSelection().children,
             MechanismConfig().children,
@@ -70,9 +71,10 @@ def setup_callbacks():
         LOGGER.info(f"Choosing new mechanism: {new_mechanism}")
 
         node.mechanism_metadata.mechanism_type = new_mechanism
-        # TODO: not sure if reset is desired
         node.mechanism_metadata.reset_formulas()
         MechanismConfig.mechanism_type = new_mechanism
+        MechanismConfig.is_open = False
+        MechanismViewer.error = "invalid_formula"
         return (
             MechanismConfig().children,
             VariableSelection().children,
@@ -106,6 +108,7 @@ def setup_callbacks():
             LOGGER.exception("Failed to add class")
             raise PreventUpdate from e
 
+        MechanismViewer.error = "invalid_formula"
         return (
             ClassificationBuilder().children,
             MechanismViewer().children
@@ -139,6 +142,7 @@ def setup_callbacks():
             LOGGER.error("Failed to remove class")
             raise PreventUpdate()
 
+        MechanismViewer.error = "confirmation needed"
         return (
             ClassificationBuilder().children,
             MechanismViewer().children,
@@ -169,6 +173,7 @@ def setup_callbacks():
             node.mechanism_metadata.formulas[c_id] = c_input
 
         mechanism_check = node.formulas_are_valid()
+        MechanismViewer.error = mechanism_check.error
         node.mechanism_metadata.valid = mechanism_check.error is None
         print(f"error: {mechanism_check.error}")
 
@@ -194,8 +199,9 @@ def setup_callbacks():
 
         node.mechanism_metadata.formulas["0"] = regression_input
         mechanism_check = node.formulas_are_valid()
+        print(mechanism_check)
+        MechanismViewer.error = mechanism_check.error
         node.mechanism_metadata.valid = mechanism_check.error is None
-        print(f"error: {mechanism_check.error}")
 
         return (
             MechanismConfig().children,
@@ -211,16 +217,17 @@ def setup_callbacks():
     def toggle_regression_help(clicked, is_open: bool):
         if not clicked:
             raise PreventUpdate()
-        return not is_open
+        MechanismConfig.is_open = not MechanismConfig.is_open
+        return MechanismConfig.is_open
 
     @callback(
         Output("collapse-classification", "is_open", allow_duplicate=True),
         Input("toggle-help-classification", "n_clicks"),
-        State("collapse-classification", "is_open"),
         prevent_initial_call=True,
     )
-    def toggle_classification_help(clicked, is_open: bool):
+    def toggle_classification_help(clicked):
         if not clicked:
             raise PreventUpdate()
-        return not is_open
+        MechanismConfig.is_open = not MechanismConfig.is_open
+        return MechanismConfig.is_open
 

@@ -144,7 +144,15 @@ TODO:
                         - [X] update on each confirm (correct)
                         - [X] display errors
 
-    - [ ] finish tab
+    - [ ] data gen summary
+    -> show graph in full (viewer)
+    -> indicator for locked or not
+    -> hover over nodes for base distribution + mechanism
+    -> lock in button with function to disable config
+    -> unlock button to undo the lock in
+    -> lock in should generate data and update the view e.g. hover with new data
+    -> correlation view (dropdown)
+    -> split in 'lock in' and summary?
         - [ ] short summary of graph structure
         -> no changes necessary
         - [ ] short summary of root noise

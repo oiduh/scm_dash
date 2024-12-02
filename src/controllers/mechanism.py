@@ -3,7 +3,6 @@ from typing import Literal
 
 from dash import ALL, MATCH, Input, Output, State, callback, ctx
 from dash.exceptions import PreventUpdate
-from flask.app import cli
 
 from models.graph import graph
 from models.mechanism import MechanismType

@@ -1,12 +1,13 @@
 import dash_bootstrap_components as dbc
 from dash import Dash, html
+import dash_cytoscape as cyto
 
 from controllers import setup_callbacks
 from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilder, MechanismViewer
 from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
-import dash_cytoscape as cyto
+from views.data_generation_summary import DataGenerationBuilder, DataGenerationViewer
 
 
 cyto.load_extra_layouts()
@@ -54,6 +55,16 @@ app.layout = html.Div(
                                 children=[
                                     dbc.Col(MechanismBuilder()),
                                     dbc.Col(MechanismViewer()),
+                                ],
+                            ),
+                        ),
+                        dbc.Tab(
+                            id="tab4",
+                            label="Summary",
+                            children=dbc.Row(
+                                children=[
+                                    dbc.Col(DataGenerationBuilder()),
+                                    dbc.Col(DataGenerationViewer()),
                                 ],
                             ),
                         ),

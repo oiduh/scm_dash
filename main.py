@@ -6,7 +6,7 @@ from controllers import setup_callbacks
 from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilder, MechanismViewer
 from views.noise import NoiseBuilder, NoiseViewer
-from views.utils import Placeholder
+# from views.utils import Placeholder
 from views.data_generation_summary import DataGenerationBuilder, DataGenerationViewer
 
 

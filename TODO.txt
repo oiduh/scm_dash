@@ -153,6 +153,11 @@ TODO:
     -> lock in should generate data and update the view e.g. hover with new data
     -> correlation view (dropdown)
     -> split in 'lock in' and summary?
+        - [X] show graph (simple)
+        - [X] change layout (independent from first tab)
+        - [ ] callback from graph
+        - [ ] fix graph position on init (wtf)
+
         - [ ] short summary of graph structure
         -> no changes necessary
         - [ ] short summary of root noise

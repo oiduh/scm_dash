@@ -27,3 +27,14 @@ def setup_callbacks():
         # TODO: check if locking succeeds
         DataGenerationBuilder.is_locked = not DataGenerationBuilder.is_locked
         return DataGenerationBuilder().children
+
+    @callback(
+        Output("data-generation-viewer", "children"),
+        Input("layout-choices-data-generation", "value"),
+    )
+    def update_layout_choice(new_value: DataGenerationViewer.Layouts):
+        if new_value not in DataGenerationViewer.Layouts.get_all():
+            raise PreventUpdate(f"Invalid layout choice: {new_value}")
+        DataGenerationViewer.LAYOUT = new_value
+        # LOGGER.info(f"Updating graph viewer layout to: {new_value}")
+        return DataGenerationViewer().children

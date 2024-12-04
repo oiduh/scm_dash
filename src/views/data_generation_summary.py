@@ -46,6 +46,7 @@ class DataGenerationViewer(html.Div):
     LAYOUT: str = Layouts.circle.value
 
     def __init__(self) -> None:
+        print(f"updating data gen graph with layout: {self.LAYOUT}")
         super().__init__(id="data-generation-viewer")
         self.style = {}
         cyto_graph = Cytoscape(
@@ -81,6 +82,7 @@ class DataGenerationViewer(html.Div):
                 clearable=False
             ),
             html.H3(f"Layout: {DataGenerationViewer.LAYOUT}"),
+            html.Button("Reset", id="data-generation-graph-reset", n_clicks=0),
             cyto_graph
         ]
 

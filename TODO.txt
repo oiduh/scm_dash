@@ -155,8 +155,9 @@ TODO:
     -> split in 'lock in' and summary?
         - [X] show graph (simple)
         - [X] change layout (independent from first tab)
-        - [ ] callback from graph
+        - [X] callback from graph
         - [ ] fix graph position on init (wtf)
+        -> not only init but always when adding node or removing
 
         - [ ] short summary of graph structure
         -> no changes necessary

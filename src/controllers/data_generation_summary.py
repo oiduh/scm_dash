@@ -29,12 +29,24 @@ def setup_callbacks():
         return DataGenerationBuilder().children
 
     @callback(
-        Output("data-generation-viewer", "children"),
+        Output("data-generation-viewer", "children", allow_duplicate=True),
         Input("layout-choices-data-generation", "value"),
+        prevent_initial_call="initial_duplicate"
     )
     def update_layout_choice(new_value: DataGenerationViewer.Layouts):
         if new_value not in DataGenerationViewer.Layouts.get_all():
             raise PreventUpdate(f"Invalid layout choice: {new_value}")
         DataGenerationViewer.LAYOUT = new_value
+        # LOGGER.info(f"Updating graph viewer layout to: {new_value}")
+        return DataGenerationViewer().children
+
+    @callback(
+        Output("data-generation-viewer", "children", allow_duplicate=True),
+        Input("data-generation-graph-reset", "n_clicks"),
+        prevent_initial_call="initial_duplicate"
+    )
+    def reset_graph(clicked):
+        if not clicked:
+            raise PreventUpdate()
         # LOGGER.info(f"Updating graph viewer layout to: {new_value}")
         return DataGenerationViewer().children

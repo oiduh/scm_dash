@@ -59,7 +59,7 @@ def setup_callbacks() -> None:
         Output("network-graph", "elements", allow_duplicate=True),
         Output("variable-selection-noise", "children", allow_duplicate=True),
         Output("mechanism-config", "children", allow_duplicate=True),
-        Output("data-generation-viewer", "children", allow_duplicate=True),
+        Output("data-generation-graph", "elements", allow_duplicate=True),
         Input("add-new-node", "n_clicks"),
         prevent_initial_call="initial_duplicate",
     )
@@ -80,7 +80,7 @@ def setup_callbacks() -> None:
             GraphBuilder.get_graph_data(),
             VariableSelectionNoise().children,
             MechanismConfig().children,
-            DataGenerationViewer().children,
+            GraphBuilder.get_graph_data(),
         )
 
     @callback(
@@ -89,7 +89,7 @@ def setup_callbacks() -> None:
         Output("network-graph", "elements", allow_duplicate=True),
         Output("variable-selection-noise", "children", allow_duplicate=True),
         Output("mechanism-config", "children", allow_duplicate=True),
-        Output("data-generation-viewer", "children", allow_duplicate=True),
+        Output("data-generation-graph", "elements", allow_duplicate=True),
         Input("remove-selected-node", "n_clicks"),
         State("graph-builder-target-node", "value"),
         prevent_initial_call="initial_duplicate"
@@ -124,14 +124,14 @@ def setup_callbacks() -> None:
             GraphBuilder.get_graph_data(),
             VariableSelectionNoise().children,
             MechanismConfig().children,
-            DataGenerationViewer().children,
+            GraphBuilder.get_graph_data(),
         )
 
     @callback(
         Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
         Output("mechanism-config", "children", allow_duplicate=True),
-        Output("data-generation-viewer", "children", allow_duplicate=True),
+        Output("data-generation-graph", "elements", allow_duplicate=True),
         Input("add-new-edge", "n_clicks"),
         State("graph-builder-target-node", "value"),
         State("add-out-node", "value"),
@@ -161,14 +161,14 @@ def setup_callbacks() -> None:
             VariableConfig().children,
             GraphBuilder.get_graph_data(),
             MechanismConfig().children,
-            DataGenerationViewer().children,
+            GraphBuilder.get_graph_data(),
         )
 
     @callback(
         Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
         Output("mechanism-config", "children", allow_duplicate=True),
-        Output("data-generation-viewer", "children", allow_duplicate=True),
+        Output("data-generation-graph", "elements", allow_duplicate=True),
         Input("remove-edge", "n_clicks"),
         State("graph-builder-target-node", "value"),
         State("remove-out-node", "value"),
@@ -195,7 +195,7 @@ def setup_callbacks() -> None:
             VariableConfig().children,
             GraphBuilder.get_graph_data(),
             MechanismConfig().children,
-            DataGenerationViewer().children,
+            GraphBuilder.get_graph_data(),
         )
 
     @callback(
@@ -216,7 +216,7 @@ def setup_callbacks() -> None:
         Output("variable-selection-noise", "children", allow_duplicate=True),
         Output("noise-viewer", "children", allow_duplicate=True),
         Output("mechanism-config", "children", allow_duplicate=True),
-        Output("data-generation-viewer", "children", allow_duplicate=True),
+        Output("data-generation-graph", "elements", allow_duplicate=True),
         Input("confirm-new-name", "n_clicks"),
         State("variable-name", "value"),
         prevent_initial_call="initial_duplicate"
@@ -254,5 +254,5 @@ def setup_callbacks() -> None:
             VariableSelectionNoise().children,
             NoiseViewer().children,
             MechanismConfig().children,
-            DataGenerationViewer().children,
+            GraphBuilder.get_graph_data(),
         )

@@ -259,8 +259,8 @@ class Graph:
         return hierarchy
 
     def generate_full_data_set(self) -> pd.DataFrame:
-        if not all(x.mechanism_metadata.state == "locked" for x in self.get_nodes()):
-            raise Exception("All formulas need to be locked before generating data")
+        # if not all(x.mechanism_metadata.state == "locked" for x in self.get_nodes()):
+        #     raise Exception("All formulas need to be locked before generating data")
 
         hierarchy = self._get_generation_hierarchy()
         for layer in hierarchy.values():

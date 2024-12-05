@@ -6,8 +6,8 @@ from controllers import setup_callbacks
 from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilder, MechanismViewer
 from views.noise import NoiseBuilder, NoiseViewer
-# from views.utils import Placeholder
-from views.data_generation_summary import DataGenerationBuilder, DataGenerationViewer
+from views.utils import Placeholder
+from views.data_generation_summary import DataGenerationBuilder
 
 
 cyto.load_extra_layouts()
@@ -37,6 +37,7 @@ app.layout = html.Div(
                                     dbc.Col(GraphViewer()),
                                 ],
                             ),
+                            disabled=False,
                         ),
                         dbc.Tab(
                             id="tab2",
@@ -47,6 +48,7 @@ app.layout = html.Div(
                                     dbc.Col(NoiseViewer()),
                                 ],
                             ),
+                            disabled=False,
                         ),
                         dbc.Tab(
                             id="tab3",
@@ -60,13 +62,25 @@ app.layout = html.Div(
                         ),
                         dbc.Tab(
                             id="tab4",
-                            label="Summary",
+                            label="lock in",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(DataGenerationBuilder()),
-                                    dbc.Col(DataGenerationViewer()),
+                                    dbc.Col(Placeholder(id="shit")),
                                 ],
                             ),
+                            disabled=False,
+                        ),
+                        dbc.Tab(
+                            id="tab5",
+                            label="Summary",
+                            children=dbc.Row(
+                                children=[
+                                    dbc.Col(Placeholder(id="shit2")),
+                                    dbc.Col(Placeholder(id="shit3")),
+                                ],
+                            ),
+                            disabled=True
                         ),
                     ],
                 )

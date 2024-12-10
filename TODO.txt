@@ -32,24 +32,6 @@ TODO:
         - [X] variable change -> immediate update -> slider change (on release, not hold)
     - [X] add seed fixed seed for each data generation function
 
-
-    - [X] mechanism (default mapping for instant data generation)
-		- [X] default regression -> id noise instead of placeholder
-        - [X] default classification (all 1 class)
-    - [ ] mechanism choice confirmation
-        - [ ] left
-            - [X] confirm button
-            - [ ] confirm callback -> sample data + verification
-        - [ ] right
-            - [ ] formula display + info about confirmation (confirm only on left side)
-            -> full formula needed e.g. z = f(x,y,n_z) = x + y + 0.5*n_z
-                - [X] regression -> only 1
-                - [ ] classification -> multiple (depending on class)
-            - [ ] lock button -> if all confirmed -> unlock button if locked
-            - [ ] generate data on lock
-        - [ ] disable graph and noise and left mechanism on lock
-    - [ ] new tab -> summary + target/source node selection
-
     - [X] one last rework
         - [X] lexer + parser for formulas 
             - [X] google if simple grammar module available
@@ -101,7 +83,7 @@ TODO:
                     - [X] apply callbacks also to graph stuff -> adding variables to selector
                     - [X] callback logs
                     - [X] fix tests
-                - [ ] mechanism
+                - [X] mechanism
                     - [X] builder
                         - [X] variable selection (similar to others)
                         - [X] mechanism type
@@ -144,18 +126,55 @@ TODO:
                         - [X] update on each confirm (correct)
                         - [X] display errors
 
-    - [ ] data gen tab
+    - [X] data gen tab
         -> no callbacks from previous tabs -> simple
-        - [ ] lock button -> success if data generated correctly
+        - [X] lock button -> success if data generated correctly
             - [X] lock generates data
-            - [ ] if fails -> feedback (only mechanism can fail)
+            - [X] if fails -> feedback (only mechanism can fail)
             - [X] if success -> lock previous tabs, button becomes unlock, tabs unlocked
+            - [X] feedback for successfully generated data
         - [X] new dummy tabs for locked graph -> locked initially, unlocked by button
-        - [ ] viewer just shows success or fail
+        - [X] viewer just shows success or fail
         -> main task is locking tabs and generating data
-        
+
+    - [ ] data summary tab
+    -> probably no 2 half windows with builder and viewer
+    -> remove same seed since it ruins it
+        - [X] show simple table from df
+        -> not that useful?
+        - [X] data needs to be written to some internal state, None if failed or unlocked
+        - [X] correlation table (heatmap)
+            -> types of correlations e.g. spearman, pearson, kendall tau
+            -> dash figure + plotly heatmap (similar to distr)
+            -> scatter matrix is nice -> keep as option
+            -> looks nice, but possible for more types
+        - [ ] pairwise comparison of variables
+            -> 2 dropdowns for each variable
+            -> scatter plot
+            -> variables bubble chart
+        - [ ] more data analysis options
+            -> regression vs classification tools e.g. charts, class distribution
+            -> just show pands table with export of raw data
+        - [ ] export functions
+            -> further analysis on your own
+            -> export data generation process
+            -> export raw data
+            -> both
+        - [ ] required plot options
+            - [ ] scatter matrix
+            -> with proper proportions
+            - [ ] heatmap
+            - [ ] 1:1 scatter plot with dropdown
+
+    - [ ] lock in for ML
+        -> rough idea: select target and source variables (variables can be ignored)
+        -> create multiple instances of data for comparison e.g. data with certain variable vs. data without certain variable
+        -> intervention option? just set some variable to a fixed value
+ 
+
 
     - [ ] fixes
+        - [ ] add logger to all controllers
         - [ ] graph
             - [X] respect the maximum size of the defaults
             -> reproduce: max out slider and then change -> result: cannot go back to default max (uniform)
@@ -165,6 +184,11 @@ TODO:
             -> scaling can be done in the mechanism part
             -> need to know which variables to limit, which not
             -> might be useful for uniform distribution where we can just keep a constant
+        - [ ] mechanism
+            - [ ] when data already generated and locked -> keep state when reloading
+        - [ ] lock data
+            - [ ] think about adding seed (could also be added to noise?)
+            - [ ] handling names instead of ids 
 
 	- [ ] graph state as file
     -> simple json

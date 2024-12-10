@@ -325,7 +325,7 @@ class Noise:
                 v.name: v.current for v in distribution.parameters.values()
             }
             # TODO: setting for seed via UI?
-            np.random.seed(0)
+            # np.random.seed(0)
             new_values: np.ndarray = distribution.generator.rvs(**parameter_values, size=nr_points)  # type: ignore
             values[distribution.id_] = new_values
 

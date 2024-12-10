@@ -118,7 +118,7 @@ class Node:
 class Graph:
     nodes: dict[str, Node | None] = field(
         default_factory=lambda: {str(id): None for id in string.ascii_lowercase})
-    data: None = None
+    data: pd.DataFrame | None = None
 
     def get_nodes(self) -> list[Node]:
         return [node for node in self.nodes.values() if node is not None]

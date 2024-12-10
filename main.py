@@ -3,11 +3,13 @@ from dash import Dash, html
 import dash_cytoscape as cyto
 
 from controllers import setup_callbacks
+from views.data_summary import DataSummaryViewer
 from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilder, MechanismViewer
 from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
-from views.data_generation_summary import DataGenerationBuilder
+from views.lock_data import LockDataBuilder, LockDataViewer
+
 
 
 cyto.load_extra_layouts()
@@ -65,8 +67,8 @@ app.layout = html.Div(
                             label="lock in",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(DataGenerationBuilder()),
-                                    dbc.Col(Placeholder(id="shit")),
+                                    dbc.Col(LockDataBuilder()),
+                                    dbc.Col(LockDataViewer()),
                                 ],
                             ),
                             disabled=False,
@@ -76,8 +78,7 @@ app.layout = html.Div(
                             label="Summary",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(Placeholder(id="shit2")),
-                                    dbc.Col(Placeholder(id="shit3")),
+                                    dbc.Col(DataSummaryViewer()),
                                 ],
                             ),
                             disabled=True

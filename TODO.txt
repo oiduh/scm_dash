@@ -148,23 +148,35 @@ TODO:
             -> dash figure + plotly heatmap (similar to distr)
             -> scatter matrix is nice -> keep as option
             -> looks nice, but possible for more types
-        - [ ] pairwise comparison of variables
+        - [X] pairwise comparison of variables
             -> 2 dropdowns for each variable
             -> scatter plot
             -> variables bubble chart
-        - [ ] more data analysis options
+            -> very nice for many variables
+        - [X] more data analysis options
             -> regression vs classification tools e.g. charts, class distribution
             -> just show pands table with export of raw data
+            -> not yet since no decent ideas
+        - [ ] graph
+            - [X] just show graph with layout options
+            - [ ] callback for layout options
+            -> fix initial view (all nodes in corner)
+            - [ ] hover over nodes for distribution
+            - [ ] hover over edges for mechanism formula
+            - [ ] move around node
+            - [ ] reset button -> back to layout
         - [ ] export functions
             -> further analysis on your own
             -> export data generation process
             -> export raw data
             -> both
+            -> export zip with all images + data
         - [ ] required plot options
-            - [ ] scatter matrix
+            - [X] scatter matrix
             -> with proper proportions
-            - [ ] heatmap
-            - [ ] 1:1 scatter plot with dropdown
+            - [X] heatmap
+            - [X] 1:1 scatter plot with dropdown
+            - [ ] graph with hover data
 
     - [ ] lock in for ML
         -> rough idea: select target and source variables (variables can be ignored)
@@ -189,6 +201,7 @@ TODO:
         - [ ] lock data
             - [ ] think about adding seed (could also be added to noise?)
             - [ ] handling names instead of ids 
+            - [ ] color coding for visualisations for classification
 
 	- [ ] graph state as file
     -> simple json

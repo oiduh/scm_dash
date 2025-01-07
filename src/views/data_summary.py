@@ -1,7 +1,10 @@
+from enum import StrEnum
+from typing import Self
 from dash import html, dcc
 import plotly.express as px
 import dash_bootstrap_components as dbc
 from dash_cytoscape import Cytoscape
+from random import choice
 
 from models.graph import graph
 from views.graph import GraphBuilder
@@ -10,6 +13,31 @@ from views.graph import GraphBuilder
 class DataSummaryViewer(html.Div):
     scatter_x: str | None = None
     scatter_y: str | None = None
+    class Layouts(StrEnum):
+        circle = "circle"
+        random = "random"
+        grid = "grid"
+        concentric = "concentric"
+        breadthfirst = "breadthfirst"
+        # cose = "cose"
+        # cose_bilkent = "cose-bilkent"
+        cola = "cola"
+        # euler = "euler"
+        spread = "spread"
+        # dagre = "dagre"
+        # klay = "klay"
+
+        @classmethod
+        def get_all(cls) -> list[Self]:
+            return [e for e in cls]
+
+        @classmethod
+        def get_random(cls, current: Self) -> Self:
+            while (m:=choice(cls.get_all())) and m == current: pass
+            return m
+
+    layout = Layouts.random
+
     def __init__(self):
         super().__init__(id="data-summary-viewer")
         data = graph.data
@@ -19,18 +47,17 @@ class DataSummaryViewer(html.Div):
 
         self.children.extend([
             dcc.Dropdown(
-                # options=self.Layouts.get_all(),
-                options=["circle", "cola"],
-                value="circle",
-                id="layout-choices-2",
+                options=self.Layouts.get_all(),
+                value=self.layout,
+                id="layout-choices-summary",
                 searchable=False,
                 multi=False,
                 clearable=False
             ),
-            # html.H3(f"Layout: {1}"),
+            html.Button("reset view", id="data-summary-reset", n_clicks=0),
             Cytoscape(
-                id="network-graph",
-                layout={"name": "circle"},
+                id="summary-graph",
+                layout={"name": self.layout},
                 userPanningEnabled=False,
                 zoomingEnabled=False,
                 style={"width": "100%", "height": "700px"},

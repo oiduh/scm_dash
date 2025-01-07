@@ -31,10 +31,24 @@ def setup_callbacks() -> None:
         return DataSummaryViewer().children
 
     @callback(
-        Output("network-graph", "layout"),
-        Input("layout-choices-2", "value"),
+        Output("summary-graph", "layout", allow_duplicate=True),
+        Input("layout-choices-summary", "value"),
+        prevent_initial_call="initial_duplicate"
     )
-    def update_layout_choice_2(new_value: str):
+    def update_layout_choice_2(new_value: DataSummaryViewer.Layouts | None):
+        print("calling update layout choices")
         if not new_value:
             raise PreventUpdate()
-        return {"name": new_value}
+        DataSummaryViewer.layout = new_value
+        return {"name": new_value, "animate": True}
+
+    @callback(
+        Output("summary-graph", "layout"),
+        Input("data-summary-reset", "n_clicks"),
+    )
+    def reset_data_summary_layout(clicked):
+        if not clicked:
+            raise PreventUpdate()
+        DataSummaryViewer.layout = DataSummaryViewer.Layouts.get_random(DataSummaryViewer.layout)
+        print("resetting view: " , DataSummaryViewer.layout)
+        return {"name": DataSummaryViewer.layout, "animate": True}

@@ -21,11 +21,12 @@ TODO:
             -> just show pands table with export of raw data
             -> not yet since no decent ideas
         - [ ] graph
-            - [ ] move to top (most important summary object)
+            - [X] move to top (most important summary object)
             - [X] just show graph with layout options
-            - [ ] callback for layout options
+            - [X] callback for layout options
             -> fix initial view (all nodes in corner) -> works in graph.py but not here
             -> add more options as in graph.py
+            - [ ] add a reset button that re-renders the graph (currently ugly solution)
             - [ ] hover over nodes for distribution
             - [ ] hover over edges for mechanism formula
             - [ ] move around node

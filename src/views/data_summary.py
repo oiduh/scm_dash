@@ -14,44 +14,13 @@ class DataSummaryViewer(html.Div):
         super().__init__(id="data-summary-viewer")
         data = graph.data
         if data is None:
-            self.children = []
-            return 
-
-        # print(data.columns)
-        scatter_plot = px.scatter_matrix(data)
-        self.children = [
-            html.H3("scatter plot"),
-            dcc.Graph(id="scatter-plot", figure=scatter_plot)
-        ]
-
-        for corr in ["pearson", "kendall", "spearman"]:
-            mat = data.corr(method=corr)
-            self.children.append(
-                html.Div([
-                    html.H3(f"correlation: {corr}"),
-                    dcc.Graph(id=corr, figure=px.imshow(mat, text_auto=True))
-                ])
-            )
-
-        nodes = graph.get_nodes()
-        ids = [x.id_ for x in nodes]
-        if DataSummaryViewer.scatter_x is None:
-            DataSummaryViewer.scatter_x = ids[0]
-        if DataSummaryViewer.scatter_y is None:
-            DataSummaryViewer.scatter_y = ids[1]
-        scatter_graph = px.scatter(data, x=DataSummaryViewer.scatter_x, y=DataSummaryViewer.scatter_y)
-        self.children.append(
-            dbc.Row([
-                dbc.Col(dcc.Dropdown(id="scatter-x", options=ids, value=DataSummaryViewer.scatter_x)),
-                dbc.Col(dcc.Dropdown(id="scatter-y", options=ids, value=DataSummaryViewer.scatter_y)),
-                dcc.Graph(id="scatter-graph", figure=scatter_graph)
-            ]),
-        )
+            return
+        self.children = []
 
         self.children.extend([
             dcc.Dropdown(
                 # options=self.Layouts.get_all(),
-                options=["circle", "nothing"],
+                options=["circle", "cola"],
                 value="circle",
                 id="layout-choices-2",
                 searchable=False,
@@ -79,3 +48,35 @@ class DataSummaryViewer(html.Div):
                 ],
             )
         ])
+
+        # print(data.columns)
+        scatter_plot = px.scatter_matrix(data)
+        self.children.extend([
+            html.H3("scatter plot"),
+            dcc.Graph(id="scatter-plot", figure=scatter_plot)
+        ])
+
+        for corr in ["pearson", "kendall", "spearman"]:
+            mat = data.corr(method=corr)
+            self.children.append(
+                html.Div([
+                    html.H3(f"correlation: {corr}"),
+                    dcc.Graph(id=corr, figure=px.imshow(mat, text_auto=True))
+                ])
+            )
+
+        nodes = graph.get_nodes()
+        ids = [x.id_ for x in nodes]
+        if DataSummaryViewer.scatter_x is None:
+            DataSummaryViewer.scatter_x = ids[0]
+        if DataSummaryViewer.scatter_y is None:
+            DataSummaryViewer.scatter_y = ids[1]
+        scatter_graph = px.scatter(data, x=DataSummaryViewer.scatter_x, y=DataSummaryViewer.scatter_y)
+        self.children.append(
+            dbc.Row([
+                dbc.Col(dcc.Dropdown(id="scatter-x", options=ids, value=DataSummaryViewer.scatter_x)),
+                dbc.Col(dcc.Dropdown(id="scatter-y", options=ids, value=DataSummaryViewer.scatter_y)),
+                dcc.Graph(id="scatter-graph", figure=scatter_graph)
+            ]),
+        )
+

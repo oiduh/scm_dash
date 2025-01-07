@@ -29,3 +29,12 @@ def setup_callbacks() -> None:
         DataSummaryViewer.scatter_x = first_node
         DataSummaryViewer.scatter_y = second_node
         return DataSummaryViewer().children
+
+    @callback(
+        Output("network-graph", "layout"),
+        Input("layout-choices-2", "value"),
+    )
+    def update_layout_choice_2(new_value: str):
+        if not new_value:
+            raise PreventUpdate()
+        return {"name": new_value}

@@ -2,12 +2,66 @@ from enum import StrEnum
 from typing import Self
 from dash import html, dcc
 import plotly.express as px
+import plotly.figure_factory as ff
 import dash_bootstrap_components as dbc
 from dash_cytoscape import Cytoscape
 from random import choice
+import numpy as np
 
 from models.graph import graph
 from views.graph import GraphBuilder
+from utils.latexify import py_to_latex
+
+
+class NodeViewer(html.Div):
+    def __init__(self, node_id: str):
+        super().__init__(id="node-viewer")
+        self.children = []
+        node = graph.get_node_by_id(node_id)
+        assert node is not None
+        # TODO: 1) distribution for noise
+        noise = np.array(list(node.noise.data.values())).flatten()
+        noise_graph = ff.create_distplot(
+            [noise], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["blue"]
+        )
+        self.children.append(dcc.Graph("data-summary-noise-view", figure=noise_graph))
+
+        # TODO: 2) distribution for data
+        data = node.data
+        data_graph = ff.create_distplot(
+            [data], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["green"]
+        )
+        self.children.append(dcc.Graph("data-summary-data-view", figure=data_graph))
+        # TODO: 3) mechanisms
+        in_nodes = [x.name or x.id_ for x in node.in_nodes]
+        in_nodes.append(f"n_{node.name or node.id_}")
+        causes = ", ".join(in_nodes)
+        formulas = node.mechanism_metadata.get_formulas()
+        mechanism_type = node.mechanism_metadata.mechanism_type
+        mechanism_viewer = html.Div()
+        mechanism_viewer.children = []
+        if mechanism_type == "regression":
+            try:
+                x = py_to_latex(f"f({causes})", in_nodes)
+                y = py_to_latex(f"{list(formulas.values())[0]}", in_nodes)
+                latex_formula = x + ":=" + y
+            except:
+                latex_formula = py_to_latex(f"f({causes})", in_nodes) + " := \\text{<invalid>}"
+            mechanism_viewer.children.append(
+                dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
+            )
+        else:
+            for class_id, formula in formulas.items():
+                try:
+                    x = py_to_latex(f"f_{class_id}({causes})", in_nodes)
+                    y = py_to_latex(f"{formula}", in_nodes)
+                    latex_formula = x + ":=" + y
+                except:
+                    latex_formula = py_to_latex(f"f_{class_id}({causes})", in_nodes) + " := \\text{<invalid>}"
+                mechanism_viewer.children.append(
+                    dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
+            )
+        self.children.append(mechanism_viewer)
 
 
 class DataSummaryViewer(html.Div):
@@ -75,7 +129,7 @@ class DataSummaryViewer(html.Div):
                         },
                     ],
                 )),
-                dbc.Col(html.Div(id="data-summary-selected", children="nothing"))
+                dbc.Col(NodeViewer("a"))
             ]),
             
         ])

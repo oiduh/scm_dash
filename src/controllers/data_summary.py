@@ -5,7 +5,7 @@ from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
 
 from utils.logger import DashLogger
-from views.data_summary import DataSummaryViewer
+from views.data_summary import DataSummaryViewer, NodeViewer
 from views.graph import GraphBuilder
 
 
@@ -51,13 +51,14 @@ def setup_callbacks() -> None:
         return GraphBuilder.get_graph_data()
 
     @callback(
-        Output("data-summary-selected", "children", allow_duplicate=True),
+        Output("node-viewer", "children", allow_duplicate=True),
         Input("summary-graph", "tapNodeData"),
         prevent_initial_call=True
     )
     def show_selected_node(data):
-        node = data["id"]  # also 'label'
-        return f"selected node '{node}'"
+        node = data.get("id")  # also 'label'
+        assert node is not None
+        return NodeViewer(node).children
 
     @callback(
         Output("data-summary-selected", "children", allow_duplicate=True),

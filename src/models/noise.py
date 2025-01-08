@@ -265,6 +265,7 @@ class Noise:
             str(nr): None for nr in range(10)
         }  # sub variables e.g. a_0, a_1
     )
+    data: dict[str, np.ndarray] = field(default_factory=dict)
 
     @classmethod
     def default_noise(cls, id_: str) -> Self:
@@ -285,8 +286,7 @@ class Noise:
 
     def get_free_id(self) -> str | None:
         free_ids = [
-            d
-            for d in self.sub_distributions.keys()
+            d for d in self.sub_distributions.keys()
             if self.sub_distributions.get(d) is None
         ]
         return free_ids[0] if len(free_ids) > 0 else None
@@ -328,5 +328,5 @@ class Noise:
             # np.random.seed(0)
             new_values: np.ndarray = distribution.generator.rvs(**parameter_values, size=nr_points)  # type: ignore
             values[distribution.id_] = new_values
-
+        self.data = values
         return values

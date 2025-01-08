@@ -31,6 +31,7 @@ TODO:
             -> selector window to the right (same for edges)
             -> remember to distinguish between id and name
             -> currently displaying id
+            -> classification needs different view than simple distribution e.g. pie diagram with all classes
             - [ ] hover over edges for mechanism formula
             -> same as nodes
             -> currently displaying id for source and target

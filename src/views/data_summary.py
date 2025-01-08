@@ -36,7 +36,7 @@ class DataSummaryViewer(html.Div):
             while (m:=choice(cls.get_all())) and m == current: pass
             return m
 
-    layout = Layouts.random
+    layout = Layouts.circle
 
     def __init__(self):
         super().__init__(id="data-summary-viewer")
@@ -55,28 +55,31 @@ class DataSummaryViewer(html.Div):
                 clearable=False
             ),
             html.Button("reset view", id="data-summary-reset", n_clicks=0),
-            Cytoscape(
-                id="summary-graph",
-                layout={"name": self.layout},
-                userPanningEnabled=False,
-                zoomingEnabled=False,
-                style={"width": "100%", "height": "700px"},
-                elements=GraphBuilder.get_graph_data(),
-                stylesheet=[
-                    {"selector": "node", "style": {"label": "data(label)"}},
-                    {
-                        "selector": "edge",
-                        "style": {
-                            "curve-style": "bezier",
-                            "target-arrow-shape": "triangle",
-                            "arrow-scale": 2,
+            dbc.Row([
+                dbc.Col(Cytoscape(
+                    id="summary-graph",
+                    layout={"name": self.layout},
+                    userPanningEnabled=False,
+                    zoomingEnabled=False,
+                    style={"width": "100%", "height": "700px"},
+                    elements=GraphBuilder.get_graph_data(),
+                    stylesheet=[
+                        {"selector": "node", "style": {"label": "data(label)"}},
+                        {
+                            "selector": "edge",
+                            "style": {
+                                "curve-style": "bezier",
+                                "target-arrow-shape": "triangle",
+                                "arrow-scale": 2,
+                            },
                         },
-                    },
-                ],
-            )
+                    ],
+                )),
+                dbc.Col(html.Div(id="data-summary-selected", children="nothing"))
+            ]),
+            
         ])
 
-        # print(data.columns)
         scatter_plot = px.scatter_matrix(data)
         self.children.extend([
             html.H3("scatter plot"),

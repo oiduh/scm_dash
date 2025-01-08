@@ -26,11 +26,14 @@ TODO:
             - [X] callback for layout options
             -> fix initial view (all nodes in corner) -> works in graph.py but not here
             -> add more options as in graph.py
-            - [ ] add a reset button that re-renders the graph (currently ugly solution)
+            - [X] add a reset button that re-renders the graph (currently ugly solution)
             - [ ] hover over nodes for distribution
+            -> selector window to the right (same for edges)
+            -> remember to distinguish between id and name
+            -> currently displaying id
             - [ ] hover over edges for mechanism formula
-            - [ ] move around node
-            - [ ] reset button -> back to layout
+            -> same as nodes
+            -> currently displaying id for source and target
         - [ ] required plot options
             - [X] scatter matrix
             -> with proper proportions
@@ -40,6 +43,7 @@ TODO:
             -> display mechanism and show mini graph of noise?
         - [ ] design
             - [ ] center with border (not fill whole screen)
+            - [ ] fix data by id and data by name
  
     - [ ] lock in for ML
         -> rough idea: select target and source variables (variables can be ignored)

@@ -27,24 +27,23 @@ TODO:
             -> fix initial view (all nodes in corner) -> works in graph.py but not here
             -> add more options as in graph.py
             - [X] add a reset button that re-renders the graph (currently ugly solution)
-            - [ ] hover over nodes for distribution
+            - [X] click on nodes for distribution
             -> selector window to the right (same for edges)
             -> remember to distinguish between id and name
             -> currently displaying id
             -> classification needs different view than simple distribution e.g. pie diagram with all classes
-            - [ ] hover over edges for mechanism formula
-            -> same as nodes
-            -> currently displaying id for source and target
-        - [ ] required plot options
+        - [X] required plot options
             - [X] scatter matrix
             -> with proper proportions
             - [X] heatmap
             - [X] 1:1 scatter plot with dropdown
-            - [ ] graph with hover data
+            - [X] graph with data on click
             -> display mechanism and show mini graph of noise?
         - [ ] design
             - [ ] center with border (not fill whole screen)
             - [ ] fix data by id and data by name
+            - [ ] show all mechanisms at once (combined with scatterplot?)
+            - [ ] distr graph on top -> remove interaction + add labels
  
     - [ ] lock in for ML
         -> rough idea: select target and source variables (variables can be ignored)

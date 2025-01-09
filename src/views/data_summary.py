@@ -3,6 +3,7 @@ from typing import Self
 from dash import html, dcc
 import plotly.express as px
 import plotly.figure_factory as ff
+import plotly.graph_objects as go
 import dash_bootstrap_components as dbc
 from dash_cytoscape import Cytoscape
 from random import choice
@@ -28,9 +29,15 @@ class NodeViewer(html.Div):
 
         # TODO: 2) distribution for data
         data = node.data
-        data_graph = ff.create_distplot(
-            [data], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["green"]
-        )
+        assert data is not None
+        if node.mechanism_metadata.mechanism_type == "regression":
+            data_graph = ff.create_distplot(
+                [data], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["green"]
+            )
+        else:
+            unique, counts = np.unique(data, return_counts=True)
+            data_graph = go.Figure(go.Pie(values=counts, labels=[str(x) for x in unique]))
+
         self.children.append(dcc.Graph("data-summary-data-view", figure=data_graph))
         # TODO: 3) mechanisms
         in_nodes = [x.name or x.id_ for x in node.in_nodes]

@@ -18,6 +18,8 @@ class NodeViewer(html.Div):
     def __init__(self, node_id: str):
         super().__init__(id="node-viewer")
         self.children = []
+        container = dbc.Col()
+        container.children = []
         node = graph.get_node_by_id(node_id)
         assert node is not None
         # TODO: 1) distribution for noise
@@ -25,7 +27,7 @@ class NodeViewer(html.Div):
         noise_graph = ff.create_distplot(
             [noise], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["blue"]
         )
-        self.children.append(dcc.Graph("data-summary-noise-view", figure=noise_graph))
+        container.children.append(dbc.Row(dcc.Graph("data-summary-noise-view", figure=noise_graph)))
 
         # TODO: 2) distribution for data
         data = node.data
@@ -38,7 +40,7 @@ class NodeViewer(html.Div):
             unique, counts = np.unique(data, return_counts=True)
             data_graph = go.Figure(go.Pie(values=counts, labels=[str(x) for x in unique]))
 
-        self.children.append(dcc.Graph("data-summary-data-view", figure=data_graph))
+        container.children.append(dbc.Row(dcc.Graph("data-summary-data-view", figure=data_graph)))
         # TODO: 3) mechanisms
         in_nodes = [x.name or x.id_ for x in node.in_nodes]
         in_nodes.append(f"n_{node.name or node.id_}")
@@ -68,7 +70,15 @@ class NodeViewer(html.Div):
                 mechanism_viewer.children.append(
                     dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
             )
-        self.children.append(mechanism_viewer)
+        container.children.append(dbc.Row(mechanism_viewer))
+        self.children.append(container)
+
+
+class GraphViewer(html.Div):
+    def __init__(self):
+        super().__init__()
+        # TODO: 1) left side dropdown, reset button and graph
+        # TODO: 2) right side noise distr, data distr, mechanisms (maybe make it tabbed)
 
 
 class DataSummaryViewer(html.Div):
@@ -101,6 +111,11 @@ class DataSummaryViewer(html.Div):
 
     def __init__(self):
         super().__init__(id="data-summary-viewer")
+        self.style = {
+            "width": "80%",
+            "margin-inline": "auto",
+            "border": "1px solid black"
+        }
         data = graph.data
         if data is None:
             return

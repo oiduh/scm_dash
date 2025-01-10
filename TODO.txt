@@ -40,6 +40,7 @@ TODO:
             - [X] graph with data on click
             -> display mechanism and show mini graph of noise?
         - [ ] design
+            - [ ] use ipad for mocking design
             - [ ] center with border (not fill whole screen)
             - [ ] fix data by id and data by name
             - [ ] show all mechanisms at once (combined with scatterplot?)

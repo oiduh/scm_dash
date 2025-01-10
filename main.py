@@ -88,7 +88,7 @@ app.layout = html.Div(
             ],
         ),
     ],
-    style={"width": "99vw", "height": "99vh", "margin": "0", "padding": "0", "border-style": "solid"},
+    # style={"width": "99vw", "height": "99vh", "margin": "0", "padding": "0", "border-style": "solid"},
 )
 setup_callbacks()
 app.run(

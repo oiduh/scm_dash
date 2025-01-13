@@ -20,7 +20,7 @@ TODO:
             -> regression vs classification tools e.g. charts, class distribution
             -> just show pands table with export of raw data
             -> not yet since no decent ideas
-        - [ ] graph
+        - [X] graph
             - [X] move to top (most important summary object)
             - [X] just show graph with layout options
             - [X] callback for layout options
@@ -39,12 +39,27 @@ TODO:
             - [X] 1:1 scatter plot with dropdown
             - [X] graph with data on click
             -> display mechanism and show mini graph of noise?
-        - [ ] design
+!!!     - [ ] design
             - [ ] use ipad for mocking design
             - [ ] center with border (not fill whole screen)
             - [ ] fix data by id and data by name
             - [ ] show all mechanisms at once (combined with scatterplot?)
             - [ ] distr graph on top -> remove interaction + add labels
+    - [ ] variable selector (NEW TAB)
+    -> for the ML part we want to apply ML algorithms for our generated dataset
+    -> current idea: select which variables are eligible for the training
+    -> select which variable is target (only one)
+    -> select which variables are the source (at least one), ability to compare
+    -> maybe create multiple different data sets
+    -> maybe add intervention e.g. select a variable but set it to fixed value
+    -> depedending on TARGET variable, a different set of ML algorithms is executed (reg vs cls)
+    - [ ] ...
+    - [ ] ML results (NEW TABS, LAST TAB?)
+    -> for each data set (if multiple exist)
+    -> depending on ML algorithm show relevant stats (research and find appropriate ML algorithms)
+    -> graphs and stats e.g. which variable has highest weight
+    -> supervised and semi-supervised algorithms (multiple runs with average scores + other stats)
+
  
     - [ ] lock in for ML
         -> rough idea: select target and source variables (variables can be ignored)

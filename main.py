@@ -6,6 +6,7 @@ from controllers import setup_callbacks
 from views.data_summary import DataSummaryViewer
 from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilder, MechanismViewer
+from views.ml_prep import MLPreparation
 from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
 from views.lock_data import LockDataBuilder, LockDataViewer
@@ -17,7 +18,7 @@ cyto.load_extra_layouts()
 
 app = Dash(
     __name__,
-    external_stylesheets=[dbc.themes.CERULEAN],
+    external_stylesheets=[dbc.themes.BOOTSTRAP],
     prevent_initial_callbacks=True,
     suppress_callback_exceptions=True
 )
@@ -82,6 +83,26 @@ app.layout = html.Div(
                                 ],
                             ),
                             disabled=True
+                        ),
+                        dbc.Tab(
+                            id="tab6",
+                            label="Variable Selection",
+                            children=dbc.Row(
+                                children=[
+                                    dbc.Col(MLPreparation()),
+                                ],
+                            ),
+                            disabled=False
+                        ),
+                        dbc.Tab(
+                            id="tab7",
+                            label="ML Results",
+                            children=dbc.Row(
+                                children=[
+                                    dbc.Col(Placeholder(id="ml-results")),
+                                ],
+                            ),
+                            disabled=False
                         ),
                     ],
                 )

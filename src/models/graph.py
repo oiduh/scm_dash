@@ -114,11 +114,15 @@ class Node:
         self.mechanism_metadata.state = new_state
 
 
+
 @dataclass
 class Graph:
     nodes: dict[str, Node | None] = field(
-        default_factory=lambda: {str(id): None for id in string.ascii_lowercase})
+        default_factory=lambda: {str(id): None for id in string.ascii_lowercase}
+    )
     data: pd.DataFrame | None = None
+    data_sets: list[dict[str, bool]] = field(default_factory=list)
+    # TODO:add support for intervention for data sets field e.g. bool and int accepted
 
     def get_nodes(self) -> list[Node]:
         return [node for node in self.nodes.values() if node is not None]
@@ -313,6 +317,12 @@ class Graph:
             raise Exception("Inconsisten columns")
 
         return dataframe
+
+    def add_data_set(self, new_data_set: dict[str, bool]) -> bool:
+        if new_data_set in self.data_sets:
+            return False
+        self.data_sets.append(new_data_set)
+        return True
 
 
 # TODO: initial graph setup -> replace with imported settings if available

@@ -92,7 +92,7 @@ app.layout = html.Div(
                                     dbc.Col(MLPreparation()),
                                 ],
                             ),
-                            disabled=False
+                            disabled=True
                         ),
                         dbc.Tab(
                             id="tab7",
@@ -102,7 +102,7 @@ app.layout = html.Div(
                                     dbc.Col(Placeholder(id="ml-results")),
                                 ],
                             ),
-                            disabled=False
+                            disabled=True
                         ),
                     ],
                 )

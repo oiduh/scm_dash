@@ -5,27 +5,40 @@ from models.graph import graph
 
 
 class TrainingDataSetEditor(html.Div):
+    active: bool = False
+    target_id: str | None = None
     def __init__(self):
         super().__init__(id="training-data-set-editor")
         self.children = []
+        if TrainingDataSetEditor.active is False:
+            return
 
         # button to remove training set
-        self.children.append(html.Button(
-            id="remove-training-data-set", children="Remove Training Set"
-        ))
+        self.children.append(dbc.Row([
+            dbc.Col(html.Button(
+                id="save-training-set", children="Save Training Set"
+            )),
+            dbc.Col(html.Button(
+                id="remove-training-set", children="Remove Training Set"
+            )),
+        ]))
         nodes = graph.get_nodes()
+        node_ids = [node.name or node.id_ for node in nodes]
         assert len(nodes) > 0
-        target = graph.get_node_ids()[0]
+        if TrainingDataSetEditor.target_id is None:
+            target = graph.get_node_ids()[0]
+        else:
+            target = TrainingDataSetEditor.target_id
         sources = set(graph.get_node_ids())
         sources.discard(target)
-        sources = list(sources) 
+        sources = list(sources)
 
-        node_ids = [node.name or node.id_ for node in nodes]
         self.children.extend([
             html.P("select the target variable:"),
             dcc.Dropdown(
+                id="selected-target-id",
                 options=node_ids,
-                value=node_ids[0]
+                value=target
             ),
             html.Hr(),
             html.P("select the source variables:"),
@@ -40,7 +53,8 @@ class TrainingDataSetEditor(html.Div):
             cardbody.children.append(dbc.InputGroup([
                 dbc.InputGroupText([
                     dbc.Checkbox(
-                        disabled=node.id_ not in sources,
+                        id={"type": "selected-source-id", "index": node.id_},
+                        disabled=node.id_==target,
                         value=node.id_ in sources,
                     ),
                 ]),
@@ -50,6 +64,8 @@ class TrainingDataSetEditor(html.Div):
 
 
 class MLPreparation(html.Div):
+    training_set_counter = 0
+    training_set_limit = 10
     def __init__(self):
         super().__init__(id="ml-preparation")
         self.children = []
@@ -57,9 +73,6 @@ class MLPreparation(html.Div):
             id="add-training-set", children="Add Training Set +"
         ))
         self.children.append(TrainingDataSetEditor())
-
-
-
 
         # TODO:
 

@@ -8,6 +8,7 @@ from models.mechanism import MechanismType
 from utils.logger import DashLogger
 from views.lock_data import LockDataBuilder, LockDataViewer
 from views.data_summary import DataSummaryViewer
+from views.ml_prep import MLPreparation
 
 
 
@@ -19,8 +20,11 @@ def setup_callbacks():
         Output("tab2", "disabled"),
         Output("tab3", "disabled"),
         Output("tab5", "disabled"),
+        Output("tab6", "disabled"),
+        Output("tab7", "disabled"),
         Output("data-generation-viewer", "children", allow_duplicate=True),
         Output("data-summary-viewer", "children", allow_duplicate=True),
+        Output("ml-preparation", "children", allow_duplicate=True),
         Input("lock-button", "n_clicks"),
         prevent_initial_call=True
     )
@@ -37,8 +41,11 @@ def setup_callbacks():
                 False,
                 False,
                 True,
+                True,
+                True,
                 LockDataViewer().children,
                 DataSummaryViewer().children,
+                MLPreparation().children,
             )
 
         try:
@@ -52,8 +59,11 @@ def setup_callbacks():
                 False,
                 False,
                 True,
+                True,
+                True,
                 LockDataViewer().children,
                 DataSummaryViewer().children,
+                MLPreparation().children,
             )
 
         graph.data = full_data_set
@@ -67,7 +77,10 @@ def setup_callbacks():
             True,
             True,
             False,
+            False,
+            False,
             LockDataViewer().children,
             DataSummaryViewer().children,
+            MLPreparation().children,
         )
 

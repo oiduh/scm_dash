@@ -6,7 +6,7 @@ from controllers import setup_callbacks
 from views.data_summary import DataSummaryViewer
 from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilder, MechanismViewer
-from views.ml_prep import MLPreparation
+from views.ml_prep import MLPreparation, MLViewer
 from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
 from views.lock_data import LockDataBuilder, LockDataViewer
@@ -90,6 +90,7 @@ app.layout = html.Div(
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(MLPreparation()),
+                                    dbc.Col(MLViewer()),
                                 ],
                             ),
                             disabled=True

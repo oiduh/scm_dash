@@ -8,7 +8,7 @@ from models.graph import graph
 from utils.logger import DashLogger
 from views.data_summary import DataSummaryViewer, NodeViewer
 from views.graph import GraphBuilder
-from views.ml_prep import MLPreparation, TrainingDataSetEditor
+from views.ml_prep import MLPreparation, MLViewer, TrainingDataSetEditor
 
 
 # TODO: add logs to functions
@@ -26,7 +26,6 @@ def setup_callbacks() -> None:
     def add_data_set(clicked):
         if not clicked:
             raise PreventUpdate()
-        print("clicked add data set")
         if TrainingDataSetEditor.active is True:
             raise PreventUpdate()
 
@@ -35,6 +34,7 @@ def setup_callbacks() -> None:
 
     @callback(
         Output("ml-preparation", "children", allow_duplicate=True),
+        Output("ml-viewer", "children", allow_duplicate=True),
         Input("remove-training-set", "n_clicks"),
         prevent_initial_call="initial_duplicate"
     )
@@ -43,10 +43,14 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
         assert TrainingDataSetEditor.active is True
         TrainingDataSetEditor.active = False
-        return MLPreparation().children
+        return (
+            MLPreparation().children,
+            MLViewer().children,
+        )
 
     @callback(
         Output("ml-preparation", "children", allow_duplicate=True),
+        Output("ml-viewer", "children", allow_duplicate=True),
         Input("save-training-set", "n_clicks"),
         State({ "type": "selected-source-id", "index": ALL}, "id"),
         State({ "type": "selected-source-id", "index": ALL}, "value"),
@@ -71,11 +75,14 @@ def setup_callbacks() -> None:
         if len(selected_sources) == 0:
             raise PreventUpdate()
 
-        if graph.add_data_set(source_id_dict) is False:
+        if graph.add_data_set(source_id_dict, target_id) is False:
             raise PreventUpdate()
 
         TrainingDataSetEditor.active = False
-        return MLPreparation().children
+        return (
+            MLPreparation().children,
+            MLViewer().children,
+        )
 
     @callback(
         Output("ml-preparation", "children", allow_duplicate=True),
@@ -89,3 +96,15 @@ def setup_callbacks() -> None:
         assert TrainingDataSetEditor.active is True
         TrainingDataSetEditor.target_id = new_value
         return MLPreparation().children
+
+    @callback(
+        Output("ml-viewer", "children", allow_duplicate=True),
+        Input({ "type": "remove-data-set", "index": ALL}, "n_clicks"),
+        prevent_initial_call="initial_duplicate"
+    )
+    def remove_data_set(remove_buttons: list):
+        if not any(remove_buttons):
+            raise PreventUpdate()
+        index = remove_buttons.index(next(x for x in remove_buttons if x))
+        graph.data_sets.pop(index)
+        return MLViewer().children

@@ -57,9 +57,14 @@ TODO:
         - [X] initial design with some expirments
         - [X] add button to add new set
         - [X] remove button for removing edit window
-        - [ ] save button for saving target + sources
-            - [ ] backend for saving data sets -> list of string
-            - [ ] frontend states for sources and targets (which ones are selected) -> needs to save selected nodes internally upon switch of target
+        - [X] save button for saving target + sources
+            - [X] backend for saving data sets -> list of string
+            - [X] frontend states for sources and targets (which ones are selected)
+        - [X] remove already added data sets (how to to do it best?)
+        -> a simple '-' or 'delete' in the viewer (better and easier)
+        - [X] callbacks for removing data sets
+        - [X] design for removing data sets (general viewer design)
+        - [ ] eventually add intervention
 
         -> initially set empty and ML step no executable
     - [ ] ML results (NEW TABS, LAST TAB?)
@@ -98,4 +103,5 @@ TODO:
             - [ ] handling names instead of ids 
             - [ ] color coding for visualisations for classification
         - [ ] detect null, nans and infs in the data set (data generation part)
+        - [ ] removing sub distributions raises error for color index
 

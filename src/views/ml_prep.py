@@ -33,6 +33,8 @@ class TrainingDataSetEditor(html.Div):
         sources.discard(target)
         sources = list(sources)
 
+        # TODO: add field for optional intervention -> simple float number input
+
         self.children.extend([
             html.P("select the target variable:"),
             dcc.Dropdown(
@@ -74,20 +76,17 @@ class MLPreparation(html.Div):
         ))
         self.children.append(TrainingDataSetEditor())
 
-        # TODO:
 
-        """
-            start with sample training data set
-            button to add new training data
-            per default all variables are selected and first node is target node
-            check boxes for each variable (multiple choice)
-            check box for target variable (single choice)
-            support multiple training sets
-            left:
-                add button
-                edit window for currently selected set
-                save button
-            right:
-                preview for all training sets + extra stuff e.g. data distribution
-        """
-
+class MLViewer(html.Div):
+    def __init__(self):
+        super().__init__(id="ml-viewer")
+        self.children = []
+        for idx, data_set in enumerate(graph.data_sets):
+            row = dbc.Row([
+                dbc.Col(html.P(f"sources: {data_set['s']}")),
+                dbc.Col(html.P(f"target: {data_set['t']}")),
+                dbc.Col(html.Button("remove", id={
+                    "type": "remove-data-set", "index": str(idx)
+                })),
+            ])
+            self.children.append(row)

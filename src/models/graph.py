@@ -1,6 +1,7 @@
 import string
 from copy import deepcopy
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
+import json
 
 import numpy as np
 import pandas as pd
@@ -327,6 +328,30 @@ class Graph:
             return False
         self.data_sets.append(new_data_set)
         return True
+
+    def serialize(self) -> str:
+        # TODO: add source and target info to graph as well?
+        graph_as_dict = {}
+        for id_, node in self.nodes.items():
+            if node is None:
+                continue
+            graph_as_dict[id_] = {}
+            graph_as_dict[id_]["name"] = node.name
+            graph_as_dict[id_]["in_nodes"] = [node.id_ for node in node.in_nodes]
+            graph_as_dict[id_]["out_nodes"] = [node.id_ for node in node.out_nodes]
+            graph_as_dict[id_]["noise"] = {}
+            for distr_id, distr in node.noise.sub_distributions.items():
+                if distr is None:
+                    continue
+                graph_as_dict[id_]["noise"][distr_id] = {
+                    "name": distr.name,
+                    "params": {}
+                }
+                for param_id, param in distr.parameters.items():
+                    graph_as_dict[id_]["noise"][distr_id]["params"][param_id] = {
+                        "current": param.current
+                    }
+        return json.dumps(graph_as_dict)
 
 
 # TODO: initial graph setup -> replace with imported settings if available

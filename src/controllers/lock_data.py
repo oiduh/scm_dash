@@ -1,4 +1,5 @@
 import logging
+import random
 
 from dash import Input, Output, State, callback, ctx
 from dash.exceptions import PreventUpdate
@@ -13,7 +14,6 @@ from views.ml_prep import MLPreparation
 
 
 def setup_callbacks():
-
     @callback(
         Output("data-generation-builder", "children", allow_duplicate=True),
         Output("tab1", "disabled"),
@@ -68,6 +68,11 @@ def setup_callbacks():
 
         graph.data = full_data_set
 
+        # TODO:remove from here once export is done
+        print("---\nexport:")
+        print(graph.serialize())
+        print("---")
+
         # TODO: check if locking succeeds
         LockDataBuilder.is_locked = not LockDataBuilder.is_locked
         LockDataViewer.error = False
@@ -83,4 +88,17 @@ def setup_callbacks():
             DataSummaryViewer().children,
             MLPreparation().children,
         )
+
+    @callback(
+        Output("export-graph-text", "data"),
+        Input("export-graph", "n_clicks"),
+        prevent_initial_call=True
+    )
+    def export_data(clicked):
+        if not clicked:
+            raise PreventUpdate()
+        return {
+            "content": graph.serialize(),
+            "filename": f"graph_{random.randint(1000,9999)}.txt"
+        }
 

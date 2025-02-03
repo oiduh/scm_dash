@@ -54,6 +54,14 @@ TODO:
     side by side comparison for different types of algorithms?
     side by side comparison for causal vs anticausal?
     """
+        - [X] add button to lock tab to export data
+        - [X] convert current data in some sort of json
+        - [X] add button for import on first tab
+        -> parsing required
+        -> fill in the data that can be regenerated
+        -> imported data still needs locking to generate new full data
+        - [ ] try importing data and converting it to valid graph data
+
 
     - [ ] lock in for ML
         -> rough idea: select target and source variables (variables can be ignored)
@@ -89,6 +97,7 @@ TODO:
         -> if set use instead of variable id, also use for visualization
         - [ ] proper names for class labels
         -> if set use instead of int, also use for visualization
+        - [ ] should not be able to remove nodes if there are only 2 left
 
 
 

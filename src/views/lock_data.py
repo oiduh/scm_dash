@@ -1,21 +1,26 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from dash_cytoscape import Cytoscape
-from views.graph import GraphBuilder
-from enum import Enum
 
 
 class LockDataBuilder(html.Div):
     is_locked: bool = False
     def __init__(self):
         super().__init__(id="data-generation-builder")
+        buttons = []
+        if LockDataBuilder.is_locked:
+            buttons.extend([
+                html.Button("Unlock", id="lock-button"),
+                html.Button("Export Graph", id="export-graph"),
+                dcc.Download(id="export-graph-text")
+            ])
+        else:
+            buttons.append(
+                html.Button("Lock", id="lock-button"),
+            )
         self.children = [
             dbc.Row(
                 dbc.Col(
-                    html.Button(
-                        "Unlock" if LockDataBuilder.is_locked else "Lock",
-                        id="lock-button"
-                    ),
+                    buttons,
                     width="auto"
                 ),
                 justify="center"

@@ -2,6 +2,7 @@ import string
 from copy import deepcopy
 from dataclasses import dataclass, field, asdict
 import json
+from typing import Any, Self
 
 import numpy as np
 import pandas as pd
@@ -20,11 +21,10 @@ from models.noise import Noise
 @dataclass
 class Node:
     id_: str
-    graph: "Graph"
 
     name: str | None = None
-    in_nodes: list["Node"] = field(default_factory=list)
-    out_nodes: list["Node"] = field(default_factory=list)
+    in_nodes: list[Self] = field(default_factory=list)
+    out_nodes: list[Self] = field(default_factory=list)
     noise: Noise = field(init=False)
     data: np.ndarray | None = None
     mechanism_metadata: MechanismMetadata = field(init=False)
@@ -39,7 +39,7 @@ class Node:
     def get_out_node_ids(self) -> list[str]:
         return [n.id_ for n in self.out_nodes]
 
-    def add_in_node(self, to_add: "Node") -> None:
+    def add_in_node(self, to_add: Self) -> None:
         """
         Exception:
             target node already an in node
@@ -48,7 +48,7 @@ class Node:
             raise Exception("Node already an in_node")
         self.in_nodes.append(to_add)
 
-    def add_out_node(self, to_add: "Node") -> None:
+    def add_out_node(self, to_add: Self) -> None:
         """
         Exception:
             target node already an out node
@@ -57,7 +57,7 @@ class Node:
             raise Exception("Node already an out_node")
         self.out_nodes.append(to_add)
 
-    def remove_in_node(self, to_remove: "Node") -> None:
+    def remove_in_node(self, to_remove: Self) -> None:
         """
         Exception:
             target node not an in node
@@ -66,7 +66,7 @@ class Node:
             raise Exception("Target node is not an in node")
         self.in_nodes.remove(to_remove)
 
-    def remove_out_node(self, to_remove: "Node") -> None:
+    def remove_out_node(self, to_remove: Self) -> None:
         """
         Exception:
             target node not an out node
@@ -113,6 +113,29 @@ class Node:
                 raise Exception("Formulas are invalid")
 
         self.mechanism_metadata.state = new_state
+
+    @staticmethod
+    def from_dict(node_dict: dict[str, Any]):
+        assert "id" in node_dict and node_dict["id"] in string.ascii_lowercase
+        assert (
+            "name" in node_dict and
+            node_dict["name"][0] == string.ascii_letters and
+            len(node_dict["name"]) > 1
+        )
+        assert (
+            "in_nodes" in node_dict and
+            len(node_dict["in_nodes"]) == 0 or
+            all(id_ in string.ascii_lowercase for id_ in node_dict["in_nodes"])
+        )
+        assert (
+            "out_nodes" in node_dict and
+            len(node_dict["out_nodes"]) == 0 or
+            all(id_ in string.ascii_lowercase for id_ in node_dict["out_nodes"])
+        )
+        assert "noise" in node_dict
+
+        # TODO:add all other checks for noise, most likely in noise class
+
 
 
 
@@ -352,6 +375,33 @@ class Graph:
                         "current": param.current
                     }
         return json.dumps(graph_as_dict)
+
+    @staticmethod
+    def parse_graph_data(graph_data: dict[str, Any]):
+        # ids valid
+        ids_ = list(graph_data.keys())
+        assert all(id_ in string.ascii_lowercase for id_ in ids_)
+
+        # name exists
+        assert all("name" in dict_ for dict_ in graph_data.values())
+        # all names unique
+        assert len(graph_data) == len(set(dict_["name"] for dict_ in graph_data.values()))
+        # TODO:correct naming conventions as for input
+
+        # in_nodes exists
+        assert all("in_nodes" in dict_ for dict_ in graph_data.values())
+        assert all(id_ in ids_ for dict_ in graph_data.values() for id_ in dict_["in_nodes"])
+
+        # out_nodes exists
+        assert all("out_nodes" in dict_ for dict_ in graph_data.values())
+        assert all(id_ in ids_ for dict_ in graph_data.values() for id_ in dict_["out_nodes"])
+
+        # noise exists
+        assert all("noise" in dict_ for dict_ in graph_data.values())
+        for id_, dict_ in graph_data["noise"]:
+            # make a simple try-except and a direct model conversion
+            pass
+
 
 
 # TODO: initial graph setup -> replace with imported settings if available

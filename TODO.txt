@@ -61,6 +61,15 @@ TODO:
         -> fill in the data that can be regenerated
         -> imported data still needs locking to generate new full data
         - [ ] try importing data and converting it to valid graph data
+            - [X] load data and stringify
+            - [ ] parse data (json, graph structure)
+            - [ ] recreate other attributes from data e.g. generators
+            - [ ] render components
+                - [ ] graph
+                - [ ] noise
+                - [ ] mechanism
+                -> save formulas
+            - [ ] lock and create data from imported graph
 
 
     - [ ] lock in for ML

@@ -1,5 +1,6 @@
 import logging
 import string
+import base64
 
 # from dash import ALL, Input, Output, State, callback, ctx
 from dash import Input, Output, State, callback
@@ -245,3 +246,15 @@ def setup_callbacks() -> None:
             NoiseViewer().children,
             MechanismConfig().children,
         )
+
+    @callback(
+        Output("uploaded-graph-test", "children"),
+        Input("upload-graph", "contents")
+    )
+    def upload_graph(content: str | None):
+        try:
+            assert content is not None
+            b64_str = content.rsplit(",", 1)[-1]
+            return str(base64.b64decode(b64_str))
+        except:
+            raise PreventUpdate()

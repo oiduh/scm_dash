@@ -18,6 +18,28 @@ class GraphBuilder(html.Div):
         variable_selection = VariableSelection()
         first_node = graph.get_nodes()[0]
         VariableSelection.selected_node_id = first_node.id_
+        self.children.extend([
+            html.P("Import Graph"),
+            dcc.Upload(
+                id="upload-graph",
+                children=html.Div([
+                    "Drag and drop or select file",
+                ]),
+                style={
+                    'width': '100%',
+                    'height': '60px',
+                    'lineHeight': '60px',
+                    'borderWidth': '1px',
+                    'borderStyle': 'dashed',
+                    'borderRadius': '5px',
+                    'textAlign': 'center',
+                    'margin': '10px'
+                },
+                multiple=False
+            ),
+            html.Div(id="uploaded-graph-test")
+        ])
+        self.children.append(html.Hr()) # TODO: better distinction from rest
         self.children.append(variable_selection)
         self.children.append(html.Hr()) # TODO: better distinction from rest
         self.children.append(VariableConfig())

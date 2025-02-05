@@ -115,7 +115,7 @@ class Node:
         self.mechanism_metadata.state = new_state
 
     @staticmethod
-    def from_dict(node_dict: dict[str, Any]):
+    def parse_from_dict(node_dict: dict[str, Any]):
         assert "id" in node_dict and node_dict["id"] in string.ascii_lowercase
         assert (
             "name" in node_dict and
@@ -173,7 +173,7 @@ class Graph:
         if free_node_id is None:
             raise Exception("Cannot add another node")
 
-        new_node = Node(free_node_id, self, free_node_id)
+        new_node = Node(free_node_id, free_node_id)
         self.nodes[free_node_id] = new_node
         new_node.change_type("regression")
         return new_node.id_
@@ -376,8 +376,8 @@ class Graph:
                     }
         return json.dumps(graph_as_dict)
 
-    @staticmethod
-    def parse_graph_data(graph_data: dict[str, Any]):
+    @classmethod
+    def parse_graph_data(cls, graph_data: dict[str, Any]) -> Self:
         # ids valid
         ids_ = list(graph_data.keys())
         assert all(id_ in string.ascii_lowercase for id_ in ids_)
@@ -398,9 +398,12 @@ class Graph:
 
         # noise exists
         assert all("noise" in dict_ for dict_ in graph_data.values())
-        for id_, dict_ in graph_data["noise"]:
+        for id_, noise_data in graph_data["noise"]:
             # make a simple try-except and a direct model conversion
-            pass
+            assert id_ in string.digits
+            new_noise = Noise.parse_noise_data(noise_data)
+
+        return cls()
 
 
 

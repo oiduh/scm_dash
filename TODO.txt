@@ -63,6 +63,7 @@ TODO:
         - [ ] try importing data and converting it to valid graph data
             - [X] load data and stringify
             - [ ] parse data (json, graph structure)
+            -> parsing and re-assembling is ass
             - [ ] recreate other attributes from data e.g. generators
             - [ ] render components
                 - [ ] graph

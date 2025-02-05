@@ -330,3 +330,23 @@ class Noise:
             values[distribution.id_] = new_values
         self.data = values
         return values
+
+    @classmethod
+    def parse_noise_data(cls, id_: str, noise_data: dict[str, Any]) -> Self:
+        # need id and sub distributions
+        # TODO:do this properly with documentation!
+        new_noise = cls(id_)
+        assert "name" in noise_data
+        assert noise_data["name"] in Distribution.parameter_options()
+        assert "params" in noise_data
+        default_distribution = Distribution.get_distribution(id_, noise_data["name"])
+        assert default_distribution is not None
+        default_parameters = default_distribution.parameters
+        assert noise_data["params"].keys() == default_parameters.keys()
+        for param_name, param in default_parameters.items():
+            x = noise_data["params"][param_name]
+            assert "current" in x
+            assert param.min <= x["current"] <= param.max
+        new_noise.sub_distributions = ...
+
+        return new_noise

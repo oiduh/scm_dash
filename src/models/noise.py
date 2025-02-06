@@ -1,4 +1,6 @@
 from dataclasses import dataclass, field
+from string import digits
+import string
 from typing import Any, Self
 
 import numpy as np
@@ -256,10 +258,33 @@ class Distribution:
             return None
         return self.parameters.get(name)
 
+    @classmethod
+    def parse_from_dict(cls, id_: str, distribution_dict: dict) -> Self:
+        assert (name := distribution_dict.get("name")) is not None and name in cls.parameter_options(), (
+            "invalid distribution name"
+        )
+        assert (params := distribution_dict.get("params")) is not None and isinstance(params, dict), (
+            "invalid distribution params"
+        )
+
+        new_distribution = Distribution.get_distribution(id_, name)
+        assert new_distribution is not None
+        for id_, current in params.items():
+            assert isinstance(current, float | int), "current not a float"
+            default_param = new_distribution.parameters.get(id_)
+            assert default_param is not None
+            assert default_param.min <= current <= default_param.max, "current invalid range"
+            new_distribution.parameters[id_].change_current(current)
+        return cls(
+            id_=new_distribution.id_,
+            name=new_distribution.name,
+            parameters=new_distribution.parameters,
+            generator=new_distribution.generator
+        )
+
 
 @dataclass
 class Noise:
-    id_: str
     sub_distributions: dict[str, Distribution | None] = field(
         default_factory=lambda: {
             str(nr): None for nr in range(10)
@@ -268,8 +293,8 @@ class Noise:
     data: dict[str, np.ndarray] = field(default_factory=dict)
 
     @classmethod
-    def default_noise(cls, id_: str) -> Self:
-        noise = cls(id_)
+    def default_noise(cls) -> Self:
+        noise = cls()
         noise.sub_distributions["0"] = Distribution.get_distribution("0", "normal")
         return noise
 
@@ -332,21 +357,18 @@ class Noise:
         return values
 
     @classmethod
-    def parse_noise_data(cls, id_: str, noise_data: dict[str, Any]) -> Self:
-        # need id and sub distributions
-        # TODO:do this properly with documentation!
-        new_noise = cls(id_)
-        assert "name" in noise_data
-        assert noise_data["name"] in Distribution.parameter_options()
-        assert "params" in noise_data
-        default_distribution = Distribution.get_distribution(id_, noise_data["name"])
-        assert default_distribution is not None
-        default_parameters = default_distribution.parameters
-        assert noise_data["params"].keys() == default_parameters.keys()
-        for param_name, param in default_parameters.items():
-            x = noise_data["params"][param_name]
-            assert "current" in x
-            assert param.min <= x["current"] <= param.max
-        new_noise.sub_distributions = ...
+    def parse_from_dict(cls, noise_data: dict[str, Any]) -> Self:
+        new_noise = cls()
+
+        assert all(isinstance(id_, str) and len(id_) == 1 and id_ in string.digits for id_ in noise_data.keys()), (
+            "invalid noise id"
+        )
+        assert all(isinstance(d, dict) for d in noise_data.values()), (
+            "invalid noise dict"
+        )
+
+        for id_, sub_distr in noise_data.items():
+            new_sub_distribution = Distribution.parse_from_dict(id_, sub_distr)
+            new_noise.sub_distributions[id_] = new_sub_distribution
 
         return new_noise

@@ -258,7 +258,9 @@ def setup_callbacks() -> None:
             assert content is not None
             b64_str = content.rsplit(",", 1)[-1]
             graph_data: dict[str, Any] = json.loads(base64.b64decode(b64_str))
-            new_graph = graph.parse_graph_data(graph_data)
+            new_graph = graph.parse_from_dict(graph_data)
+            print(new_graph)
             return graph_data
         except Exception as e:
+            print(e)
             raise PreventUpdate() from e

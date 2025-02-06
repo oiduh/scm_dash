@@ -1,6 +1,6 @@
 import string
 from copy import deepcopy
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 import json
 from typing import Any, Self
 
@@ -30,7 +30,7 @@ class Node:
     mechanism_metadata: MechanismMetadata = field(init=False)
 
     def __post_init__(self) -> None:
-        self.noise = Noise.default_noise(self.id_)
+        self.noise = Noise.default_noise()
         self.mechanism_metadata = MechanismMetadata(var_name=self.id_)
 
     def get_in_node_ids(self) -> list[str]:
@@ -89,10 +89,6 @@ class Node:
         data = {node_id: (np.random.rand(1000) - 0.5) * 10 for node_id in input_ids}
         formulas = list(self.mechanism_metadata.get_formulas().values())
 
-        # TODO: manipulate the data here -> use name over ids
-        print(f"{formulas=}")
-        print(f"{data.keys()=}")
-
         match self.mechanism_metadata.mechanism_type:
             case "regression":
                 mechanism = RegressionMechanism(formulas, data)
@@ -114,28 +110,52 @@ class Node:
 
         self.mechanism_metadata.state = new_state
 
-    @staticmethod
-    def parse_from_dict(node_dict: dict[str, Any]):
-        assert "id" in node_dict and node_dict["id"] in string.ascii_lowercase
-        assert (
-            "name" in node_dict and
-            node_dict["name"][0] == string.ascii_letters and
-            len(node_dict["name"]) > 1
-        )
-        assert (
-            "in_nodes" in node_dict and
-            len(node_dict["in_nodes"]) == 0 or
-            all(id_ in string.ascii_lowercase for id_ in node_dict["in_nodes"])
-        )
-        assert (
-            "out_nodes" in node_dict and
-            len(node_dict["out_nodes"]) == 0 or
-            all(id_ in string.ascii_lowercase for id_ in node_dict["out_nodes"])
-        )
-        assert "noise" in node_dict
+    @classmethod
+    def parse_from_dict(cls, node_id: str, node_dict: dict[str, Any]) -> Self:
+        new_node = cls(node_id)
+        print(node_dict)
 
-        # TODO:add all other checks for noise, most likely in noise class
+        name = node_dict.get("name")
+        if name is None:
+            new_node.name = node_id
+        elif isinstance(name, str):
+            assert len(name) > 1 and name[0] in string.ascii_letters, (
+                "invalid name 1"
+            )
+            new_node.name = name
+        else:
+            assert False, "invalid name 2"
 
+        assert (in_nodes := node_dict.get("in_nodes")) is not None and isinstance(in_nodes, list), (
+            "invalid in_nodes 1"
+        )
+        assert len(in_nodes) == 0 or all(isinstance(e, str) and len(e) == 1 for e in in_nodes), (
+            "invalid in_nodes 2"
+        )
+        assert len(in_nodes) == len(set(in_nodes)), (
+            "invalid in_nodes 3"
+        )
+        new_node.in_nodes = in_nodes
+
+        assert (out_nodes := node_dict.get("out_nodes")) is not None and isinstance(out_nodes, list), (
+            "invalid out_nodes 1"
+        )
+        assert len(out_nodes) == 0 or all(isinstance(e, str) and len(e) == 1 for e in out_nodes), (
+            "invalid out_nodes 1"
+        )
+        assert len(out_nodes) == len(set(out_nodes)), (
+            "invalid out_nodes 1"
+        )
+        new_node.out_nodes = out_nodes
+
+        assert (noise_data := node_dict.get("noise")) is not None and isinstance(noise_data, dict), (
+            "noise data dict error"
+        )
+        new_node.noise = Noise.parse_from_dict(noise_data)
+
+        # TODO: parse mechanism after export done
+
+        return new_node
 
 
 
@@ -359,7 +379,7 @@ class Graph:
             if node is None:
                 continue
             graph_as_dict[id_] = {}
-            graph_as_dict[id_]["name"] = node.name
+            graph_as_dict[id_]["name"] = node.name if node.name != node.id_ else None
             graph_as_dict[id_]["in_nodes"] = [node.id_ for node in node.in_nodes]
             graph_as_dict[id_]["out_nodes"] = [node.id_ for node in node.out_nodes]
             graph_as_dict[id_]["noise"] = {}
@@ -371,40 +391,25 @@ class Graph:
                     "params": {}
                 }
                 for param_id, param in distr.parameters.items():
-                    graph_as_dict[id_]["noise"][distr_id]["params"][param_id] = {
-                        "current": param.current
-                    }
+                    graph_as_dict[id_]["noise"][distr_id]["params"][param_id] = param.current
+        # TODO:add mechanism formulas
         return json.dumps(graph_as_dict)
 
     @classmethod
-    def parse_graph_data(cls, graph_data: dict[str, Any]) -> Self:
+    def parse_from_dict(cls, graph_data: dict[str, Any]) -> Self:
+        new_graph = cls()
         # ids valid
         ids_ = list(graph_data.keys())
-        assert all(id_ in string.ascii_lowercase for id_ in ids_)
-
-        # name exists
-        assert all("name" in dict_ for dict_ in graph_data.values())
-        # all names unique
-        assert len(graph_data) == len(set(dict_["name"] for dict_ in graph_data.values()))
-        # TODO:correct naming conventions as for input
-
-        # in_nodes exists
-        assert all("in_nodes" in dict_ for dict_ in graph_data.values())
-        assert all(id_ in ids_ for dict_ in graph_data.values() for id_ in dict_["in_nodes"])
-
-        # out_nodes exists
-        assert all("out_nodes" in dict_ for dict_ in graph_data.values())
-        assert all(id_ in ids_ for dict_ in graph_data.values() for id_ in dict_["out_nodes"])
-
-        # noise exists
-        assert all("noise" in dict_ for dict_ in graph_data.values())
-        for id_, noise_data in graph_data["noise"]:
-            # make a simple try-except and a direct model conversion
-            assert id_ in string.digits
-            new_noise = Noise.parse_noise_data(noise_data)
-
-        return cls()
-
+        assert all(isinstance(id_, str) and id_ in string.ascii_lowercase for id_ in ids_), (
+            "wrong ids in graph"
+        )
+        assert all(isinstance(d, dict) for d in graph_data.values()), (
+            "nodes not dicts"
+        )
+        for id_, d_ in graph_data.items():
+            new_node = Node.parse_from_dict(id_, d_)
+            new_graph.nodes[id_] = new_node
+        return new_graph
 
 
 # TODO: initial graph setup -> replace with imported settings if available

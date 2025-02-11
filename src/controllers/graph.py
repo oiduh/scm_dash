@@ -1,3 +1,4 @@
+from copy import deepcopy
 import logging
 import string
 import base64
@@ -254,13 +255,16 @@ def setup_callbacks() -> None:
         Input("upload-graph", "contents")
     )
     def upload_graph(content: str | None):
+        global graph
         try:
             assert content is not None
             b64_str = content.rsplit(",", 1)[-1]
             graph_data: dict[str, Any] = json.loads(base64.b64decode(b64_str))
             new_graph = graph.parse_from_dict(graph_data)
             print(new_graph)
-            return graph_data
+            GraphBuilder.last_uploaded_graph = True
+            return GraphBuilder().children
         except Exception as e:
+            GraphBuilder.last_uploaded_graph = False
             print(e)
             raise PreventUpdate() from e

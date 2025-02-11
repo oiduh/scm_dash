@@ -3,11 +3,13 @@ from dash import Dash, dcc, html
 from dash_cytoscape import Cytoscape
 from enum import Enum
 from dash import dcc
+from typing import Any
 
 from models.graph import graph
 
 
 class GraphBuilder(html.Div):
+    last_uploaded_graph: bool | None = None
     def __init__(self):
         super().__init__(id="graph-builder-new")
         self.style = {
@@ -36,9 +38,26 @@ class GraphBuilder(html.Div):
                     'margin': '10px'
                 },
                 multiple=False
-            ),
-            html.Div(id="uploaded-graph-test")
+            )
         ])
+        message = html.P()
+        button = html.Button("Use Graph", id="use-graph-button")
+        msg_args = dict[str, Any]()
+        button_args: dict[str, Any] = {"id": "use-graph-button"}
+        match GraphBuilder.last_uploaded_graph:
+            case True:
+                msg_args["children"] = "Graph is valid"
+                button_args["disabled"] = False
+            case False:
+                msg_args["children"] = "Graph is invalid"
+                button_args["disabled"] = True
+            case _:
+                msg_args["children"] = "Nothing uploaded"
+                button_args["disabled"] = False
+        self.children.append(html.Div(id="uploaded-graph-test", children=[
+            message, button
+        ]))
+
         self.children.append(html.Hr()) # TODO: better distinction from rest
         self.children.append(variable_selection)
         self.children.append(html.Hr()) # TODO: better distinction from rest

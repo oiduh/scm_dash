@@ -8,22 +8,15 @@ from typing import Any
 from models.graph import graph
 
 
-class GraphBuilder(html.Div):
+class GraphUploader(html.Div):
     last_uploaded_graph: bool | None = None
     def __init__(self):
-        super().__init__(id="graph-builder-new")
-        self.style = {
-            "border": "3px green solid",
-            "margin": "3px",
-        }
+        super().__init__(id="graph-uploader")
         self.children = []
-        variable_selection = VariableSelection()
-        first_node = graph.get_nodes()[0]
-        VariableSelection.selected_node_id = first_node.id_
         self.children.extend([
             html.P("Import Graph"),
             dcc.Upload(
-                id="upload-graph",
+                id="graph-upload-field",
                 children=html.Div([
                     "Drag and drop or select file",
                 ]),
@@ -40,11 +33,10 @@ class GraphBuilder(html.Div):
                 multiple=False
             )
         ])
-        message = html.P()
-        button = html.Button("Use Graph", id="use-graph-button")
+        # button = html.Button("Use Graph", id="use-graph-button")
         msg_args = dict[str, Any]()
         button_args: dict[str, Any] = {"id": "use-graph-button"}
-        match GraphBuilder.last_uploaded_graph:
+        match GraphUploader.last_uploaded_graph:
             case True:
                 msg_args["children"] = "Graph is valid"
                 button_args["disabled"] = False
@@ -53,10 +45,30 @@ class GraphBuilder(html.Div):
                 button_args["disabled"] = True
             case _:
                 msg_args["children"] = "Nothing uploaded"
-                button_args["disabled"] = False
+                button_args["disabled"] = True
+        print(msg_args)
+        print(button_args)
+        button = html.Button("Use Graph", **button_args)
+        message = html.P(**msg_args)
         self.children.append(html.Div(id="uploaded-graph-test", children=[
             message, button
         ]))
+
+
+
+class GraphBuilder(html.Div):
+    def __init__(self):
+        super().__init__(id="graph-builder-new")
+        self.style = {
+            "border": "3px green solid",
+            "margin": "3px",
+        }
+        self.children = []
+        variable_selection = VariableSelection()
+        first_node = graph.get_nodes()[0]
+        VariableSelection.selected_node_id = first_node.id_
+
+        self.children.append(GraphUploader())
 
         self.children.append(html.Hr()) # TODO: better distinction from rest
         self.children.append(variable_selection)

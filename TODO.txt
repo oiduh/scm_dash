@@ -19,7 +19,6 @@ TODO:
             - [X] graph with data on click
 !!!     - [ ] design
             - [ ] refresh when tab clicked (maybe not all components but graph)
-            - [ ] use ipad for mocking design
             - [ ] center with border (not fill whole screen)
             - [ ] fix data by id and data by name
             - [ ] show all mechanisms at once (combined with scatterplot?)
@@ -65,9 +64,16 @@ TODO:
             - [X] parse data (json, graph structure)
             -> parsing and re-assembling is ass
             - [X] recreate other attributes from data e.g. generators
-            - [ ] create new component for upload
+            - [X] create new component for upload
             -> why? only this component needs to be updated when new import happens
             -> must have button that can be disabled
+            - [ ] fix bugs
+            -> new graph recognized, but not rendered
+            -> class variable assignment
+            -> correct variable ids
+            -> correct variable names
+            -> correct noise
+            -> correct mechanisms (no confirmed)
             - [ ] render components
                 - [ ] graph
                 - [ ] noise

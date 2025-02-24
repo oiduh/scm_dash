@@ -10,16 +10,17 @@ from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
 # from dash.exceptions import PreventUpdate
 
-from models.graph import graph
+from models.graph import graph, new_graph, Graph
 from utils.logger import DashLogger
 from views.graph import (
     VariableConfig,
     VariableSelection as VariableSelectionGraph,
     GraphViewer,
     GraphBuilder,
+    GraphUploader,
 )
-from views.noise import NoiseViewer, VariableSelection as VariableSelectionNoise
-from views.mechanism import MechanismConfig, VariableSelection as VariableSelectionMechanism
+from views.noise import NoiseBuilder, NoiseViewer, VariableSelection as VariableSelectionNoise
+from views.mechanism import MechanismBuilder, MechanismConfig, MechanismViewer, VariableSelection as VariableSelectionMechanism
 
 
 LOGGER = DashLogger(name="GraphController", level=logging.DEBUG)
@@ -251,20 +252,63 @@ def setup_callbacks() -> None:
         )
 
     @callback(
-        Output("uploaded-graph-test", "children"),
-        Input("upload-graph", "contents")
+        Output("graph-uploader", "children"),
+        Input("graph-upload-field", "contents"),
+        prevent_initial_call="initial_duplicate",
     )
-    def upload_graph(content: str | None):
-        global graph
+    def check_uploaded_graph(content: str | None):
+        if content is None:
+            raise PreventUpdate()
+
+        global graph, new_graph
+        new_graph = None
         try:
             assert content is not None
             b64_str = content.rsplit(",", 1)[-1]
             graph_data: dict[str, Any] = json.loads(base64.b64decode(b64_str))
-            new_graph = graph.parse_from_dict(graph_data)
-            print(new_graph)
-            GraphBuilder.last_uploaded_graph = True
-            return GraphBuilder().children
+            new_graph = Graph.parse_from_dict(graph_data)
+            GraphUploader.last_uploaded_graph = True
         except Exception as e:
-            GraphBuilder.last_uploaded_graph = False
+            GraphUploader.last_uploaded_graph = False
             print(e)
-            raise PreventUpdate() from e
+        return GraphUploader().children
+
+    @callback(
+        Output("graph-builder-new", "children", allow_duplicate=True),
+        Output("graph-viewer", "children", allow_duplicate=True),
+        Output("noise-builder", "children", allow_duplicate=True),
+        Output("noise-viewer", "children", allow_duplicate=True),
+        Output("mechanism-builder", "children", allow_duplicate=True),
+        Output("mechanism-viewer", "children", allow_duplicate=True),
+        Input("use-graph-button", "n_clicks"),
+        prevent_initial_call="initial_duplicate",
+    )
+    def upload_graph(clicked):
+        if not clicked:
+            raise PreventUpdate()
+
+        global graph, new_graph
+        assert new_graph is not None
+        graph = deepcopy(new_graph)
+        new_graph = None
+
+        print("new graph initialized")
+        print(graph)
+
+        GraphUploader.last_uploaded_graph = None
+        VariableSelectionGraph.selected_node_id = None
+        GraphViewer.LAYOUT = GraphViewer.Layouts.circle
+        VariableSelectionMechanism.variable = None
+        MechanismConfig.mechanism_type = None
+        MechanismConfig.is_open = False
+        MechanismViewer.error = None
+
+        return (
+            GraphBuilder().children,
+            GraphViewer().children,
+            NoiseBuilder().children,
+            NoiseViewer().children,
+            MechanismBuilder().children,
+            MechanismViewer().children,
+        )
+

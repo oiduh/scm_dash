@@ -73,11 +73,10 @@ class MechanismConfig(html.Div):
         if MechanismConfig.mechanism_type is None:
             MechanismConfig.mechanism_type = node.mechanism_metadata.mechanism_type
 
-        causes = [x.name or x.id_ for x in node.in_nodes]
+        in_nodes = [graph.get_node_by_id(x) for x in node.in_nodes]
+        causes = [x.name or x.id_ for x in in_nodes if x is not None]
         causes.append(f"n_{node.name or node.id_}")
         causes = ", ".join(causes)
-
-        print(f"is_open: {MechanismConfig.is_open}")
 
         self.children = []
         if MechanismConfig.mechanism_type == "regression":
@@ -181,7 +180,8 @@ class RegressionBuilder(html.Div):
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
 
-        displayed_names = [x.name or x.id_ for x in node.in_nodes]
+        in_nodes = [graph.get_node_by_id(x) for x in node.in_nodes]
+        displayed_names = [x.name or x.id_ for x in in_nodes if x is not None]
         displayed_names.append(f"n_{{ {node.name or node.id_} }}")
 
         formula = node.mechanism_metadata.formulas.get("0")
@@ -205,7 +205,8 @@ class ClassificationBuilder(html.Div):
         assert VariableSelection.variable is not None
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
-        displayed_names = [x.name or x.id_ for x in node.in_nodes]
+        in_nodes = [graph.get_node_by_id(x) for x in node.in_nodes]
+        displayed_names = [x.name or x.id_ for x in in_nodes if x is not None]
         displayed_names.append(f"n_{{ {node.name or node.id_} }}")
         displayed_names = ", ".join(displayed_names)
         for c, f in node.mechanism_metadata.get_formulas().items():
@@ -237,7 +238,8 @@ class MechanismViewer(html.Div):
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
 
-        in_nodes = [x.name or x.id_ for x in node.in_nodes]
+        in_nodes = [graph.get_node_by_id(x) for x in node.in_nodes]
+        in_nodes = [x.name or x.id_ for x in in_nodes if x is not None]
         in_nodes.append(f"n_{node.name or node.id_}")
         causes = ", ".join(in_nodes)
 

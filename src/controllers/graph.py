@@ -1,9 +1,9 @@
-from copy import deepcopy
 import logging
 import string
 import base64
 import json
 from typing import Any
+import dataclasses
 
 # from dash import ALL, Input, Output, State, callback, ctx
 from dash import Input, Output, State, callback
@@ -268,6 +268,8 @@ def setup_callbacks() -> None:
             graph_data: dict[str, Any] = json.loads(base64.b64decode(b64_str))
             new_graph = Graph.parse_from_dict(graph_data)
             GraphUploader.last_uploaded_graph = True
+            print("new graph imported")
+            print(new_graph.get_node_ids())
         except Exception as e:
             GraphUploader.last_uploaded_graph = False
             print(e)
@@ -289,11 +291,12 @@ def setup_callbacks() -> None:
 
         global graph, new_graph
         assert new_graph is not None
-        graph = deepcopy(new_graph)
-        new_graph = None
+        for field in dataclasses.fields(Graph):
+            setattr(graph, field.name, getattr(new_graph, field.name))
 
-        print("new graph initialized")
-        print(graph)
+        new_graph = None
+        print("new graph assigned")
+        print(graph.get_node_ids())
 
         GraphUploader.last_uploaded_graph = None
         VariableSelectionGraph.selected_node_id = None

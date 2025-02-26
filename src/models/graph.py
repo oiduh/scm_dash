@@ -23,8 +23,8 @@ class Node:
     id_: str
 
     name: str | None = None
-    in_nodes: list[Self] = field(default_factory=list)
-    out_nodes: list[Self] = field(default_factory=list)
+    in_nodes: list[str] = field(default_factory=list)
+    out_nodes: list[str] = field(default_factory=list)
     noise: Noise = field(init=False)
     data: np.ndarray | None = None
     mechanism_metadata: MechanismMetadata = field(init=False)
@@ -33,47 +33,41 @@ class Node:
         self.noise = Noise.default_noise()
         self.mechanism_metadata = MechanismMetadata(var_name=self.id_)
 
-    def get_in_node_ids(self) -> list[str]:
-        return [n.id_ for n in self.in_nodes]
-
-    def get_out_node_ids(self) -> list[str]:
-        return [n.id_ for n in self.out_nodes]
-
     def add_in_node(self, to_add: Self) -> None:
         """
         Exception:
             target node already an in node
         """
-        if to_add in self.in_nodes:
+        if to_add.id_ in self.in_nodes:
             raise Exception("Node already an in_node")
-        self.in_nodes.append(to_add)
+        self.in_nodes.append(to_add.id_)
 
     def add_out_node(self, to_add: Self) -> None:
         """
         Exception:
             target node already an out node
         """
-        if to_add in self.out_nodes:
+        if to_add.id_ in self.out_nodes:
             raise Exception("Node already an out_node")
-        self.out_nodes.append(to_add)
+        self.out_nodes.append(to_add.id_)
 
     def remove_in_node(self, to_remove: Self) -> None:
         """
         Exception:
             target node not an in node
         """
-        if to_remove.id_ not in self.get_in_node_ids():
+        if to_remove.id_ not in self.in_nodes:
             raise Exception("Target node is not an in node")
-        self.in_nodes.remove(to_remove)
+        self.in_nodes.remove(to_remove.id_)
 
     def remove_out_node(self, to_remove: Self) -> None:
         """
         Exception:
             target node not an out node
         """
-        if to_remove.id_ not in self.get_out_node_ids():
+        if to_remove.id_ not in self.out_nodes:
             raise Exception("Target node is not an out node")
-        self.out_nodes.remove(to_remove)
+        self.out_nodes.remove(to_remove.id_)
 
     def change_type(self, new_type: MechanismType) -> None:
         assert self.mechanism_metadata.state == "editable"
@@ -85,7 +79,7 @@ class Node:
         # just a sanity check, values might not be correct for actual outcome
         input_ids = []
         input_ids.append(f"n_{self.name or self.id_}")  # add noise to inputs as well
-        input_ids.extend([x.name or x.id_ for x in self.in_nodes])
+        input_ids.extend([w.name or w.id_ for w in [graph.get_node_by_id(z) for z in self.in_nodes] if w is not None])
         data = {node_id: (np.random.rand(1000) - 0.5) * 10 for node_id in input_ids}
         formulas = list(self.mechanism_metadata.get_formulas().values())
 
@@ -113,7 +107,6 @@ class Node:
     @classmethod
     def parse_from_dict(cls, node_id: str, node_dict: dict[str, Any]) -> Self:
         new_node = cls(node_id)
-        print(node_dict)
 
         name = node_dict.get("name")
         if name is None:
@@ -207,9 +200,9 @@ class Graph:
             raise Exception("Node does not exist")
 
         for node in self.get_nodes():
-            if to_remove.id_ in [n.id_ for n in node.in_nodes]:
+            if to_remove.id_ in node.in_nodes:
                 node.remove_in_node(to_remove)
-            if to_remove.id_ in [n.id_ for n in node.out_nodes]:
+            if to_remove.id_ in node.out_nodes:
                 node.remove_out_node(to_remove)
 
         self.nodes[to_remove.id_] = None
@@ -222,48 +215,53 @@ class Graph:
         target.add_in_node(source)
 
     def can_add_edge(self, source: Node, target: Node) -> bool:
-        target_in_nodes = target.get_in_node_ids()
-        source_out_nodes = source.get_out_node_ids()
-        if source.id_ in target_in_nodes and target.id_ in source_out_nodes:
+        print(f"checking {source.id_} -> {target.id_}")
+        if source.id_ == target.id_:
+            return False
+        if source.id_ in target.in_nodes or source.id_ in target.out_nodes:
             return False
 
-        new_graph = deepcopy(self)
-        new_source = new_graph.get_node_by_id(source.id_)
-        new_target = new_graph.get_node_by_id(target.id_)
+        graph_cpy = deepcopy(self)
+        new_source = graph_cpy.get_node_by_id(source.id_)
+        new_target = graph_cpy.get_node_by_id(target.id_)
         assert new_source is not None and new_target is not None
         new_source.add_out_node(new_target)
         new_target.add_in_node(new_source)
 
-        return not Graph.is_cyclic(new_graph)
+        return not Graph.is_cyclic(graph_cpy)
 
     @staticmethod
-    def is_cyclic(new_graph: "Graph") -> bool:
-        nodes = new_graph.get_nodes()
-        visited = {k.id_: False for k in nodes}
-        recursive_stack = {k.id_: False for k in nodes}
+    def is_cyclic(graph_cpy: "Graph") -> bool:
+        nodes_ids = graph_cpy.get_node_ids()
+        visited = {k: False for k in nodes_ids}
+        recursive_stack = {k: False for k in nodes_ids}
 
-        for node in nodes:
-            if visited[node.id_] is False:
-                if Graph.is_cyclic_util(node, visited, recursive_stack, new_graph):
+        for node_id in nodes_ids:
+            if visited[node_id] is False:
+                if Graph.is_cyclic_util(node_id, visited, recursive_stack, graph_cpy):
                     return True
         return False
 
     @staticmethod
     def is_cyclic_util(
-        node: Node,
+        node_id: str,
         visited: dict[str, bool],
         recursive_stack: dict[str, bool],
-        new_graph: "Graph",
+        graph_cpy: "Graph",
     ) -> bool:
-        visited[node.id_] = True
-        recursive_stack[node.id_] = True
+        visited[node_id] = True
+        recursive_stack[node_id] = True
+        node = graph.get_node_by_id(node_id)
+        assert node is not None
         for neighbor in node.out_nodes:
-            if not visited[neighbor.id_]:
-                if Graph.is_cyclic_util(neighbor, visited, recursive_stack, new_graph):
+            if not visited[neighbor]:
+                if Graph.is_cyclic_util(neighbor, visited, recursive_stack, graph_cpy):
+                    print("CYCLE 1")
                     return True
-            elif recursive_stack[neighbor.id_]:
+            elif recursive_stack[neighbor]:
+                print("CYCLE 2")
                 return True
-        recursive_stack[node.id_] = False
+        recursive_stack[node_id] = False
         return False
 
     def remove_edge(self, source: Node, target: Node) -> None:
@@ -274,19 +272,19 @@ class Graph:
         if self._can_remove_edge(source, target) is False:
             raise Exception("Cannot remove edge")
 
-        source.out_nodes.remove(target)
-        target.in_nodes.remove(source)
+        source.out_nodes.remove(target.id_)
+        target.in_nodes.remove(source.id_)
 
     def _can_remove_edge(self, source: Node, target: Node) -> bool:
-        source_removable = source.id_ in [n.id_ for n in target.in_nodes]
-        target_removable = target.id_ in [n.id_ for n in source.out_nodes]
+        source_removable = source.id_ in target.in_nodes
+        target_removable = target.id_ in source.out_nodes
         return source_removable and target_removable
 
     def _get_generation_hierarchy(self) -> dict[int, set[str]]:
         all_nodes_ids = self.get_node_ids()
         hierarchy: dict[int, set[str]] = {}
         available_node_ids = set(
-            [x.id_ for x in self.get_nodes() if len(x.get_in_node_ids()) == 0]
+            [x.id_ for x in self.get_nodes() if len(x.in_nodes) == 0]
         )
         hierarchy[0] = available_node_ids
         current_layer = 1
@@ -298,7 +296,7 @@ class Graph:
             for x in unassigned_node_ids:
                 node = self.get_node_by_id(x)
                 assert node is not None
-                in_nodes = set(node.get_in_node_ids())
+                in_nodes = set(node.in_nodes)
                 if in_nodes.intersection(available_node_ids) == in_nodes:
                     next_layer_nodes.add(x)
             hierarchy[current_layer] = next_layer_nodes
@@ -307,9 +305,6 @@ class Graph:
         return hierarchy
 
     def generate_full_data_set(self) -> pd.DataFrame:
-        # if not all(x.mechanism_metadata.state == "locked" for x in self.get_nodes()):
-        #     raise Exception("All formulas need to be locked before generating data")
-
         hierarchy = self._get_generation_hierarchy()
         for layer in hierarchy.values():
             for node_id in layer:
@@ -321,7 +316,7 @@ class Graph:
                     f"n_{node_id}": np.array(list(node.noise.generate_data().values())).flatten()
                 }
 
-                for in_node_id in node.get_in_node_ids():
+                for in_node_id in node.in_nodes:
                     in_node = self.get_node_by_id(in_node_id)
                     if in_node is None or in_node.data is None:
                         raise Exception(f"Failed to find node with id: {in_node_id}")
@@ -380,8 +375,8 @@ class Graph:
                 continue
             graph_as_dict[id_] = {}
             graph_as_dict[id_]["name"] = node.name if node.name != node.id_ else None
-            graph_as_dict[id_]["in_nodes"] = [node.id_ for node in node.in_nodes]
-            graph_as_dict[id_]["out_nodes"] = [node.id_ for node in node.out_nodes]
+            graph_as_dict[id_]["in_nodes"] = node.in_nodes
+            graph_as_dict[id_]["out_nodes"] = node.out_nodes
             graph_as_dict[id_]["noise"] = {}
             for distr_id, distr in node.noise.sub_distributions.items():
                 if distr is None:
@@ -397,7 +392,7 @@ class Graph:
 
     @classmethod
     def parse_from_dict(cls, graph_data: dict[str, Any]) -> Self:
-        new_graph = cls()
+        graph_cpy = cls()
         # ids valid
         ids_ = list(graph_data.keys())
         assert all(isinstance(id_, str) and id_ in string.ascii_lowercase for id_ in ids_), (
@@ -408,8 +403,8 @@ class Graph:
         )
         for id_, d_ in graph_data.items():
             new_node = Node.parse_from_dict(id_, d_)
-            new_graph.nodes[id_] = new_node
-        return new_graph
+            graph_cpy.nodes[id_] = new_node
+        return graph_cpy
 
 
 # TODO: initial graph setup -> replace with imported settings if available

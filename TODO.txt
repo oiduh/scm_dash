@@ -67,13 +67,13 @@ TODO:
             - [X] create new component for upload
             -> why? only this component needs to be updated when new import happens
             -> must have button that can be disabled
-            - [ ] fix bugs
+            - [X] fix bugs
             -> new graph recognized, but not rendered
             -> class variable assignment
             -> correct variable ids
             -> correct variable names
             -> correct noise
-            -> correct mechanisms (no confirmed)
+            - [ ] export and import mechanisms
             - [ ] render components
                 - [ ] graph
                 - [ ] noise

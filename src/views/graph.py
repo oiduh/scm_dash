@@ -33,7 +33,6 @@ class GraphUploader(html.Div):
                 multiple=False
             )
         ])
-        # button = html.Button("Use Graph", id="use-graph-button")
         msg_args = dict[str, Any]()
         button_args: dict[str, Any] = {"id": "use-graph-button"}
         match GraphUploader.last_uploaded_graph:
@@ -58,6 +57,9 @@ class GraphUploader(html.Div):
 
 class GraphBuilder(html.Div):
     def __init__(self):
+        global graph
+        print("GraphBuilder with graph:")
+        print(graph.get_node_ids())
         super().__init__(id="graph-builder-new")
         self.style = {
             "border": "3px green solid",
@@ -67,6 +69,8 @@ class GraphBuilder(html.Div):
         variable_selection = VariableSelection()
         first_node = graph.get_nodes()[0]
         VariableSelection.selected_node_id = first_node.id_
+
+        print(graph)
 
         self.children.append(GraphUploader())
 
@@ -85,7 +89,7 @@ class GraphBuilder(html.Div):
         edges = []
         for cause in graph.get_nodes():
             for effect in cause.out_nodes:
-                edges.append({"data": {"source": cause.id_, "target": effect.id_}})
+                edges.append({"data": {"source": cause.id_, "target": effect}})
         return nodes + edges
 
 
@@ -94,10 +98,9 @@ class VariableSelection(html.Div):
     def __init__(self):
         super().__init__(id="variable-selection-graph")
         nodes = graph.get_nodes()
-        node_ids = graph.get_node_ids()
-        assert len(node_ids) > 0
+        assert len(nodes) > 0
         if VariableSelection.selected_node_id is None:
-            VariableSelection.selected_node_id = node_ids[0]
+            VariableSelection.selected_node_id = nodes[0].id_
 
         self.children = []
         self.children.append(
@@ -130,12 +133,12 @@ class VariableConfig(html.Div):
             assert target_node is not None
             if graph.can_add_edge(selected_node, target_node):
                 can_add[target_node.id_] = target_node.name or target_node.id_
+                print(f"{VariableSelection.selected_node_id} can add {target_node.id_}")
 
-        displayed_in_nodes = [x.name or x.id_ for x in selected_node.in_nodes]
-        displayed_out_nodes = [x.name or x.id_ for x in selected_node.out_nodes]
-
-        print(f"{displayed_in_nodes}")
-        print(f"{displayed_out_nodes}")
+        in_nodes = [y for y in [graph.get_node_by_id(x) for x in selected_node.in_nodes] if y is not None]
+        out_nodes = [y for y in [graph.get_node_by_id(x) for x in selected_node.out_nodes] if y is not None]
+        displayed_in_nodes = [x.name or x.id_ for x in in_nodes]
+        displayed_out_nodes = [x.name or x.id_ for x in out_nodes]
 
         self.children = []
         self.children.extend([
@@ -159,11 +162,11 @@ class VariableConfig(html.Div):
                 dbc.Col([
                     dbc.Row([
                         dbc.Col(html.P(f"In-Nodes:")),
-                        dbc.Col(html.P(','.join(displayed_in_nodes) or '<invalid>')),
+                        dbc.Col(html.P(','.join(displayed_in_nodes) or '<empty>')),
                     ]),
                     dbc.Row([
                         dbc.Col(html.P(f"Out-Nodes:")),
-                        dbc.Col(html.P(','.join(displayed_out_nodes) or '<invalid>')),
+                        dbc.Col(html.P(','.join(displayed_out_nodes) or '<empty>')),
                     ]),
                 ]),
                 html.Hr(),

@@ -1,7 +1,7 @@
 import ast
 import string
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Any, Literal, get_args
 
 import numpy as np
 from numpy.typing import NDArray
@@ -51,9 +51,7 @@ MechanismState = Literal["editable", "locked"]
 
 @dataclass
 class MechanismMetadata:
-    var_name: str
     mechanism_type: MechanismType = "regression"
-    state: MechanismState = "editable"
     valid: bool = True
     formulas: dict[str, str | None] = field(init=False)  # depends on the type
 
@@ -84,7 +82,6 @@ class MechanismMetadata:
 
     def add_class(self) -> None:
         assert self.mechanism_type == "classification"
-        assert self.state == "editable"
         free_id = self.get_next_free_class_id()
         if free_id is None:
             raise Exception("Cannot add another class")
@@ -92,11 +89,30 @@ class MechanismMetadata:
         self.valid = False
 
     def remove_class(self, class_id: str) -> None:
-        assert self.state == "editable"
         if class_id not in self.formulas.keys() or self.formulas[class_id] is None:
             raise Exception("Cannot remove this class")
         self.formulas[class_id] = None
         self.valid = False
+
+    @classmethod
+    def parse_from_dict(cls, mechanism_data: dict[str,  Any]):
+        new_mechanism = cls()
+        assert "type" in mechanism_data, "type is missing"
+        assert "formulas" in mechanism_data, "formulas are missing"
+        assert mechanism_data["type"] in get_args(MechanismType)
+        assert isinstance(mechanism_data["formulas"], dict), "formulas must be a dict"
+
+        formulas = mechanism_data["formulas"]
+        new_mechanism.mechanism_type = mechanism_data["type"]
+        if mechanism_data["type"] == "regression":
+            assert len(formulas) == 1, "invalid amount of formulas for regression"
+        else:
+            assert len(formulas) > 0, "invalid amount of formulas for classification"
+        for id_, formula in formulas.items():
+            new_mechanism.formulas[id_] = formula
+            new_mechanism.valid = False
+
+        return new_mechanism
 
 
 @dataclass

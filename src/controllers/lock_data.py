@@ -68,12 +68,6 @@ def setup_callbacks():
 
         graph.data = full_data_set
 
-        # TODO:remove from here once export is done
-        print("---\nexport:")
-        print(graph.serialize())
-        print("---")
-
-        # TODO: check if locking succeeds
         LockDataBuilder.is_locked = not LockDataBuilder.is_locked
         LockDataViewer.error = False
         return (
@@ -98,7 +92,7 @@ def setup_callbacks():
         if not clicked:
             raise PreventUpdate()
         return {
-            "content": graph.serialize(),
+            "content": graph.to_dict(),
             "filename": f"graph_{random.randint(1000,9999)}.txt"
         }
 

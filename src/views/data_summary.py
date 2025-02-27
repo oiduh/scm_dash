@@ -42,7 +42,8 @@ class NodeViewer(html.Div):
 
         container.children.append(dbc.Row(dcc.Graph("data-summary-data-view", figure=data_graph)))
         # TODO: 3) mechanisms
-        in_nodes = [x.name or x.id_ for x in node.in_nodes]
+        in_nodes = [w for w in [graph.get_node_by_id(x) for x in node.in_nodes] if w is not None]
+        in_nodes = [x.name or x.id_ for x in in_nodes]
         in_nodes.append(f"n_{node.name or node.id_}")
         causes = ", ".join(in_nodes)
         formulas = node.mechanism_metadata.get_formulas()
@@ -153,7 +154,6 @@ class DataSummaryViewer(html.Div):
                 )),
                 dbc.Col(NodeViewer("a"))
             ]),
-            
         ])
 
         scatter_plot = px.scatter_matrix(data)

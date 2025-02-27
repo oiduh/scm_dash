@@ -31,7 +31,7 @@ class Node:
 
     def __post_init__(self) -> None:
         self.noise = Noise.default_noise()
-        self.mechanism_metadata = MechanismMetadata(var_name=self.id_)
+        self.mechanism_metadata = MechanismMetadata()
 
     def add_in_node(self, to_add: Self) -> None:
         """
@@ -70,7 +70,6 @@ class Node:
         self.out_nodes.remove(to_remove.id_)
 
     def change_type(self, new_type: MechanismType) -> None:
-        assert self.mechanism_metadata.state == "editable"
         self.mechanism_metadata.mechanism_type = new_type
         self.mechanism_metadata.reset_formulas()
 
@@ -90,19 +89,6 @@ class Node:
                 mechanism = ClassificationMechanism(formulas, data)
         # we do not care about the data, only if the data generation failed
         return mechanism.transform()
-
-    def change_state(self, new_state: MechanismState) -> None:
-        """
-        change state -> formulas editable or locked
-        changing to the locked state requires a validation of the formulas
-        Exception:
-            failed to evaluate formula with dummy data
-        """
-        if new_state == "locked":
-            if self.formulas_are_valid() is False:
-                raise Exception("Formulas are invalid")
-
-        self.mechanism_metadata.state = new_state
 
     @classmethod
     def parse_from_dict(cls, node_id: str, node_dict: dict[str, Any]) -> Self:
@@ -146,7 +132,10 @@ class Node:
         )
         new_node.noise = Noise.parse_from_dict(noise_data)
 
-        # TODO: parse mechanism after export done
+        assert (mechanism_data := node_dict.get("mechanism")) is not None and isinstance(mechanism_data, dict), (
+            "mechanism data dict error"
+        )
+        new_node.mechanism_metadata = MechanismMetadata.parse_from_dict(mechanism_data)
 
         return new_node
 
@@ -367,7 +356,7 @@ class Graph:
         self.data_sets.append(new_data_set)
         return True
 
-    def serialize(self) -> str:
+    def to_dict(self) -> str:
         # TODO: add source and target info to graph as well?
         graph_as_dict = {}
         for id_, node in self.nodes.items():
@@ -387,7 +376,14 @@ class Graph:
                 }
                 for param_id, param in distr.parameters.items():
                     graph_as_dict[id_]["noise"][distr_id]["params"][param_id] = param.current
-        # TODO:add mechanism formulas
+            graph_as_dict[id_]["mechanism"] = {
+                "type": node.mechanism_metadata.mechanism_type,
+                "formulas": {},
+            }
+            for mechanism_id, formula in node.mechanism_metadata.formulas.items():
+                if formula is None:
+                    continue
+                graph_as_dict[id_]["mechanism"]["formulas"][mechanism_id] = formula
         return json.dumps(graph_as_dict)
 
     @classmethod

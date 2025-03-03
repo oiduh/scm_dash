@@ -10,6 +10,7 @@ from views.ml_prep import MLPreparation, MLViewer
 from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
 from views.lock_data import LockDataBuilder, LockDataViewer
+from views.ml_lock import MLLockBuilder, MLLockViewer
 
 
 
@@ -97,10 +98,21 @@ app.layout = html.Div(
                         ),
                         dbc.Tab(
                             id="tab7",
+                            label="ML Lock",
+                            children=dbc.Row(
+                                children=[
+                                    dbc.Col(MLLockBuilder()),
+                                    dbc.Col(MLLockViewer()),
+                                ],
+                            ),
+                            disabled=True
+                        ),
+                        dbc.Tab(
+                            id="tab8",
                             label="ML Results",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(Placeholder(id="ml-results")),
+                                    dbc.Col(Placeholder("ml-results")),
                                 ],
                             ),
                             disabled=True

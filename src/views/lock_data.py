@@ -1,7 +1,6 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-
 class LockDataBuilder(html.Div):
     is_locked: bool = False
     def __init__(self):

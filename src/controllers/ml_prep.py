@@ -38,7 +38,7 @@ def setup_callbacks() -> None:
         Input("remove-training-set", "n_clicks"),
         prevent_initial_call="initial_duplicate"
     )
-    def remove_data_set(clicked):
+    def remove_data_set_editor(clicked):
         if not clicked:
             raise PreventUpdate()
         assert TrainingDataSetEditor.active is True
@@ -102,7 +102,7 @@ def setup_callbacks() -> None:
         Input({ "type": "remove-data-set", "index": ALL}, "n_clicks"),
         prevent_initial_call="initial_duplicate"
     )
-    def remove_data_set(remove_buttons: list):
+    def remove_data_set_viewer(remove_buttons: list):
         if not any(remove_buttons):
             raise PreventUpdate()
         index = remove_buttons.index(next(x for x in remove_buttons if x))

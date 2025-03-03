@@ -73,25 +73,30 @@ TODO:
             -> correct variable ids
             -> correct variable names
             -> correct noise
-            - [ ] export and import mechanisms
-            - [ ] render components
-                - [ ] graph
-                - [ ] noise
-                - [ ] mechanism
+            - [X] export and import mechanisms
+            - [X] render components
+                - [X] graph
+                - [X] noise
+                - [X] mechanism
                 -> save formulas
-            - [ ] lock and create data from imported graph
+            - [X] lock and create data from imported graph
 
 
-    - [ ] lock in for ML
+    - [X] lock in for ML
         -> rough idea: select target and source variables (variables can be ignored)
         -> create multiple instances of data for comparison e.g. data with certain variable vs. data without certain variable
         -> intervention option? just set some variable to a fixed value
- 
 
-    - [ ] optional
-        - [ ] export function
-        -> at data generation step OR at ML step OR both?
-        -> raw data OR just meta data OR both?
+    - [ ] apply machine learning
+        - [ ] regression
+        -> start with one simple from start to end (then next algo)
+        -> include visualization
+        -> if too slow, change max data points
+        -> reconsider multiple data sets -> problem: multiple algos for multiple data sets
+        -> for now only consider first data set from previous step
+        - [ ] classification
+        -> start with one simple from start to end (then next algo)
+ 
     - [ ] fixes
         - [ ] add logger to all controllers
         - [ ] graph

@@ -1,0 +1,53 @@
+import logging
+from dash import callback, Output, Input
+from dash .exceptions import PreventUpdate
+
+from views.ml_lock import MLLockBuilder
+
+def setup_callbacks():
+    @callback(
+        Output("ml-lock-builder", "children", allow_duplicate=True),
+        Output("tab4", "disabled"),
+        Output("tab5", "disabled"),
+        Output("tab6", "disabled"),
+        Output("tab8", "disabled"),
+        Input("ml-lock-button", "n_clicks"),
+        prevent_initial_call=True
+    )
+    def toggle_lock(clicked):
+        # TODO: when we lock, we should also start running the ml algos
+        # since it might take longer: progress bar for each algo
+        # lock all previous tabs
+        # maybe add a stop button to stop all algos with no results
+        if not clicked:
+            raise PreventUpdate()
+        if MLLockBuilder.is_locked:
+            MLLockBuilder.is_locked = not MLLockBuilder.is_locked
+            return (
+                MLLockBuilder().children,
+                False,
+                False,
+                False,
+                True,
+            )
+
+        try:
+            # TODO: should be a cancellable job via button
+            print("runnin all ml algos...")
+        except Exception as e:
+            return (
+                MLLockBuilder().children,
+                False,
+                False,
+                False,
+                True,
+            )
+
+        MLLockBuilder.is_locked = not MLLockBuilder.is_locked
+        return (
+            MLLockBuilder().children,
+            True,
+            True,
+            True,
+            False
+        )

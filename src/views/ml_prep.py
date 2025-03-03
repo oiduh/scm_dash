@@ -81,6 +81,7 @@ class MLViewer(html.Div):
     def __init__(self):
         super().__init__(id="ml-viewer")
         self.children = []
+
         for idx, data_set in enumerate(graph.data_sets):
             row = dbc.Row([
                 dbc.Col(html.P(f"sources: {data_set['s']}")),

@@ -87,16 +87,36 @@ TODO:
         -> create multiple instances of data for comparison e.g. data with certain variable vs. data without certain variable
         -> intervention option? just set some variable to a fixed value
 
+
+
+
+
     - [ ] apply machine learning
+    -> start with one simple from start to end (then next algo)
+    -> include visualization
+    -> if too slow, change max data points
+    -> reconsider multiple data sets -> problem: multiple algos for multiple data sets
+    -> for now only consider first data set from previous step
+    -> each ml algo has its own result attributes, maybe use them for further analysis e.g.
+       to determine which variable has best value for predictability?
+       this would require to reduce the amount and only choose the ml algos that provide
+       value for the outcome
         - [ ] regression
-        -> start with one simple from start to end (then next algo)
-        -> include visualization
-        -> if too slow, change max data points
-        -> reconsider multiple data sets -> problem: multiple algos for multiple data sets
-        -> for now only consider first data set from previous step
+            - [ ] generative vs. discriminative (where it makes sense)
+            -> REMEMBER: MOSTLY ABOUT CLASSIFICATION IN TERMS OF PREDICTION
+               REGRESSION MAINLY FOR OTHER MECHANISMS NOT REALLY FOR PREDICTION
+            - [ ] 5 different algos (choice important, keep it simple not the main focus)
+            - [ ] make classes that do all the tasks (already very uniform since sklearn)
+            - [ ] simple table for visualization
+            - [ ] additional stats for more insight e.g. weight of variables
         - [ ] classification
+            - [ ] same as above, but include more stuff e.g. semi-supervised, generative, discriminative
+            -> more details after regression finished
         -> start with one simple from start to end (then next algo)
- 
+
+
+
+
     - [ ] fixes
         - [ ] add logger to all controllers
         - [ ] graph
@@ -122,6 +142,8 @@ TODO:
         - [ ] proper names for class labels
         -> if set use instead of int, also use for visualization
         - [ ] should not be able to remove nodes if there are only 2 left
+        - [ ] summary tab distribution should show something different?
+              -> is the distribution even important, what does it tell
 
 
 

@@ -7,6 +7,21 @@ from sklearn.linear_model import (
     SGDRegressor,
     BayesianRidge,
 )
+from sklearn.mixture import (
+    BayesianGaussianMixture,
+    GaussianMixture,
+)
+from sklearn.svm import (
+    SVR,
+    NuSVR,
+)
+from sklearn.neighbors import (
+    KNeighborsRegressor,
+    RadiusNeighborsRegressor,
+)
+from sklearn.gaussian_process import (
+    GaussianProcessRegressor,
+)
 from sklearn.model_selection import cross_val_score
 from models.graph import graph
 import numpy as np
@@ -30,10 +45,16 @@ class MLLockBuilder(html.Div):
                     Lasso,
                     SGDRegressor,
                     BayesianRidge,
+                    BayesianGaussianMixture,
+                    GaussianMixture,
+                    GaussianProcessRegressor,
+                    SVR,
+                    NuSVR,
+                    KNeighborsRegressor,
+                    RadiusNeighborsRegressor,
                 ]
                 for model in models:
                     model_ = model()
-                    model_.fit(source, target)
                     scores = cross_val_score(model_, source, target, cv=10)
                     print(f"{model_.__class__.__name__} results: {np.mean(scores)=}, {np.std(scores)=}")
             buttons.extend([

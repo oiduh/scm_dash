@@ -1,30 +1,7 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from sklearn.linear_model import (
-    LinearRegression,
-    Ridge,
-    Lasso,
-    SGDRegressor,
-    BayesianRidge,
-)
-from sklearn.mixture import (
-    BayesianGaussianMixture,
-    GaussianMixture,
-)
-from sklearn.svm import (
-    SVR,
-    NuSVR,
-)
-from sklearn.neighbors import (
-    KNeighborsRegressor,
-    RadiusNeighborsRegressor,
-)
-from sklearn.gaussian_process import (
-    GaussianProcessRegressor,
-)
-from sklearn.model_selection import cross_val_score
 from models.graph import graph
-import numpy as np
+from models.ml import Regression
 
 class MLLockBuilder(html.Div):
     is_locked: bool = False
@@ -32,31 +9,22 @@ class MLLockBuilder(html.Div):
         super().__init__(id="ml-lock-builder")
         buttons = []
         if MLLockBuilder.is_locked:
+            # TODO:this is temporary, make an own view for results
             if len(graph.data_sets) > 0 and graph.data is not None:
-                print(graph.data_sets[0])
-                print(graph.data)
-                source_ = graph.data_sets[0]["s"]
-                target_ = graph.data_sets[0]["t"]
-                source = graph.data[source_].to_numpy()
-                target = graph.data[target_].to_numpy()
-                models = [
-                    LinearRegression,
-                    Ridge,
-                    Lasso,
-                    SGDRegressor,
-                    BayesianRidge,
-                    BayesianGaussianMixture,
-                    GaussianMixture,
-                    GaussianProcessRegressor,
-                    SVR,
-                    NuSVR,
-                    KNeighborsRegressor,
-                    RadiusNeighborsRegressor,
-                ]
-                for model in models:
-                    model_ = model()
-                    scores = cross_val_score(model_, source, target, cv=10)
-                    print(f"{model_.__class__.__name__} results: {np.mean(scores)=}, {np.std(scores)=}")
+                for i in graph.data_sets:
+                    sources = i["s"]
+                    assert isinstance(sources, list)
+                    target = i["t"]
+                    assert isinstance(target, str)
+                    data = graph.data
+                    scores = Regression().evaluate_models(
+                        data=data,
+                        sources=sources,
+                        target=target,
+                    )
+                    print(f"evaluation for: {sources=}, {target=}")
+                    print(scores)
+
             buttons.extend([
                 html.Button("Unlock", id="ml-lock-button"),
             ])

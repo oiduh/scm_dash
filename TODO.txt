@@ -144,6 +144,9 @@ TODO:
         - [ ] should not be able to remove nodes if there are only 2 left
         - [ ] summary tab distribution should show something different?
               -> is the distribution even important, what does it tell
+        - [ ] add reset button to start new generation (always available at any stage of process)
+        - [ ] removing nodes breaks summary window -> despite c being removed it still lingers at a
+              scatter plot generation variable
 
 
 

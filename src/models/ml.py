@@ -45,22 +45,25 @@ regression_models = [
 
 class Regression:
     def __init__(self) -> None:
-        self.models = {
-            model.__class__.__name__: model for model in regression_models
-        }
+        self.models = [model for model in regression_models]
 
     def evaluate_models(self, data: pd.DataFrame, sources: list[str], target: str) -> pd.DataFrame:
         source_matrix = data[sources].to_numpy()
         target_array = data[target].to_numpy()
 
-        scores = pd.DataFrame(columns=["name", "mean", "std"])
-        for model_type in self.models.values():
+        # scores = pd.DataFrame(columns=["name", "mean", "std"])
+        scores = []
+        for model_type in self.models:
             model = model_type()
-            scores_ = cross_val_score(model, source_matrix, target_array, cv=10)
-            scores = scores.append({
-                "name": model.__class__.__name__, "mean": np.mean(scores_), "std": np.std(scores_)
-            }, ignore_index=True)
-        return scores
+            scores_ = cross_val_score(model, source_matrix, target_array, cv=10, n_jobs=6)
+            scores.append([
+                model.__class__.__name__, np.mean(scores_), np.std(scores_)
+            ])
+
+        return (
+            pd.DataFrame(scores, columns=["name", "mean", "std"])
+            .sort_values(by=["mean"], ascending=False)
+        )
 
 
 

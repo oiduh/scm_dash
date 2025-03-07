@@ -3,7 +3,7 @@ from sklearn.linear_model import (
     Ridge,
     Lasso,
 )
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.tree import (
     DecisionTreeRegressor,
 )
@@ -130,7 +130,6 @@ class Classification:
         scores = []
         for model_type in self.models:
             model = model_type()
-            print(f"running model {model.__class__.__name__}")
             scores_ = cross_val_score(model, source_matrix, target_array, cv=10, n_jobs=6)
             scores.append([
                 model.__class__.__name__, np.mean(scores_), np.std(scores_)
@@ -146,22 +145,43 @@ semi_supervised_classification_models = [
     LabelSpreading,
 ]
 
+
+# TODO:should be merged with classification task once working
 class SemiSupervisedClassification:
     def __init__(self) -> None:
         self.models = semi_supervised_classification_models
 
     # TODO: this needs adjustment since cv does not work; also include results for different percentages
     def evaluate_models(self, data: pd.DataFrame, sources: list[str], target: str) -> pd.DataFrame:
-        pass
-        #
-        # np.random.seed(0)
-        #
-        # print(target_array)
-        # class_indices = np.unique(target_array)
-        # new_target = np.copy(target_array)
-        # for class_index in class_indices:
-        #     indices = np.argwhere(target_array == class_index)
-        #     amount = np.floor(len(indices)*0.7)
-        #     unlabelled_indices = np.random.choice(indices, amount, False)
-        #     new_target[unlabelled_indices] = -1
-        #
+        source_matrix = data[sources].to_numpy()
+        target_array = data[target].to_numpy()
+        scores = []
+
+        for model_type in self.models:
+            model = model_type()
+            model_scores = []
+            for i in range(10):
+                X_train, X_test, y_train, y_test = train_test_split(
+                    source_matrix, target_array, test_size=.1, random_state=i
+                )
+
+                class_indices = np.unique(y_train)
+                for class_index in class_indices:
+                    indices = np.argwhere(y_train == class_index).reshape(1, -1)[0]
+                    amount = int(np.floor(len(indices)*0.7))
+                    print(indices)
+                    print(amount)
+                    unlabelled_indices = np.random.choice(indices, amount, False)
+                    y_train[unlabelled_indices] = -1
+
+                model.fit(X=X_train, y=y_train)
+                model_scores.append(model.score(X_test, y_test))
+            scores.append(
+                [model.__class__.__name__, np.mean(model_scores) , np.std(model_scores)]
+            )
+
+        return (
+            pd.DataFrame(scores, columns=["name", "mean", "std"])
+            .sort_values(by=["mean"], ascending=False)
+        )
+

@@ -1,7 +1,7 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 from models.graph import graph
-from models.ml import Regression, Classification
+from models.ml import Regression, Classification, SemiSupervisedClassification
 
 class MLLockBuilder(html.Div):
     is_locked: bool = False
@@ -18,7 +18,7 @@ class MLLockBuilder(html.Div):
                     assert isinstance(target, str)
                     data = graph.data
                     # scores = Regression().evaluate_models(
-                    scores = Classification().evaluate_models(
+                    scores = SemiSupervisedClassification().evaluate_models(
                         data=data,
                         sources=sources,
                         target=target,

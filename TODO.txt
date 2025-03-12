@@ -101,16 +101,14 @@ TODO:
        to determine which variable has best value for predictability?
        this would require to reduce the amount and only choose the ml algos that provide
        value for the outcome
-        - [ ] regression
-            - [ ] generative vs. discriminative (where it makes sense)
+        - [X] regression
             -> REMEMBER: MOSTLY ABOUT CLASSIFICATION IN TERMS OF PREDICTION
                REGRESSION MAINLY FOR OTHER MECHANISMS NOT REALLY FOR PREDICTION
             - [X] 5 different algos (choice important, keep it simple not the main focus)
             - [X] make classes that do all the tasks (already very uniform since sklearn)
-            - [ ] simple table for visualization
-            - [ ] additional stats for more insight e.g. weight of variables
-        - [ ] classification
-            - [ ] same as above, but include more stuff e.g. semi-supervised, generative, discriminative
+            - [X] simple table for visualization
+        - [X] classification
+            - [X] same as above, but include more stuff e.g. semi-supervised, generative, discriminative
             -> more details after regression finished
         - [ ] semi supervised learning
             -> basically classification, but not cross val possible (unlabelled data)
@@ -120,7 +118,9 @@ TODO:
             - [X] own or 3rd party
             -> mvlearn for co-training UPDATE: does not work properly and has not been updated for a while
             - [ ] special visualization e.g. compare unlabelled data after training with comparison to real classes
-            - [ ] 
+        - [ ] make a nicer vis
+            - [ ] better tables
+            - [ ] labels for source and target
     - [ ] find co-training module or write from scratch if necessary
     -> after whole project done, this is just an extra
 
@@ -158,6 +158,5 @@ TODO:
         - [ ] removing nodes breaks summary window -> despite c being removed it still lingers at a
               scatter plot generation variable
         - [ ] loading new graph should also clean the visualization for selected data sets
-
 
 

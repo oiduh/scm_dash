@@ -60,7 +60,7 @@ class Regression:
         scores = []
         for model_type in self.models:
             model = model_type()
-            scores_ = cross_val_score(model, source_matrix, target_array, cv=10, n_jobs=6)
+            scores_ = cross_val_score(model, source_matrix, target_array, cv=10, n_jobs=6, scoring="neg_mean_squared_error")
             scores.append([
                 model.__class__.__name__, np.mean(scores_), np.std(scores_)
             ])

@@ -3,10 +3,12 @@ from dash import callback, Output, Input
 from dash .exceptions import PreventUpdate
 
 from views.ml_lock import MLLockBuilder
+from views.ml_result import MLResultViewer
 
 def setup_callbacks():
     @callback(
         Output("ml-lock-builder", "children", allow_duplicate=True),
+        Output("ml-result-viewer", "children", allow_duplicate=True),
         Output("tab4", "disabled"),
         Output("tab5", "disabled"),
         Output("tab6", "disabled"),
@@ -25,6 +27,7 @@ def setup_callbacks():
             MLLockBuilder.is_locked = not MLLockBuilder.is_locked
             return (
                 MLLockBuilder().children,
+                [],
                 False,
                 False,
                 False,
@@ -37,6 +40,7 @@ def setup_callbacks():
         except Exception as e:
             return (
                 MLLockBuilder().children,
+                [],
                 False,
                 False,
                 False,
@@ -46,6 +50,7 @@ def setup_callbacks():
         MLLockBuilder.is_locked = not MLLockBuilder.is_locked
         return (
             MLLockBuilder().children,
+            MLResultViewer().children,
             True,
             True,
             True,

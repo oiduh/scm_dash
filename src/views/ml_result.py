@@ -1,4 +1,5 @@
 from dash import html, dcc, dash_table
+import dash_bootstrap_components as dbc
 from models.graph import graph
 from models.ml import Classification, Regression
 
@@ -6,10 +7,17 @@ class MLResultViewer(html.Div):
     def __init__(self):
         super().__init__(id="ml-result-viewer")
         self.children = []
+        self.style = {
+            "width": "80%",
+            "margin-inline": "auto",
+            "border": "1px solid black"
+        }
 
         if len(graph.data_sets) < 1:
             return
         for data_set in graph.data_sets:
+            row = dbc.Row()
+            row.children = []
             sources = data_set["s"]
             assert isinstance(sources, list)
             target = data_set["t"]
@@ -31,7 +39,10 @@ class MLResultViewer(html.Div):
                     target=target,
                 )
                 # TODO:also include semi supervised learning once this looks ok
-            self.children.append(dash_table.DataTable(
+            row.children.append(html.P(f"source(s): {', '.join(sources)}"))
+            row.children.append(html.P(f"targert: {target}"))
+            row.children.append(dash_table.DataTable(
                 scores.to_dict("records"), 
                 [{"name": i, "id": i} for i in scores.columns]
             ))
+            self.children.append(row)

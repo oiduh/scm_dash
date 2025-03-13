@@ -119,6 +119,7 @@ TODO:
             -> mvlearn for co-training UPDATE: does not work properly and has not been updated for a while
             - [ ] special visualization e.g. compare unlabelled data after training with comparison to real classes
         - [ ] make a nicer vis
+            - [ ] use cross_validate instead of cross_val_score for regression with multiple useful scores
             - [ ] better tables
             - [ ] labels for source and target
     - [ ] find co-training module or write from scratch if necessary

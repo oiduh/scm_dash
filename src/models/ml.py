@@ -5,6 +5,7 @@ from sklearn.linear_model import (
     Ridge,
     Lasso,
 )
+# TODO:replace cross_val_score with cross_validate (can handle multiple scores)
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.tree import (
     DecisionTreeRegressor,

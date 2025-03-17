@@ -42,7 +42,23 @@ class MLResultViewer(html.Div):
             row.children.append(html.P(f"source(s): {', '.join(sources)}"))
             row.children.append(html.P(f"targert: {target}"))
             row.children.append(dash_table.DataTable(
-                scores.to_dict("records"), 
-                [{"name": i, "id": i} for i in scores.columns]
+                data=scores.to_dict("records"),
+                columns=[{"name": i, "id": i} for i in scores.columns],
+                style_data_conditional = [
+                    {
+                        "if": {
+                            "filter_query": f"{{{x}}} = {scores[x].max()}",
+                            "column_id": f"{x}",
+                        },
+                        "backgroundColor": "#FF4136",
+                        "color": "white",
+                    } for x in ["R2", "NMSE", "NRMSE", "NMAE"]
+                ]
             ))
             self.children.append(row)
+
+
+class MLResultkCard(html.Div):
+    # TODO:separate component for table + labels
+    def __init__(self, id: str):
+        super().__init__(id=id)

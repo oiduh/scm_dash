@@ -1,3 +1,4 @@
+from decimal import Decimal
 from itertools import combinations
 from sklearn.metrics import accuracy_score
 from sklearn.linear_model import (
@@ -6,7 +7,7 @@ from sklearn.linear_model import (
     Lasso,
 )
 # TODO:replace cross_val_score with cross_validate (can handle multiple scores)
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.model_selection import cross_val_score, cross_validate, train_test_split
 from sklearn.tree import (
     DecisionTreeRegressor,
 )
@@ -57,19 +58,33 @@ class Regression:
         source_matrix = data[sources].to_numpy()
         target_array = data[target].to_numpy()
 
-        # scores = pd.DataFrame(columns=["name", "mean", "std"])
-        scores = []
+        scorings = {
+            "neg_mean_absolute_error": "NMAE",
+            "neg_mean_squared_error": "NMSE",
+            "neg_root_mean_squared_error": "NRMSE",
+            "r2": "R2",
+        }
+        scores = {}
         for model_type in self.models:
             model = model_type()
-            scores_ = cross_val_score(model, source_matrix, target_array, cv=10, n_jobs=6, scoring="neg_mean_squared_error")
-            scores.append([
-                model.__class__.__name__, np.mean(scores_), np.std(scores_)
-            ])
+            scores[model.__class__.__name__] = {}
+            # scores_ = cross_val_score(model, source_matrix, target_array, cv=10, n_jobs=6, scoring="neg_mean_squared_error")
+            scores_ = cross_validate(model, source_matrix, target_array, cv=10, n_jobs=-1, scoring=list(scorings.keys()))
+            for scoring in scorings.keys():
+                test_score = scores_[f"test_{scoring}"]
+                # final_score = f"{np.mean(test_score):.4f}+-{np.std(test_score):.4f}"
+                final_score = Decimal(f"{np.mean(test_score):.4f}")
+                scores[model.__class__.__name__][scoring] = final_score
 
-        return (
-            pd.DataFrame(scores, columns=["name", "mean", "std"])
-            .sort_values(by=["mean"], ascending=False)
-        )
+
+        scores = {k: list(v.values()) for k, v in scores.items()}
+        frame = pd.DataFrame.from_dict(scores, orient="index", columns=list(scorings.values()))
+        frame["name"] = frame.index
+        cols = list(frame.columns)
+        cols.reverse()
+        frame = frame[cols]
+        print(frame)
+        return frame
 
 from sklearn.tree import (
     DecisionTreeClassifier,
@@ -159,7 +174,6 @@ class SemiSupervisedClassification:
         source_matrix = data[sources].to_numpy()
         target_array = data[target].to_numpy()
         scores = []
-
         for model_type in self.models:
             model = model_type()
             model_scores = []

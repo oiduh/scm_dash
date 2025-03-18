@@ -1,7 +1,9 @@
-from dash import html, dcc, dash_table
+from dash import html, dash_table
 import dash_bootstrap_components as dbc
 from models.graph import graph
 from models.ml import Classification, Regression
+import pandas as pd
+from typing import Literal
 
 class MLResultViewer(html.Div):
     def __init__(self):
@@ -26,7 +28,8 @@ class MLResultViewer(html.Div):
             assert data is not None
             target_node = graph.get_node_by_id(target)
             assert target_node is not None
-            if target_node.mechanism_metadata.mechanism_type == "regression":
+            mechanism_type = target_node.mechanism_metadata.mechanism_type
+            if mechanism_type == "regression":
                 scores = Regression().evaluate_models(
                     data=data,
                     sources=sources,
@@ -38,27 +41,42 @@ class MLResultViewer(html.Div):
                     sources=sources,
                     target=target,
                 )
-                # TODO:also include semi supervised learning once this looks ok
-            row.children.append(html.P(f"source(s): {', '.join(sources)}"))
-            row.children.append(html.P(f"targert: {target}"))
-            row.children.append(dash_table.DataTable(
-                data=scores.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in scores.columns],
-                style_data_conditional = [
-                    {
-                        "if": {
-                            "filter_query": f"{{{x}}} = {scores[x].max()}",
-                            "column_id": f"{x}",
-                        },
-                        "backgroundColor": "#FF4136",
-                        "color": "white",
-                    } for x in ["R2", "NMSE", "NRMSE", "NMAE"]
-                ]
-            ))
-            self.children.append(row)
+            self.children.append(MLResultCard(scores, {"source": sources, "target": target}, mechanism_type))
 
 
-class MLResultkCard(html.Div):
+class MLResultCard(html.Div):
     # TODO:separate component for table + labels
-    def __init__(self, id: str):
-        super().__init__(id=id)
+    def __init__(self, data_table: pd.DataFrame, variables: dict, mechanism_type: Literal["regression", "classification"]):
+        super().__init__()
+        self.children = []
+        if mechanism_type == "regression":
+            card = dbc.Card(
+                dbc.CardBody([
+                    html.H4(f"Cause: {', '.join(variables['source'])}"),
+                    html.H4(f"Effect: {variables['target']}"),
+                    html.H6(f"Type: {mechanism_type}"),
+                    dash_table.DataTable(
+                        data=data_table.to_dict("records"),
+                        columns=[{"name": i, "id": i} for i in data_table.columns],
+                        style_cell={"width": "auto"},
+                        style_data_conditional = [
+                            {
+                                "if": {
+                                    "filter_query": f"{{{x}}} = {data_table[x].max()}",
+                                    "column_id": f"{x}",
+                                },
+                                "backgroundColor": "#FF4136",
+                                "color": "white",
+                            } for x in ["R2", "NMSE", "NRMSE", "NMAE"]
+                        ]
+                    )
+                ])
+            )
+        else:
+            card = dbc.Card(
+                dbc.CardBody([
+                    html.P("empty for now")
+                ])
+            )
+        self.children.append(card)
+

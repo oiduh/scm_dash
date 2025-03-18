@@ -1,7 +1,7 @@
 from dash import html, dash_table
 import dash_bootstrap_components as dbc
 from models.graph import graph
-from models.ml import Classification, Regression
+from models.ml import Classification, Regression, SemiSupervisedClassification, SelfTrainingClassification
 import pandas as pd
 from typing import Literal
 
@@ -41,6 +41,22 @@ class MLResultViewer(html.Div):
                     sources=sources,
                     target=target,
                 )
+                scores = pd.concat([
+                    scores,
+                    SemiSupervisedClassification().evaluate_models(
+                        data=data,
+                        sources=sources,
+                        target=target,
+                    )
+                ])
+                scores = pd.concat([
+                    scores,
+                    SelfTrainingClassification().evaluate_models(
+                        data=data,
+                        sources=sources,
+                        target=target,
+                    )
+                ]).sort_values(by=["mean"], ascending=False)
             self.children.append(MLResultCard(scores, {"source": sources, "target": target}, mechanism_type))
 
 
@@ -58,7 +74,6 @@ class MLResultCard(html.Div):
                     dash_table.DataTable(
                         data=data_table.to_dict("records"),
                         columns=[{"name": i, "id": i} for i in data_table.columns],
-                        style_cell={"width": "auto"},
                         style_data_conditional = [
                             {
                                 "if": {
@@ -75,7 +90,13 @@ class MLResultCard(html.Div):
         else:
             card = dbc.Card(
                 dbc.CardBody([
-                    html.P("empty for now")
+                    html.H4(f"Cause: {', '.join(variables['source'])}"),
+                    html.H4(f"Effect: {variables['target']}"),
+                    html.H6(f"Type: {mechanism_type}"),
+                    dash_table.DataTable(
+                        data=data_table.to_dict("records"),
+                        columns=[{"name": i, "id": i} for i in data_table.columns],
+                    )
                 ])
             )
         self.children.append(card)

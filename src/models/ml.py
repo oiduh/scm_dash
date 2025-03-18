@@ -149,14 +149,10 @@ class Classification:
         for model_type in self.models:
             model = model_type()
             scores_ = cross_val_score(model, source_matrix, target_array, cv=10, n_jobs=6)
-            scores.append([
-                model.__class__.__name__, np.mean(scores_), np.std(scores_)
-            ])
+            final_score = Decimal(f"{np.mean(scores_):.4f}")
+            scores.append([model.__class__.__name__, final_score])
 
-        return (
-            pd.DataFrame(scores, columns=["name", "mean", "std"])
-            .sort_values(by=["mean"], ascending=False)
-        )
+        return pd.DataFrame(scores, columns=["name", "mean"])
 
 semi_supervised_classification_models = [
     LabelPropagation,
@@ -191,14 +187,10 @@ class SemiSupervisedClassification:
 
                 model.fit(X=X_train, y=y_train)
                 model_scores.append(model.score(X_test, y_test))
-            scores.append(
-                [model.__class__.__name__, np.mean(model_scores) , np.std(model_scores)]
-            )
+            final_score = Decimal(f"{np.mean(model_scores):.4f}")
+            scores.append([model.__class__.__name__, final_score])
 
-        return (
-            pd.DataFrame(scores, columns=["name", "mean", "std"])
-            .sort_values(by=["mean"], ascending=False)
-        )
+        return pd.DataFrame(scores, columns=["name", "mean"])
 
 self_training_classification_models = [
     DecisionTreeClassifier,
@@ -213,14 +205,12 @@ class SelfTrainingClassification:
     def __init__(self) -> None:
         self.models = self_training_classification_models
 
-
     def evaluate_models(self, data: pd.DataFrame, sources: list[str], target: str) -> pd.DataFrame:
         source_matrix = data[sources].to_numpy()
         target_array = data[target].to_numpy()
         scores = []
 
         for model_type in self.models:
-            print(f"training model '{model_type}'")
             estimator = model_type()
             model = SelfTrainingClassifier(estimator)
             model_scores = []
@@ -238,14 +228,10 @@ class SelfTrainingClassification:
 
                 model.fit(X=X_train, y=y_train)
                 model_scores.append(model.score(X_test, y_test))
-            scores.append(
-                ["SelfTrainingClassifier " + estimator.__class__.__name__, np.mean(model_scores) , np.std(model_scores)]
-            )
+            final_score = Decimal(f"{np.mean(model_scores):.4f}")
+            scores.append(["SelfTrainingClassifier " + estimator.__class__.__name__, final_score])
 
-        return (
-            pd.DataFrame(scores, columns=["name", "mean", "std"])
-            .sort_values(by=["mean"], ascending=False)
-        )
+        return pd.DataFrame(scores, columns=["name", "mean"])
 
 # FIXME:mvlearn has not been updated for a while, find another or implement from scratch
 class CoTrainingClassification:

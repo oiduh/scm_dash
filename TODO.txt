@@ -121,13 +121,28 @@ TODO:
         - [ ] make a nicer vis
             - [X] use cross_validate instead of cross_val_score for regression with multiple useful scores
             - [ ] better tables
-                - [ ] own component for table + title + description
-                - [ ] generally nicer styling
+                - [X] own component for table + title + description
+                - [X] generally nicer styling (general styling later)
                 - [X] highlight top scores regression
-                - [ ] combine classification & ssl + sort
-            - [ ] loading indicators
-            - [ ] labels for source and target
+                - [X] combine classification & ssl + sort
+            - [x] labels for source and target
             -> start with simple for whole data sets
+
+
+- [ ] final changes
+    - [ ] loading indicators
+    -> simple single spinner when: data is generated and when ml is applied
+    - [ ] remove borders or make them universal
+    - [ ] tabs styling and uniformity
+    - [ ] universal reset button + callbacks
+    - [ ] lock/unlock callbacks to reset stuff e.g. data set selection
+    - [ ] right/left split on ml result -> show graph + mechanisms for analysis
+    - [ ] dockerize (simple)
+
+
+
+
+
     - [ ] find co-training module or write from scratch if necessary
     -> after whole project done, this is just an extra
 

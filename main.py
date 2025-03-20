@@ -35,7 +35,7 @@ app.layout = html.Div(
                     children=[
                         dbc.Tab(
                             id="tab1",
-                            label="Graph Builder",
+                            label="Graph",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(GraphBuilder()),
@@ -46,7 +46,7 @@ app.layout = html.Div(
                         ),
                         dbc.Tab(
                             id="tab2",
-                            label="Distribution Builder",
+                            label="Distribution",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(NoiseBuilder()),
@@ -57,7 +57,7 @@ app.layout = html.Div(
                         ),
                         dbc.Tab(
                             id="tab3",
-                            label="Mechanism Builder",
+                            label="Mechanism",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(MechanismBuilder()),
@@ -67,7 +67,7 @@ app.layout = html.Div(
                         ),
                         dbc.Tab(
                             id="tab4",
-                            label="lock in",
+                            label="Data Gen",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(LockDataBuilder()),
@@ -78,7 +78,7 @@ app.layout = html.Div(
                         ),
                         dbc.Tab(
                             id="tab5",
-                            label="Summary",
+                            label="Data View",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(DataSummaryViewer()),
@@ -88,7 +88,7 @@ app.layout = html.Div(
                         ),
                         dbc.Tab(
                             id="tab6",
-                            label="Variable Selection",
+                            label="ML Prep",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(MLPreparation()),
@@ -99,7 +99,7 @@ app.layout = html.Div(
                         ),
                         dbc.Tab(
                             id="tab7",
-                            label="ML Lock",
+                            label="ML",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(MLLockBuilder()),

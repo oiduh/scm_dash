@@ -130,6 +130,10 @@ TODO:
 
 
 - [ ] final changes
+    - [ ] upgrade dash version
+        - [ ] find breaking changes
+        - [ ] use new features if useful
+        - [ ] fix tabs no text
     - [ ] loading indicators
     -> simple single spinner when: data is generated and when ml is applied
     - [ ] remove borders or make them universal

@@ -26,6 +26,7 @@ def setup_callbacks():
         Output("data-generation-viewer", "children", allow_duplicate=True),
         Output("data-summary-viewer", "children", allow_duplicate=True),
         Output("ml-preparation", "children", allow_duplicate=True),
+        Output("loading-output-1", "children", allow_duplicate=True),
         Input("lock-button", "n_clicks"),
         prevent_initial_call=True
     )
@@ -48,6 +49,7 @@ def setup_callbacks():
                 LockDataViewer().children,
                 DataSummaryViewer().children,
                 MLPreparation().children,
+                []
             )
 
         try:
@@ -67,12 +69,15 @@ def setup_callbacks():
                 LockDataViewer().children,
                 DataSummaryViewer().children,
                 MLPreparation().children,
+                [],
             )
 
         graph.data = full_data_set
 
         LockDataBuilder.is_locked = not LockDataBuilder.is_locked
         LockDataViewer.error = False
+        import time
+        time.sleep(3)
         return (
             LockDataBuilder().children,
             True,
@@ -85,6 +90,7 @@ def setup_callbacks():
             LockDataViewer().children,
             DataSummaryViewer().children,
             MLPreparation().children,
+            [],
         )
 
     @callback(

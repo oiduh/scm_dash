@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import Dash, html
+from dash import Dash, html, dcc
 import dash_cytoscape as cyto
 
 from controllers import setup_callbacks
@@ -30,10 +30,10 @@ app.layout = html.Div(
         html.Hr(),
         html.Div(
             [
-                dbc.Tabs(
+                dcc.Tabs(
                     id="tabs",
                     children=[
-                        dbc.Tab(
+                        dcc.Tab(
                             id="tab1",
                             label="Graph",
                             children=dbc.Row(
@@ -44,7 +44,7 @@ app.layout = html.Div(
                             ),
                             disabled=False,
                         ),
-                        dbc.Tab(
+                        dcc.Tab(
                             id="tab2",
                             label="Distribution",
                             children=dbc.Row(
@@ -55,7 +55,7 @@ app.layout = html.Div(
                             ),
                             disabled=False,
                         ),
-                        dbc.Tab(
+                        dcc.Tab(
                             id="tab3",
                             label="Mechanism",
                             children=dbc.Row(
@@ -65,7 +65,7 @@ app.layout = html.Div(
                                 ],
                             ),
                         ),
-                        dbc.Tab(
+                        dcc.Tab(
                             id="tab4",
                             label="Data Gen",
                             children=dbc.Row(
@@ -76,7 +76,7 @@ app.layout = html.Div(
                             ),
                             disabled=False,
                         ),
-                        dbc.Tab(
+                        dcc.Tab(
                             id="tab5",
                             label="Data View",
                             children=dbc.Row(
@@ -86,7 +86,7 @@ app.layout = html.Div(
                             ),
                             disabled=True
                         ),
-                        dbc.Tab(
+                        dcc.Tab(
                             id="tab6",
                             label="ML Prep",
                             children=dbc.Row(
@@ -97,7 +97,7 @@ app.layout = html.Div(
                             ),
                             disabled=True
                         ),
-                        dbc.Tab(
+                        dcc.Tab(
                             id="tab7",
                             label="ML",
                             children=dbc.Row(
@@ -108,7 +108,7 @@ app.layout = html.Div(
                             ),
                             disabled=True
                         ),
-                        dbc.Tab(
+                        dcc.Tab(
                             id="tab8",
                             label="ML Results",
                             children=dbc.Row(

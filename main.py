@@ -22,7 +22,8 @@ app = Dash(
     __name__,
     external_stylesheets=[dbc.themes.BOOTSTRAP],
     prevent_initial_callbacks=True,
-    suppress_callback_exceptions=True
+    suppress_callback_exceptions=True,
+    eager_loading=True,
 )
 app.layout = html.Div(
     [
@@ -32,10 +33,12 @@ app.layout = html.Div(
             [
                 dcc.Tabs(
                     id="tabs",
+                    value="tab-1",
                     children=[
                         dcc.Tab(
                             id="tab1",
                             label="Graph",
+                            value="tab-1",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(GraphBuilder()),
@@ -47,6 +50,7 @@ app.layout = html.Div(
                         dcc.Tab(
                             id="tab2",
                             label="Distribution",
+                            value="tab-2",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(NoiseBuilder()),
@@ -58,16 +62,19 @@ app.layout = html.Div(
                         dcc.Tab(
                             id="tab3",
                             label="Mechanism",
+                            value="tab-3",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(MechanismBuilder()),
                                     dbc.Col(MechanismViewer()),
                                 ],
                             ),
+                            disabled=False,
                         ),
                         dcc.Tab(
                             id="tab4",
                             label="Data Gen",
+                            value="tab-4",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(LockDataBuilder()),
@@ -79,6 +86,7 @@ app.layout = html.Div(
                         dcc.Tab(
                             id="tab5",
                             label="Data View",
+                            value="tab-5",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(DataSummaryViewer()),
@@ -89,6 +97,7 @@ app.layout = html.Div(
                         dcc.Tab(
                             id="tab6",
                             label="ML Prep",
+                            value="tab-6",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(MLPreparation()),
@@ -100,6 +109,7 @@ app.layout = html.Div(
                         dcc.Tab(
                             id="tab7",
                             label="ML",
+                            value="tab-7",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(MLLockBuilder()),
@@ -111,6 +121,7 @@ app.layout = html.Div(
                         dcc.Tab(
                             id="tab8",
                             label="ML Results",
+                            value="tab-8",
                             children=dbc.Row(
                                 children=[
                                     dbc.Col(MLResultViewer()),

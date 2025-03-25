@@ -27,7 +27,7 @@ class NodeViewer(html.Div):
         noise_graph = ff.create_distplot(
             [noise], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["blue"]
         )
-        container.children.append(dbc.Row(dcc.Graph("data-summary-noise-view", figure=noise_graph)))
+        container.children.append(dbc.Row(dcc.Graph("data-summary-noise-view", figure=noise_graph, config={"staticPlot": True})))
 
         # TODO: 2) distribution for data
         data = node.data
@@ -40,7 +40,7 @@ class NodeViewer(html.Div):
             unique, counts = np.unique(data, return_counts=True)
             data_graph = go.Figure(go.Pie(values=counts, labels=[str(x) for x in unique]))
 
-        container.children.append(dbc.Row(dcc.Graph("data-summary-data-view", figure=data_graph)))
+        container.children.append(dbc.Row(dcc.Graph("data-summary-data-view", figure=data_graph, config={"staticPlot": True})))
         # TODO: 3) mechanisms
         in_nodes = [w for w in [graph.get_node_by_id(x) for x in node.in_nodes] if w is not None]
         in_nodes = [x.name or x.id_ for x in in_nodes]
@@ -159,7 +159,7 @@ class DataSummaryViewer(html.Div):
         scatter_plot = px.scatter_matrix(data)
         self.children.extend([
             html.H3("scatter plot"),
-            dcc.Graph(id="scatter-plot", figure=scatter_plot)
+            dcc.Graph(id="scatter-plot", figure=scatter_plot, config={"staticPlot": True})
         ])
 
         for corr in ["pearson", "kendall", "spearman"]:
@@ -167,7 +167,7 @@ class DataSummaryViewer(html.Div):
             self.children.append(
                 html.Div([
                     html.H3(f"correlation: {corr}"),
-                    dcc.Graph(id=corr, figure=px.imshow(mat, text_auto=True))
+                    dcc.Graph(id=corr, figure=px.imshow(mat, text_auto=True), config={"staticPlot": True})
                 ])
             )
 
@@ -182,7 +182,7 @@ class DataSummaryViewer(html.Div):
             dbc.Row([
                 dbc.Col(dcc.Dropdown(id="scatter-x", options=ids, value=DataSummaryViewer.scatter_x)),
                 dbc.Col(dcc.Dropdown(id="scatter-y", options=ids, value=DataSummaryViewer.scatter_y)),
-                dcc.Graph(id="scatter-graph", figure=scatter_graph)
+                dcc.Graph(id="scatter-graph", figure=scatter_graph, config={"staticPlot": True})
             ]),
         )
 

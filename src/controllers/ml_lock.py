@@ -13,6 +13,7 @@ def setup_callbacks():
         Output("tab5", "disabled"),
         Output("tab6", "disabled"),
         Output("tab8", "disabled"),
+        Output("tabs", "value"),
         Input("ml-lock-button", "n_clicks"),
         prevent_initial_call=True
     )
@@ -32,6 +33,7 @@ def setup_callbacks():
                 False,
                 False,
                 True,
+                "tab-7",
             )
 
         try:
@@ -45,6 +47,7 @@ def setup_callbacks():
                 False,
                 False,
                 True,
+                "tab-7",
             )
 
         MLLockBuilder.is_locked = not MLLockBuilder.is_locked
@@ -54,5 +57,6 @@ def setup_callbacks():
             True,
             True,
             True,
-            False
+            False,
+            "tab-8",
         )

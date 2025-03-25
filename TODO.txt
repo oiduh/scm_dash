@@ -118,9 +118,9 @@ TODO:
             - [X] own or 3rd party
             -> mvlearn for co-training UPDATE: does not work properly and has not been updated for a while
             - [ ] special visualization e.g. compare unlabelled data after training with comparison to real classes
-        - [ ] make a nicer vis
+        - [X] make a nicer vis
             - [X] use cross_validate instead of cross_val_score for regression with multiple useful scores
-            - [ ] better tables
+            - [X] better tables
                 - [X] own component for table + title + description
                 - [X] generally nicer styling (general styling later)
                 - [X] highlight top scores regression
@@ -130,20 +130,22 @@ TODO:
 
 
 - [ ] final changes
-    - [ ] make data view plots less interactive
-    - [ ] fix tabs on load e.g. when disabled or not
+    - [X] make data view plots less interactive
+    - [X] fix tabs on load e.g. when disabled or not
     - [ ] upgrade dash version
         - [ ] find breaking changes
+        -> tables,
         - [ ] use new features if useful
         - [ ] fix tabs no text
     - [ ] loading indicators
     -> simple single spinner when: data is generated and when ml is applied
     -> example already at data gen
     - [ ] remove borders or make them universal
-    - [ ] tabs styling and uniformity
+    - [X] tabs styling and uniformity
     - [ ] universal reset button + callbacks
     - [ ] lock/unlock callbacks to reset stuff e.g. data set selection
     - [ ] right/left split on ml result -> show graph + mechanisms for analysis
+        - [ ] handle case where data set is empty
     - [ ] dockerize (simple)
 
 

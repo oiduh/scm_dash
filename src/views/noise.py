@@ -224,7 +224,7 @@ class NoiseViewer(html.Div):
 
         self.children = [
             html.H3(f"combined: {node_name}"),
-            dcc.Graph("graph-combined", figure=combined_data),
+            dcc.Graph("graph-combined", figure=combined_data, config={"staticPlot": True}),
             html.H3(f"individual with focus on: {VariableSelection.sub_variable}"),
-            dcc.Graph("graph-individual", figure=individual_data),
+            dcc.Graph("graph-individual", figure=individual_data, config={"staticPlot": True}),
         ]

@@ -12,8 +12,8 @@ class MechanismBuilder(html.Div):
     def __init__(self):
         super().__init__(id="mechanism-builder")
         self.style = {
-            "border": "3px green solid",
-            "margin": "3px",
+            # "border": "3px green solid",
+            # "margin": "3px",
         }
         self.children = [
             VariableSelection(),

@@ -1,19 +1,21 @@
 import logging
 from dash import callback, Output, Input
-from dash .exceptions import PreventUpdate
+from dash.exceptions import PreventUpdate
+import dash_bootstrap_components as dbc
 
 from views.ml_lock import MLLockBuilder
 from views.ml_result import MLResultViewer
 
 def setup_callbacks():
     @callback(
-        Output("ml-lock-builder", "children", allow_duplicate=True),
+        # Output("ml-lock-builder", "children", allow_duplicate=True),
         Output("ml-result-viewer", "children", allow_duplicate=True),
         Output("tab4", "disabled"),
         Output("tab5", "disabled"),
         Output("tab6", "disabled"),
         Output("tab8", "disabled"),
         Output("tabs", "value"),
+        Output("loading-7", "children"),
         Input("ml-lock-button", "n_clicks"),
         prevent_initial_call=True
     )
@@ -27,13 +29,16 @@ def setup_callbacks():
         if MLLockBuilder.is_locked:
             MLLockBuilder.is_locked = not MLLockBuilder.is_locked
             return (
-                MLLockBuilder().children,
+                # MLLockBuilder().children,
                 [],
                 False,
                 False,
                 False,
                 True,
                 "tab-7",
+                dbc.Row(children=[
+                    dbc.Col(MLLockBuilder().children)
+                ]),
             )
 
         try:
@@ -41,22 +46,28 @@ def setup_callbacks():
             print("runnin all ml algos...")
         except Exception as e:
             return (
-                MLLockBuilder().children,
+                # MLLockBuilder().children,
                 [],
                 False,
                 False,
                 False,
                 True,
                 "tab-7",
+                dbc.Row(children=[
+                    dbc.Col(MLLockBuilder().children)
+                ]),
             )
 
         MLLockBuilder.is_locked = not MLLockBuilder.is_locked
         return (
-            MLLockBuilder().children,
+            # MLLockBuilder().children,
             MLResultViewer().children,
             True,
             True,
             True,
             False,
             "tab-8",
+            dbc.Row(children=[
+                dbc.Col(MLLockBuilder().children)
+            ]),
         )

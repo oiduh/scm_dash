@@ -3,6 +3,7 @@ import random
 
 from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
+import dash_bootstrap_components as dbc
 
 from models.graph import graph
 from views.lock_data import LockDataBuilder, LockDataViewer
@@ -13,7 +14,7 @@ from views.ml_prep import MLPreparation
 
 def setup_callbacks():
     @callback(
-        Output("data-generation-builder", "children", allow_duplicate=True),
+        # Output("data-generation-builder", "children", allow_duplicate=True),
         Output("tab1", "disabled", allow_duplicate=True),
         Output("tab2", "disabled", allow_duplicate=True),
         Output("tab3", "disabled", allow_duplicate=True),
@@ -21,10 +22,10 @@ def setup_callbacks():
         Output("tab5", "disabled", allow_duplicate=True),
         Output("tab6", "disabled", allow_duplicate=True),
         Output("tab7", "disabled", allow_duplicate=True),
-        Output("data-generation-viewer", "children", allow_duplicate=True),
+        # Output("data-generation-viewer", "children", allow_duplicate=True),
         Output("data-summary-viewer", "children", allow_duplicate=True),
         Output("ml-preparation", "children", allow_duplicate=True),
-        Output("loading-output-1", "children", allow_duplicate=True),
+        Output("loading-4", "children", allow_duplicate=True),
         Output("tabs", "value", allow_duplicate=True),
         Input("lock-button", "n_clicks"),
         prevent_initial_call=True
@@ -37,7 +38,7 @@ def setup_callbacks():
             LockDataViewer.error = False
             graph.data = None
             return (
-                LockDataBuilder().children,
+                # LockDataBuilder().children,
                 False,
                 False,
                 False,
@@ -45,10 +46,13 @@ def setup_callbacks():
                 True,
                 True,
                 True,
-                LockDataViewer().children,
+                # LockDataViewer().children,
                 DataSummaryViewer().children,
                 MLPreparation().children,
-                [],
+                dbc.Row(children=[
+                    dbc.Col(LockDataBuilder().children),
+                    dbc.Col(LockDataViewer().children),
+                ]),
                 "tab-4"
             )
 
@@ -58,7 +62,7 @@ def setup_callbacks():
             LockDataViewer.error = True
             graph.data = None
             return (
-                LockDataBuilder().children,
+                # LockDataBuilder().children,
                 False,
                 False,
                 False,
@@ -66,10 +70,13 @@ def setup_callbacks():
                 True,
                 True,
                 True,
-                LockDataViewer().children,
+                # LockDataViewer().children,
                 DataSummaryViewer().children,
                 MLPreparation().children,
-                [],
+                dbc.Row(children=[
+                    dbc.Col(LockDataBuilder().children),
+                    dbc.Col(LockDataViewer().children),
+                ]),
                 "tab-4"
             )
 
@@ -80,7 +87,7 @@ def setup_callbacks():
         # import time
         # time.sleep(3)
         return (
-            LockDataBuilder().children,
+            # LockDataBuilder().children,
             True,
             True,
             True,
@@ -88,10 +95,13 @@ def setup_callbacks():
             False,
             False,
             False,
-            LockDataViewer().children,
+            # LockDataViewer().children,
             DataSummaryViewer().children,
             MLPreparation().children,
-            [],
+            dbc.Row(children=[
+                dbc.Col(LockDataBuilder().children),
+                dbc.Col(LockDataViewer().children),
+            ]),
             "tab-5"
         )
 

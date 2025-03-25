@@ -137,16 +137,19 @@ TODO:
         -> tables,
         - [ ] use new features if useful
         - [ ] fix tabs no text
-    - [ ] loading indicators
+    - [X] loading indicators
     -> simple single spinner when: data is generated and when ml is applied
     -> example already at data gen
     - [ ] remove borders or make them universal
+    - [ ] instead of borders, make a card component as the wrapper
+    # style={"width": "99vw", "height": "99vh", "margin": "0", "padding": "0", "border-style": "solid"},
     - [X] tabs styling and uniformity
     - [ ] universal reset button + callbacks
     - [ ] lock/unlock callbacks to reset stuff e.g. data set selection
     - [ ] right/left split on ml result -> show graph + mechanisms for analysis
         - [ ] handle case where data set is empty
     - [ ] dockerize (simple)
+    - [ ] fix naming or remove it (fixing in all stages)
 
 
 

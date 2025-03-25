@@ -62,8 +62,8 @@ class GraphBuilder(html.Div):
         print(graph.get_node_ids())
         super().__init__(id="graph-builder-new")
         self.style = {
-            "border": "3px green solid",
-            "margin": "3px",
+            # "border": "3px green solid",
+            # "margin": "3px",
         }
         self.children = []
         variable_selection = VariableSelection()

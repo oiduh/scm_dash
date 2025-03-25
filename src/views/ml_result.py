@@ -12,7 +12,7 @@ class MLResultViewer(html.Div):
         self.style = {
             "width": "80%",
             "margin-inline": "auto",
-            "border": "1px solid black"
+            # "border": "1px solid black"
         }
 
         if len(graph.data_sets) < 1:

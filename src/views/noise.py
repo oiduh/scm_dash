@@ -11,8 +11,8 @@ class NoiseBuilder(html.Div):
     def __init__(self):
         super().__init__(id="noise-builder")
         self.style = {
-            "border": "3px green solid",
-            "margin": "3px",
+            # "border": "3px green solid",
+            # "margin": "3px",
         }
         self.children = []
         node_ids = graph.get_node_ids()

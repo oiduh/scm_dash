@@ -75,11 +75,16 @@ app.layout = html.Div(
                             id="tab4",
                             label="Data Gen",
                             value="tab-4",
-                            children=dbc.Row(
-                                children=[
-                                    dbc.Col(LockDataBuilder()),
-                                    dbc.Col(LockDataViewer()),
-                                ],
+                            children=dcc.Loading(
+                                id="loading-4",
+                                type="dot",
+                                children=dbc.Row(
+                                    children=[
+                                        dbc.Col(LockDataBuilder()),
+                                        dbc.Col(LockDataViewer()),
+                                    ],
+                                ),
+                                overlay_style={"visibility":"visible", "filter": "blur(2px)"}
                             ),
                             disabled=False,
                         ),
@@ -110,11 +115,16 @@ app.layout = html.Div(
                             id="tab7",
                             label="ML",
                             value="tab-7",
-                            children=dbc.Row(
-                                children=[
-                                    dbc.Col(MLLockBuilder()),
-                                    dbc.Col(MLLockViewer()),
-                                ],
+                            children=dcc.Loading(
+                                id="loading-7",
+                                type="dot",
+                                children=dbc.Row(
+                                    children=[
+                                        dbc.Col(MLLockBuilder()),
+                                        dbc.Col(MLLockViewer()),
+                                    ],
+                                ),
+                                overlay_style={"visibility":"visible", "filter": "blur(2px)"}
                             ),
                             disabled=True
                         ),
@@ -134,7 +144,6 @@ app.layout = html.Div(
             ],
         ),
     ],
-    # style={"width": "99vw", "height": "99vh", "margin": "0", "padding": "0", "border-style": "solid"},
 )
 setup_callbacks()
 app.run(

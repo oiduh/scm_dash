@@ -113,9 +113,9 @@ class DataSummaryViewer(html.Div):
     def __init__(self):
         super().__init__(id="data-summary-viewer")
         self.style = {
-            "width": "80%",
-            "margin-inline": "auto",
-            "border": "1px solid black"
+            # "width": "80%",
+            # "margin-inline": "auto",
+            # "border": "1px solid black"
         }
         data = graph.data
         if data is None:

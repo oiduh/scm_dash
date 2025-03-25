@@ -6,6 +6,6 @@ class Placeholder(html.Div):
         super().__init__(id=id)
         self.children = "PLACEHOLDER"
         self.style = {
-            "border": "3px red solid",
-            "margin": "3px",
+            # "border": "3px red solid",
+            # "margin": "3px",
         }

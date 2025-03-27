@@ -12,21 +12,27 @@ class GraphUploader(html.Div):
     last_uploaded_graph: bool | None = None
     def __init__(self):
         super().__init__(id="graph-uploader")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         self.children = []
         self.children.extend([
-            html.P("Import Graph"),
+            html.H5("Import Graph:"),
             dcc.Upload(
                 id="graph-upload-field",
                 children=html.Div([
                     "Drag and drop or select file",
                 ]),
                 style={
-                    'width': '100%',
+                    'width': 'auto',
                     'height': '60px',
                     'lineHeight': '60px',
                     'borderWidth': '1px',
                     'borderStyle': 'dashed',
-                    'borderRadius': '5px',
+                    'borderRadius': '8px',
                     'textAlign': 'center',
                     'margin': '10px'
                 },
@@ -34,19 +40,24 @@ class GraphUploader(html.Div):
             )
         ])
         msg_args = dict[str, Any]()
-        button_args: dict[str, Any] = {"id": "use-graph-button"}
+        button_args: dict[str, Any] = {
+            "id": "use-graph-button",
+            "style": {
+                "border-radius": "8px",
+            }
+        }
         match GraphUploader.last_uploaded_graph:
             case True:
-                msg_args["children"] = "Graph is valid"
+                msg_args["children"] = "> Graph is valid"
+                msg_args["style"] = {"color": "green"}
                 button_args["disabled"] = False
             case False:
-                msg_args["children"] = "Graph is invalid"
+                msg_args["children"] = "> Graph is invalid"
+                msg_args["style"] = {"color": "red"}
                 button_args["disabled"] = True
             case _:
-                msg_args["children"] = "Nothing uploaded"
+                msg_args["children"] = ""
                 button_args["disabled"] = True
-        print(msg_args)
-        print(button_args)
         button = html.Button("Use Graph", **button_args)
         message = html.P(**msg_args)
         self.children.append(html.Div(id="uploaded-graph-test", children=[
@@ -58,25 +69,20 @@ class GraphUploader(html.Div):
 class GraphBuilder(html.Div):
     def __init__(self):
         global graph
-        print("GraphBuilder with graph:")
-        print(graph.get_node_ids())
         super().__init__(id="graph-builder-new")
         self.style = {
-            # "border": "3px green solid",
-            # "margin": "3px",
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
         }
         self.children = []
         variable_selection = VariableSelection()
         first_node = graph.get_nodes()[0]
         VariableSelection.selected_node_id = first_node.id_
 
-        print(graph)
-
         self.children.append(GraphUploader())
-
-        self.children.append(html.Hr()) # TODO: better distinction from rest
         self.children.append(variable_selection)
-        self.children.append(html.Hr()) # TODO: better distinction from rest
         self.children.append(VariableConfig())
 
     @staticmethod
@@ -97,13 +103,20 @@ class VariableSelection(html.Div):
     selected_node_id: str | None = None
     def __init__(self):
         super().__init__(id="variable-selection-graph")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         nodes = graph.get_nodes()
         assert len(nodes) > 0
         if VariableSelection.selected_node_id is None:
             VariableSelection.selected_node_id = nodes[0].id_
 
         self.children = []
-        self.children.append(
+        self.children.extend([
+            dbc.Row(html.H5("Select Variable:")),
             dbc.Row([
                 dbc.Col(
                     dcc.Dropdown(
@@ -111,18 +124,38 @@ class VariableSelection(html.Div):
                         value=VariableSelection.selected_node_id,
                         id="graph-builder-target-node",
                         searchable=False,
-                        clearable=False
+                        clearable=False,
                     )
                 ),
-                dbc.Col(html.Button("Remove Selected Node", id="remove-selected-node", n_clicks=0)),
-                dbc.Col(html.Button("Add New Node", id="add-new-node", n_clicks=0)),
+                dbc.Col(html.Button(
+                    "Remove Selected Node",
+                    id="remove-selected-node",
+                    n_clicks=0,
+                    style={
+                        "border-radius": "8px"
+                    }
+                )),
+                dbc.Col(html.Button(
+                    "Add New Node",
+                    id="add-new-node",
+                    n_clicks=0,
+                    style={
+                        "border-radius": "8px"
+                    }
+                )),
             ])
-        )
+        ])
 
 
 class VariableConfig(html.Div):
     def __init__(self):
         super().__init__(id="variable-config-graph")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         assert VariableSelection.selected_node_id is not None
         selected_node = graph.get_node_by_id(VariableSelection.selected_node_id)
         assert selected_node is not None
@@ -142,22 +175,34 @@ class VariableConfig(html.Div):
 
         self.children = []
         self.children.extend([
-            dbc.Row([
-                dbc.Col([
-                    dbc.Row([
-                        dbc.Col(html.P(f"Rename Variable:")),
-                        dbc.Col(dcc.Input(
-                            value="",
-                            id="variable-name",
-                            type="text",
-                            minLength=1,
-                            maxLength=16,
-                        )),
-                        dbc.Col(html.Button("Confirm New Name", id="confirm-new-name", n_clicks=0)),
-                    ]),
-                ]),
-                html.Hr()
-            ]),
+            dbc.Row(html.H5("Change Variable Properties:")),
+            # dbc.Row([
+            #     dbc.Col([
+            #         dbc.Row([
+            #             dbc.Col(html.P(f"Rename Variable:")),
+            #             dbc.Col(dcc.Input(
+            #                 value="",
+            #                 id="variable-name",
+            #                 type="text",
+            #                 minLength=1,
+            #                 maxLength=16,
+            #                 style={
+            #                     "border": "solid black 1px",
+            #                     "border-radius": "8px"
+            #                 }
+            #             )),
+            #             dbc.Col(html.Button(
+            #                 "Confirm New Name",
+            #                 id="confirm-new-name",
+            #                 n_clicks=0,
+            #                 style={
+            #                     "border-radius": "8px"
+            #                 }
+            #             )),
+            #         ]),
+            #     ]),
+            #     html.Hr()
+            # ]),
             dbc.Row([
                 dbc.Col([
                     dbc.Row([
@@ -180,9 +225,15 @@ class VariableConfig(html.Div):
                             value=None,
                             id="add-out-node",
                             searchable=False,
-                            clearable=False
+                            clearable=False,
+                            style={"border-radius": "8px"}
                         )),
-                        dbc.Col(html.Button("Add Edge", id="add-new-edge", n_clicks=0)),
+                        dbc.Col(html.Button(
+                            "Add Edge",
+                            id="add-new-edge",
+                            n_clicks=0,
+                            style={"border-radius": "8px"}
+                        )),
                     ]),
                     dbc.Row([
                         dbc.Col(html.P(f"Select Out-Node to Remove")),
@@ -191,9 +242,15 @@ class VariableConfig(html.Div):
                             value=None,
                             id="remove-out-node",
                             searchable=False,
-                            clearable=False
+                            clearable=False,
+                            style={"border-radius": "8px"}
                         )),
-                        dbc.Col(html.Button("Remove Edge", id="remove-edge", n_clicks=0))
+                        dbc.Col(html.Button(
+                            "Remove Edge",
+                            id="remove-edge",
+                            n_clicks=0,
+                            style={"border-radius": "8px"}
+                        ))
                     ]),
                 ]),
             ]),
@@ -224,17 +281,23 @@ class GraphViewer(html.Div):
 
     def __init__(self) -> None:
         super().__init__(id="graph-viewer")
-        self.style = {}
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         self.children = [
+            html.H5("Select Layout:"),
             dcc.Dropdown(
                 options=self.Layouts.get_all(),
                 value=self.LAYOUT,
                 id="layout-choices",
                 searchable=False,
                 multi=False,
-                clearable=False
+                clearable=False,
+                style={"border-radius": "8px"}
             ),
-            html.H3(f"Layout: {GraphViewer.LAYOUT}"),
             Cytoscape(
                 id="network-graph",
                 layout={"name": self.LAYOUT},

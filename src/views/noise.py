@@ -11,8 +11,10 @@ class NoiseBuilder(html.Div):
     def __init__(self):
         super().__init__(id="noise-builder")
         self.style = {
-            # "border": "3px green solid",
-            # "margin": "3px",
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
         }
         self.children = []
         node_ids = graph.get_node_ids()
@@ -24,7 +26,6 @@ class NoiseBuilder(html.Div):
         assert len(sub_variables) > 0
         VariableSelection.sub_variable = sub_variables[0]
         self.children.append(VariableSelection())
-        self.children.append(html.Hr()) # TODO: better distinction from rest
         self.children.append(NoiseConfig())
 
 
@@ -33,6 +34,12 @@ class VariableSelection(html.Div):
     sub_variable: str
     def __init__(self):
         super().__init__(id="variable-selection-noise")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
         sub_variables = [
@@ -43,6 +50,7 @@ class VariableSelection(html.Div):
 
         self.children = []
         self.children.extend([
+            dbc.Row(html.H5("Select Variable:")),
             dbc.Row(
                 dbc.Col(
                     dcc.Dropdown(
@@ -50,10 +58,12 @@ class VariableSelection(html.Div):
                         value=VariableSelection.variable,
                         id="noise-builder-variable",
                         searchable=False,
-                        clearable=False
+                        clearable=False,
+                        style={"border-radius": "8px"},
                     )
                 ),
             ),
+            dbc.Row(html.H5("Select Sub-Variable:")),
             dbc.Row([
                 dbc.Col(
                     dcc.Dropdown(
@@ -61,14 +71,25 @@ class VariableSelection(html.Div):
                         value=VariableSelection.sub_variable,
                         id="noise-builder-sub-variable",
                         searchable=False,
-                        clearable=False
+                        clearable=False,
+                        style={"border-radius": "8px"},
                     )
                 ),
                 dbc.Col(
-                    html.Button("Remove selected sub variable", id="remove-sub-variable", n_clicks=0)
+                    html.Button(
+                        "Remove selected sub variable",
+                        id="remove-sub-variable",
+                        n_clicks=0,
+                        className="one-button",
+                    )
                 ),
                 dbc.Col(
-                    html.Button("Add new sub variable", id="add-sub-variable", n_clicks=0)
+                    html.Button(
+                        "Add new sub variable",
+                        id="add-sub-variable",
+                        n_clicks=0,
+                        className="one-button",
+                    )
                 )
             ])
         ])
@@ -77,6 +98,12 @@ class VariableSelection(html.Div):
 class NoiseConfig(html.Div):
     def __init__(self):
         super().__init__(id="noise-config")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         selected_node = graph.get_node_by_id(VariableSelection.variable)
         assert selected_node is not None
         assert VariableSelection.sub_variable in selected_node.noise.sub_distributions
@@ -87,13 +114,15 @@ class NoiseConfig(html.Div):
         parmeter_options = Distribution.parameter_options()
 
         self.children = []
+        self.children.append(html.H5("Configure Noise:"))
         self.children.append(
             dcc.Dropdown(
                 options=parmeter_options,
                 value=distribution.name,
                 id="distribution-choice",
                 searchable=False,
-                clearable=False
+                clearable=False,
+                style={"border-radius": "8px"},
             )
         )
         for param in distribution.parameters.values():
@@ -117,6 +146,7 @@ class NoiseConfig(html.Div):
                                             min=param.min,
                                             max=param.max,
                                             step=param.step,
+                                            style={"border-radius": "8px"},
                                         ),
                                     ],
                                     width=3,
@@ -135,6 +165,7 @@ class NoiseConfig(html.Div):
                                             min=param.min,
                                             max=param.max,
                                             step=param.step,
+                                            style={"border-radius": "8px"},
                                         ),
                                     ],
                                     width=3,
@@ -153,6 +184,7 @@ class NoiseConfig(html.Div):
                                             min=param.min,
                                             max=param.max,
                                             step=param.step,
+                                            style={"border-radius": "8px"},
                                         ),
                                     ],
                                     width=3,
@@ -189,6 +221,12 @@ class NoiseConfig(html.Div):
 class NoiseViewer(html.Div):
     def __init__(self):
         super().__init__(id="noise-viewer")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
 
         source_node = graph.get_node_by_id(VariableSelection.variable)
         assert source_node is not None

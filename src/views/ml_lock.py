@@ -8,9 +8,17 @@ class MLLockBuilder(html.Div):
         super().__init__(id="ml-lock-builder")
         buttons = []
         if MLLockBuilder.is_locked:
-            buttons.extend([html.Button("Unlock", id="ml-lock-button")])
+            buttons.extend([html.Button(
+                "Unlock", 
+                id="ml-lock-button",
+                className="one-button",
+            )])
         else:
-            buttons.append(html.Button("Lock", id="ml-lock-button"))
+            buttons.append(html.Button(
+                "Lock",
+                id="ml-lock-button",
+                className="one-button",
+            ))
         self.children = [
             dbc.Row(
                 dbc.Col(

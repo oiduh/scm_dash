@@ -139,9 +139,13 @@ TODO:
     - [X] remove borders or make them universal
     - [X] instead of borders, make a card component as the wrapper
     - [ ] make everything look nicer and more uniformely:
-        - [ ] graph
+        - [X] graph
         -> good basis, reuse styling for rest of tabs
+        -> use some style sheet like css for components
         - [ ] noise
+            - [ ] toggle for noise view (individual or combined -> less space = clean)
+            - [ ] remove some distributions for sake of simplicity e.g. poisson, bernoulli
+            - [ ] name the parameters properly and make smaller
         - [ ] mechanism
         - [ ] lock
         - [ ] data summary
@@ -200,4 +204,4 @@ TODO:
               scatter plot generation variable
         - [ ] loading new graph should also clean the visualization for selected data sets
 
-
+n

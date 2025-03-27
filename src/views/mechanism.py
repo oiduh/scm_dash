@@ -48,10 +48,16 @@ class VariableSelection(html.Div):
                         value=VariableSelection.variable,
                         id="mechanism-builder-target-node",
                         searchable=False,
-                        clearable=False
+                        clearable=False,
+                        style={"border-radius": "8px"},
                     )
                 ),
-                dbc.Col(html.Button("Confirm Mechanism", id=button_id, n_clicks=0)),
+                dbc.Col(html.Button(
+                    "Confirm Mechanism",
+                    id=button_id,
+                    n_clicks=0,
+                    className="one-button",
+                )),
                 dbc.Col(html.P("some placeholder for verification")),
             ])
         ]
@@ -91,7 +97,11 @@ class MechanismConfig(html.Div):
                             ),
                         ),
                     ]),
-                    dbc.Row(html.Button("toggle help", id="toggle-help-regression")),
+                    dbc.Row(html.Button(
+                        "toggle help",
+                        id="toggle-help-regression",
+                        className="one-button",
+                    )),
                     dbc.Row(dbc.Collapse(
                         [
                             dbc.Card([
@@ -122,11 +132,20 @@ class MechanismConfig(html.Div):
                         ),
                     ),
                     dbc.Col(
-                        html.Button("Add Class", id="add-class", n_clicks=0)
+                        html.Button(
+                            "Add Class",
+                            id="add-class",
+                            n_clicks=0,
+                            className="one-button",
+                        )
                     ),
                 ]),
 
-                dbc.Row(html.Button("toggle help", id="toggle-help-classification")),
+                dbc.Row(html.Button(
+                    "toggle help",
+                    id="toggle-help-classification",
+                    className="one-button",
+                )),
                 dbc.Row(dbc.Collapse(
                     [
                         dbc.Card([
@@ -220,7 +239,15 @@ class ClassificationBuilder(html.Div):
                         id={"type": "classification-input", "index": c}, value=f
                     )),
                     dbc.Col(
-                        html.Button("Remove Class", id={"type": "remove-class", "index": c}, n_clicks=0),
+                        html.Button(
+                            "Remove Class",
+                            id={
+                                "type": "remove-class",
+                                "index": c
+                            },
+                            n_clicks=0,
+                            className="one-button",
+                        ),
                         width="auto")
                 ], align="center", className="g-0")
             )

@@ -42,9 +42,6 @@ class GraphUploader(html.Div):
         msg_args = dict[str, Any]()
         button_args: dict[str, Any] = {
             "id": "use-graph-button",
-            "style": {
-                "border-radius": "8px",
-            }
         }
         match GraphUploader.last_uploaded_graph:
             case True:
@@ -58,7 +55,11 @@ class GraphUploader(html.Div):
             case _:
                 msg_args["children"] = ""
                 button_args["disabled"] = True
-        button = html.Button("Use Graph", **button_args)
+        button = html.Button(
+            "Use Graph",
+            **button_args,
+            className="one-button"
+        )
         message = html.P(**msg_args)
         self.children.append(html.Div(id="uploaded-graph-test", children=[
             message, button
@@ -125,23 +126,20 @@ class VariableSelection(html.Div):
                         id="graph-builder-target-node",
                         searchable=False,
                         clearable=False,
+                        style={"border-radius": "8px"},
                     )
                 ),
                 dbc.Col(html.Button(
                     "Remove Selected Node",
                     id="remove-selected-node",
                     n_clicks=0,
-                    style={
-                        "border-radius": "8px"
-                    }
+                    className="one-button"
                 )),
                 dbc.Col(html.Button(
                     "Add New Node",
                     id="add-new-node",
                     n_clicks=0,
-                    style={
-                        "border-radius": "8px"
-                    }
+                    className="one-button"
                 )),
             ])
         ])
@@ -186,10 +184,7 @@ class VariableConfig(html.Div):
             #                 type="text",
             #                 minLength=1,
             #                 maxLength=16,
-            #                 style={
-            #                     "border": "solid black 1px",
-            #                     "border-radius": "8px"
-            #                 }
+            #                 style={"border-radius": "8px"},
             #             )),
             #             dbc.Col(html.Button(
             #                 "Confirm New Name",
@@ -232,7 +227,7 @@ class VariableConfig(html.Div):
                             "Add Edge",
                             id="add-new-edge",
                             n_clicks=0,
-                            style={"border-radius": "8px"}
+                            className="one-button"
                         )),
                     ]),
                     dbc.Row([
@@ -249,7 +244,7 @@ class VariableConfig(html.Div):
                             "Remove Edge",
                             id="remove-edge",
                             n_clicks=0,
-                            style={"border-radius": "8px"}
+                            className="one-button"
                         ))
                     ]),
                 ]),

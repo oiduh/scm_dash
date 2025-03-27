@@ -129,9 +129,15 @@ class DataSummaryViewer(html.Div):
                 id="layout-choices-summary",
                 searchable=False,
                 multi=False,
-                clearable=False
+                clearable=False,
+                style={"border-radius": "8px"},
             ),
-            html.Button("reset view", id="data-summary-reset", n_clicks=0),
+            html.Button(
+                "reset view",
+                id="data-summary-reset",
+                n_clicks=0,
+                className="one-button",
+            ),
             dbc.Row([
                 dbc.Col(Cytoscape(
                     id="summary-graph",
@@ -180,8 +186,18 @@ class DataSummaryViewer(html.Div):
         scatter_graph = px.scatter(data, x=DataSummaryViewer.scatter_x, y=DataSummaryViewer.scatter_y)
         self.children.append(
             dbc.Row([
-                dbc.Col(dcc.Dropdown(id="scatter-x", options=ids, value=DataSummaryViewer.scatter_x)),
-                dbc.Col(dcc.Dropdown(id="scatter-y", options=ids, value=DataSummaryViewer.scatter_y)),
+                dbc.Col(dcc.Dropdown(
+                    id="scatter-x",
+                    options=ids,
+                    value=DataSummaryViewer.scatter_x,
+                    style={"border-radius": "8px"},
+                )),
+                dbc.Col(dcc.Dropdown(
+                    id="scatter-y",
+                    options=ids,
+                    value=DataSummaryViewer.scatter_y,
+                    style={"border-radius": "8px"},
+                )),
                 dcc.Graph(id="scatter-graph", figure=scatter_graph, config={"staticPlot": True})
             ]),
         )

@@ -8,13 +8,25 @@ class LockDataBuilder(html.Div):
         buttons = []
         if LockDataBuilder.is_locked:
             buttons.extend([
-                html.Button("Unlock", id="lock-button"),
-                html.Button("Export Graph", id="export-graph"),
+                html.Button(
+                    "Unlock",
+                    id="lock-button",
+                    className="one-button",
+                ),
+                html.Button(
+                    "Export Graph",
+                    id="export-graph",
+                    className="one-button",
+                ),
                 dcc.Download(id="export-graph-text")
             ])
         else:
             buttons.append(
-                html.Button("Lock", id="lock-button"),
+                html.Button(
+                    "Lock",
+                    id="lock-button",
+                    className="one-button",
+                ),
             )
         self.children = [
             dbc.Row(

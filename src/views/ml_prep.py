@@ -16,10 +16,14 @@ class TrainingDataSetEditor(html.Div):
         # button to remove training set
         self.children.append(dbc.Row([
             dbc.Col(html.Button(
-                id="save-training-set", children="Save Training Set"
+                id="save-training-set",
+                children="Save Training Set",
+                className="one-button",
             )),
             dbc.Col(html.Button(
-                id="remove-training-set", children="Remove Training Set"
+                id="remove-training-set",
+                children="Remove Training Set",
+                className="one-button",
             )),
         ]))
         nodes = graph.get_nodes()
@@ -40,7 +44,8 @@ class TrainingDataSetEditor(html.Div):
             dcc.Dropdown(
                 id="selected-target-id",
                 options=node_ids,
-                value=target
+                value=target,
+                style={"border-radius": "8px"},
             ),
             html.Hr(),
             html.P("select the source variables:"),
@@ -72,7 +77,9 @@ class MLPreparation(html.Div):
         super().__init__(id="ml-preparation")
         self.children = []
         self.children.append(html.Button(
-            id="add-training-set", children="Add Training Set +"
+            id="add-training-set",
+            children="Add Training Set +",
+            className="one-button",
         ))
         self.children.append(TrainingDataSetEditor())
 
@@ -86,8 +93,13 @@ class MLViewer(html.Div):
             row = dbc.Row([
                 dbc.Col(html.P(f"sources: {data_set['s']}")),
                 dbc.Col(html.P(f"target: {data_set['t']}")),
-                dbc.Col(html.Button("remove", id={
-                    "type": "remove-data-set", "index": str(idx)
-                })),
+                dbc.Col(html.Button(
+                    "remove",
+                    id={
+                        "type": "remove-data-set",
+                        "index": str(idx)
+                    },
+                    className="one-button",
+                )),
             ])
             self.children.append(row)

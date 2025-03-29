@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from string import digits
 import string
 from typing import Any, Self
 
@@ -19,6 +18,7 @@ Generator = RVCont | RVDisc
 @dataclass(kw_only=True)
 class Parameter:
     name: str
+    real_name: str
     min: float
     slider_min: float
     max: float
@@ -56,9 +56,9 @@ class Distribution:
             "lognorm",
             "uniform",
             "laplace",
-            "poisson",
-            "binom",
-            "bernoulli",
+            # "poisson",
+            # "binom",
+            # "bernoulli",
             "randint",
         ]
         return options
@@ -70,6 +70,7 @@ class Distribution:
                 # mean (mu)
                 loc = Parameter(
                     name="loc",
+                    real_name="mean",
                     min=-10,
                     slider_min=-10,
                     max=10,
@@ -80,6 +81,7 @@ class Distribution:
                 # variance (phi)
                 scale = Parameter(
                     name="scale",
+                    real_name="variance",
                     min=0.1,
                     slider_min=0.1,
                     max=5,
@@ -92,6 +94,7 @@ class Distribution:
                 # mean (mu)
                 loc = Parameter(
                     name="loc",
+                    real_name="mean",
                     min=-10,
                     slider_min=-10,
                     max=10,
@@ -102,6 +105,7 @@ class Distribution:
                 # variance (phi)
                 scale = Parameter(
                     name="scale",
+                    real_name="variance",
                     min=0,
                     slider_min=0,
                     max=5,
@@ -112,6 +116,7 @@ class Distribution:
                 # shape (s)
                 s = Parameter(
                     name="s",
+                    real_name="shape",
                     min=0.1,
                     slider_min=0.1,
                     max=1.0,
@@ -123,9 +128,10 @@ class Distribution:
                     id, name, {"loc": loc, "scale": scale, "s": s}, stats.lognorm
                 )
             case "uniform":
-                # a
+                # start (loc)
                 loc = Parameter(
                     name="loc",
+                    real_name="start",
                     min=-10,
                     slider_min=-10,
                     max=10,
@@ -133,9 +139,10 @@ class Distribution:
                     current=0,
                     step=0.5,
                 )
-                # b
+                # length (scale)
                 scale = Parameter(
                     name="scale",
+                    real_name="length",
                     min=0,
                     slider_min=0,
                     max=5,
@@ -146,9 +153,10 @@ class Distribution:
                 # generates uniformely distriributed data in range [a, a + b]
                 return cls(id, name, {"loc": loc, "scale": scale}, stats.uniform)
             case "laplace":
-                # loc
+                # locations
                 loc = Parameter(
                     name="loc",
+                    real_name="location",
                     min=-10,
                     slider_min=-10,
                     max=10,
@@ -159,6 +167,7 @@ class Distribution:
                 # scale
                 scale = Parameter(
                     name="scale",
+                    real_name="scale",
                     min=0,
                     slider_min=0,
                     max=5,
@@ -172,6 +181,7 @@ class Distribution:
                 # mu
                 mu = Parameter(
                     name="mu",
+                    real_name="mu",
                     min=0,
                     slider_min=0,
                     max=10,
@@ -185,6 +195,7 @@ class Distribution:
                 # n -> determines max int value for range k=[0, n]
                 n = Parameter(
                     name="n",
+                    real_name="n",
                     min=2,
                     slider_min=2,
                     max=10,
@@ -195,6 +206,7 @@ class Distribution:
                 # p -> probability [0, 1]
                 p = Parameter(
                     name="p",
+                    real_name="p",
                     min=0,
                     slider_min=0,
                     max=1,
@@ -208,6 +220,7 @@ class Distribution:
                 # p -> probability [0, 1]
                 p = Parameter(
                     name="p",
+                    real_name="p",
                     min=0,
                     slider_min=0,
                     max=1,
@@ -220,6 +233,7 @@ class Distribution:
             case "randint":
                 low = Parameter(
                     name="low",
+                    real_name="low",
                     min=1,
                     slider_min=1,
                     max=20,
@@ -229,6 +243,7 @@ class Distribution:
                 )
                 high = Parameter(
                     name="high",
+                    real_name="high",
                     min=2,
                     slider_min=2,
                     max=21,
@@ -339,6 +354,8 @@ class Noise:
         self.sub_distributions[to_remove.id_] = None
 
     def generate_data(self) -> dict[str, np.ndarray]:
+        # TODO: potentially think about using a custom seed
+        np.random.seed(42)
         distributions = self.get_distributions()
         partition, rest = divmod(CONSTANTS.NR_DATA_POINTS, len(distributions))
         x = [partition for _ in range(len(distributions))]

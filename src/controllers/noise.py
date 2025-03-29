@@ -205,3 +205,14 @@ def setup_callbacks():
     )
     def update_graph(*_):
         return NoiseViewer().children
+
+    @callback(
+        Output("noise-viewer", "children", allow_duplicate=True),
+        Input("noise-view-radio", "value"),
+        prevent_initial_call=True,
+    )
+    def toggle_noise_view(viewer_option):
+        assert viewer_option in ["combined", "individual"]
+        NoiseViewer.selected_view_option = viewer_option
+        return NoiseViewer().children
+

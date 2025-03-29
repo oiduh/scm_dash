@@ -12,12 +12,13 @@ class MechanismBuilder(html.Div):
     def __init__(self):
         super().__init__(id="mechanism-builder")
         self.style = {
-            # "border": "3px green solid",
-            # "margin": "3px",
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
         }
         self.children = [
             VariableSelection(),
-            html.Hr(),
             MechanismConfig()
         ]
 
@@ -26,6 +27,12 @@ class VariableSelection(html.Div):
     variable: str | None = None
     def __init__(self):
         super().__init__(id="variable-selection-mechanism")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         nodes = graph.get_nodes()
         node_ids = graph.get_node_ids()
         assert len(node_ids) > 0
@@ -41,6 +48,7 @@ class VariableSelection(html.Div):
             button_id = "confirm-classification"
 
         self.children = [
+            dbc.Row(html.H5("Select variable:")),
             dbc.Row([
                 dbc.Col(
                     dcc.Dropdown(
@@ -53,12 +61,12 @@ class VariableSelection(html.Div):
                     )
                 ),
                 dbc.Col(html.Button(
-                    "Confirm Mechanism",
+                    "Confirm mechanism",
                     id=button_id,
                     n_clicks=0,
                     className="one-button",
                 )),
-                dbc.Col(html.P("some placeholder for verification")),
+                dbc.Col(html.P("")),
             ])
         ]
 
@@ -73,6 +81,12 @@ class MechanismConfig(html.Div):
     is_open: bool = False
     def __init__(self):
         super().__init__(id="mechanism-config")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         assert VariableSelection.variable is not None
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
@@ -85,11 +99,12 @@ class MechanismConfig(html.Div):
         causes = ", ".join(causes)
 
         self.children = []
+        self.children.append(html.H5("Configure mechanism:"))
         if MechanismConfig.mechanism_type == "regression":
             self.children.extend(
                 [
-                    dbc.Row([
-                        dbc.Col(
+                    html.Div([
+                        html.Div(
                             dcc.RadioItems(
                                 options=["regression", "classification"],
                                 value=MechanismConfig.mechanism_type,
@@ -97,83 +112,111 @@ class MechanismConfig(html.Div):
                             ),
                         ),
                     ]),
-                    dbc.Row(html.Button(
-                        "toggle help",
-                        id="toggle-help-regression",
-                        className="one-button",
-                    )),
-                    dbc.Row(dbc.Collapse(
-                        [
-                            dbc.Card([
-                                dbc.CardHeader("Causes:"),
-                                dbc.CardBody(causes)
-                            ]),
-                            dbc.Card([
-                                dbc.CardHeader("Operators:"),
-                                dbc.CardBody(MechanismConfig.operators_regression)
-                            ]),
-                            dbc.Card([
-                                dbc.CardHeader("Functions:"),
-                                dbc.CardBody(MechanismConfig.functions)
-                            ]),
+                    html.Div(
+                        children=[
+                            html.Button(
+                                children="toggle help",
+                                id="toggle-help-regression",
+                                className="one-button",
+                                style={
+                                    "width": "auto",
+                                },
+                            ),
+                            dbc.Collapse(
+                                children=[
+                                    html.Div(
+                                        children=[
+                                            dbc.CardHeader("Causes:"),
+                                            dbc.CardBody(causes)
+                                        ],
+                                        style={
+                                            "margin-top": "10px",
+                                            "margin-bottom": "10px",
+                                        }
+                                    ),
+                                    html.Div(
+                                        children=[
+                                            dbc.CardHeader("Operators:"),
+                                            dbc.CardBody(MechanismConfig.operators_regression)
+                                        ],
+                                        style={
+                                            "margin-bottom": "10px"
+                                        }
+                                    ),
+                                    html.Div(
+                                        children=[
+                                            dbc.CardHeader("Functions:"),
+                                            dbc.CardBody(MechanismConfig.functions)
+                                        ]),
+                                ],
+                                id="collapse-regression", is_open=MechanismConfig.is_open,
+                            )
                         ],
-                        id="collapse-regression", is_open=MechanismConfig.is_open
-                    )),
+                        style={
+                            "border": "solid black 2px",
+                            "border-radius": "8px",
+                            "padding": "10px",
+                            "margin": "10px",
+                        }
+                    ),
                 ],
             )
         else:
             self.children.extend([
-                dbc.Row([
-                    dbc.Col(
+                html.Div([
+                    html.Div(
                         dcc.RadioItems(
                             options=["regression", "classification"],
                             value=MechanismConfig.mechanism_type,
                             id="mechanism-choice",
                         ),
                     ),
-                    dbc.Col(
-                        html.Button(
-                            "Add Class",
-                            id="add-class",
-                            n_clicks=0,
-                            className="one-button",
-                        )
-                    ),
                 ]),
-
-                dbc.Row(html.Button(
-                    "toggle help",
-                    id="toggle-help-classification",
-                    className="one-button",
-                )),
-                dbc.Row(dbc.Collapse(
-                    [
-                        dbc.Card([
-                            dbc.CardHeader("Causes:"),
-                            dbc.CardBody(causes)
-                        ]),
-                        dbc.Card([
-                            dbc.CardHeader("Operators:"),
-                            dbc.CardBody(MechanismConfig.operators_classfication)
-                        ]),
-                        dbc.Card([
-                            dbc.CardHeader("Functions:"),
-                            dbc.CardBody(MechanismConfig.functions)
-                        ]),
-                        dbc.Card([
-                            dbc.CardHeader("Note:"),
-                            dbc.CardBody(
-                                "expressions evaluated to booleans need to wrapped in parenthesis e.g.:\n"
-                                "'(a > 3) & (b > 2)' works, but 'a > 3 & b > 2' does not work"
-                            )
-                        ]),
+                html.Div(
+                    children=[
+                        html.Button(
+                            "toggle help",
+                            id="toggle-help-classification",
+                            className="one-button",
+                            style={
+                                "width": "auto"
+                            },
+                        ),
+                        dbc.Collapse(
+                            children=[
+                                html.Div([
+                                    dbc.CardHeader("Causes:"),
+                                    dbc.CardBody(causes)
+                                ]),
+                                html.Div([
+                                    dbc.CardHeader("Operators:"),
+                                    dbc.CardBody(MechanismConfig.operators_classfication)
+                                ]),
+                                html.Div([
+                                    dbc.CardHeader("Functions:"),
+                                    dbc.CardBody(MechanismConfig.functions)
+                                ]),
+                                html.Div([
+                                    dbc.CardHeader("Note:"),
+                                    dbc.CardBody(
+                                        "expressions evaluated to booleans need to wrapped in parenthesis e.g.:\n"
+                                            "'(a > 3) & (b > 2)' works, but 'a > 3 & b > 2' does not work"
+                                    )
+                                ]),
+                            ],
+                            id="collapse-classification", is_open=MechanismConfig.is_open
+                        ),
                     ],
-                    id="collapse-classification", is_open=MechanismConfig.is_open
-                )),
+                    style={
+                        "border": "solid black 2px",
+                        "border-radius": "8px",
+                        "padding": "10px",
+                        "margin": "10px",
+                    }
+                ),
             ])
 
         self.children.extend([
-            dbc.Row(html.Hr()),
             dbc.Row(MechanismInput()),
         ])
 
@@ -184,16 +227,23 @@ class MechanismInput(html.Div):
         assert VariableSelection.variable is not None
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
+        self.children = []
 
         match node.mechanism_metadata.mechanism_type:
             case "regression":
-                self.children = RegressionBuilder()
+                self.children.append(RegressionBuilder())
             case "classification":
-                self.children = ClassificationBuilder()
+                self.children.append(ClassificationBuilder())
 
 
 class RegressionBuilder(html.Div):
     def __init__(self):
+        self.style={
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         super().__init__(id="regression-builder")
         assert VariableSelection.variable is not None
         node = graph.get_node_by_id(VariableSelection.variable)
@@ -207,20 +257,30 @@ class RegressionBuilder(html.Div):
         assert formula is not None
 
         self.children = [
-            dbc.Row([
-                dbc.Col(
-                    dcc.Markdown(f"$$f({', '.join(displayed_names)}):=$$", mathjax=True),
-                    width="auto", style={"paddingTop": "10px"}
-                ),
-                dbc.Col(dbc.Input(id="regression-input", value=formula)),
-            ])
+            html.Div(html.H5("Formulas:")),
+            html.Div(
+                dbc.Row([
+                    dbc.Col(
+                        dcc.Markdown(f"$$f({', '.join(displayed_names)}):=$$", mathjax=True),
+                        width="auto", style={"paddingTop": "10px"}
+                    ),
+                    dbc.Col(dbc.Input(id="regression-input", value=formula)),
+                ]),
+            )
         ]
 
 
 class ClassificationBuilder(html.Div):
     def __init__(self):
         super().__init__(id="classification-builder")
+        self.style={
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         self.children = []
+        self.children.append(html.H5("Formulas:"))
         assert VariableSelection.variable is not None
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None
@@ -254,6 +314,14 @@ class ClassificationBuilder(html.Div):
         self.children.append(
             dcc.Markdown("$$class_{else}: \\text{all data points not classified by the above functions}$$", mathjax=True)
         )
+        self.children.append(html.Div(
+            html.Button(
+                "Add Class",
+                id="add-class",
+                n_clicks=0,
+                className="one-button",
+            )
+        ))
 
 
 class MechanismViewer(html.Div):
@@ -261,6 +329,12 @@ class MechanismViewer(html.Div):
     # TODO: depending on chosen node on left -> only show
     def __init__(self):
         super().__init__(id="mechanism-viewer")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         assert VariableSelection.variable is not None
         node = graph.get_node_by_id(VariableSelection.variable)
         assert node is not None

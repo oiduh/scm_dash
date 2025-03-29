@@ -1,3 +1,4 @@
+from typing import Literal
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 import plotly.figure_factory as ff
@@ -129,7 +130,7 @@ class NoiseConfig(html.Div):
             self.children.append(
                 dbc.Col(
                     [
-                        dbc.Row(html.H3(param.name)),
+                        dbc.Row(html.H5(param.real_name), style={"margin-top": "10px"}),
                         dbc.Row(
                             [
                                 dbc.Col(
@@ -219,6 +220,7 @@ class NoiseConfig(html.Div):
 
 
 class NoiseViewer(html.Div):
+    selected_view_option: Literal["combined", "individual"] = "combined"
     def __init__(self):
         super().__init__(id="noise-viewer")
         self.style = {
@@ -259,10 +261,36 @@ class NoiseViewer(html.Div):
             extracted_data, labels, show_rug=False, bin_size=0.2, colors=colors
         )
 
+        radio_items = dcc.RadioItems(
+            id="noise-view-radio",
+            options=["combined", "individual"],
+            value=NoiseViewer.selected_view_option,
+            inline=True,
+        )
+        self.children.append(radio_items)
 
-        self.children = [
-            html.H3(f"combined: {node_name}"),
-            dcc.Graph("graph-combined", figure=combined_data, config={"staticPlot": True}),
-            html.H3(f"individual with focus on: {VariableSelection.sub_variable}"),
-            dcc.Graph("graph-individual", figure=individual_data, config={"staticPlot": True}),
-        ]
+        combined = html.Div(
+            id="graph-combined",
+            children=[
+                html.H5(f"Combined graph: {node_name}"),
+                dcc.Graph(
+                    figure=combined_data,
+                    config={"staticPlot": True}
+                )
+            ]
+        )
+        individual = html.Div(
+            id="graph-individual",
+            children=[
+                html.H5(f"Individual graph with focus on: {VariableSelection.sub_variable}"),
+                dcc.Graph(
+                    figure=individual_data,
+                    config={"staticPlot": True}
+                )
+            ]
+        )
+
+        if NoiseViewer.selected_view_option == "combined":
+            self.children.append(combined)
+        else:
+            self.children.append(individual)

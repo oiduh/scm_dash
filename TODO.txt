@@ -146,15 +146,21 @@ TODO:
             - [X] toggle for noise view (individual or combined -> less space = clean)
             - [X] remove some distributions for sake of simplicity e.g. poisson, bernoulli
             - [X] name the parameters properly and make smaller
-        - [X] mechanism
+        - [ ] mechanism
+            - [X] fix card for toggle
+            - [X] fix np function with non-finite results e.g. log(0), sqrt(-1)
+            - [ ] if confirmed, save status
         - [ ] lock
         - [ ] data summary
+            - [ ] dont disable on ml result
+            - [ ] ...
         - [ ] ml prep
         - [ ] ml lock
         - [ ] ml result
         - [ ] tabs
     - [X] tabs styling and uniformity
     - [ ] universal reset button + callbacks
+        -> reset all component variables
     - [ ] lock/unlock callbacks to reset stuff e.g. data set selection
     - [ ] right/left split on ml result -> show graph + mechanisms for analysis
         - [ ] handle case where data set is empty

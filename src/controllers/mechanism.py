@@ -198,7 +198,7 @@ def setup_callbacks():
 
         node.mechanism_metadata.formulas["0"] = regression_input
         mechanism_check = node.formulas_are_valid()
-        print(mechanism_check)
+        print("ERROR:", mechanism_check)
         MechanismViewer.error = mechanism_check.error
         node.mechanism_metadata.valid = mechanism_check.error is None
 

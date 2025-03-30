@@ -43,8 +43,7 @@ class Parser:
         self.mechanism_type = mechanism_type
         self.errors = set()
         try:
-            modname = os.path.split(os.path.splitext(__file__)[0])[
-                1] + "_" + self.__class__.__name__
+            modname = os.path.split(os.path.splitext(__file__)[0])[1] + "_" + self.__class__.__name__
         except:
             modname = "parser" + "_" + self.__class__.__name__
         self.debugfile = modname + ".dbg"
@@ -62,7 +61,9 @@ class Parser:
         self.errors = set()
         self.names = names
         try:
-            return self.parser.parse(example)
+            res = self.parser.parse(example)
+            print(res)
+            return res
         except Exception as e:
             self.errors.add(e)
 
@@ -150,6 +151,8 @@ class Calc(Parser):
         try:
             if p[1] in funcs.keys():
                 p[0] = funcs[p[1]](p[3])
+                if not np.isfinite(p[0]).all():
+                    raise Exception("result not fininite")
             else:
                 self.errors.add("Illegal function '%s'" % p[1])
                 p[0] = 0
@@ -181,39 +184,40 @@ class Calc(Parser):
                   | expression OR expression
         """
         if p[2] == '+':
-            p[0] = p[1] + p[3]
+            p[0] = (p[1] + p[3]).all()
         elif p[2] == '-':
-            p[0] = p[1] - p[3]
+            p[0] = (p[1] - p[3]).all()
         elif p[2] == '*':
-            p[0] = p[1] * p[3]
+            p[0] = (p[1] * p[3]).all()
         elif p[2] == '/':
             p[0] = p[1] / p[3]
         elif p[2] == '**':
-            p[0] = p[1] ** p[3]
+            p[0] = (p[1] ** p[3]).all()
         elif p[2] == '//':
-            p[0] = p[1] // p[3]
+            p[0] = (p[1] // p[3]).all()
         elif p[2] == '%':
-            p[0] = p[1] % p[3]
+            p[0] = (p[1] % p[3]).all()
         elif self.mechanism_type == "regression":
             self.errors.add("operator evaluating to bool not allowed in regression")
+            raise Exception("operator evaluating to bool not allowed in regression")
         elif p[2] == '==':
-            p[0] = p[1] == p[3]
+            p[0] = (p[1] == p[3]).all()
         elif p[2] == '!=':
-            p[0] = p[1] != p[3]
+            p[0] = (p[1] != p[3]).all()
         elif p[2] == '<':
-            p[0] = p[1] < p[3]
+            p[0] = (p[1] < p[3]).all()
         elif p[2] == '>':
-            p[0] = p[1] > p[3]
+            p[0] = (p[1] > p[3]).all()
         elif p[2] == '<=':
-            p[0] = p[1] <= p[3]
+            p[0] = (p[1] <= p[3]).all()
         elif p[2] == '>=':
-            p[0] = p[1] >= p[3]
+            p[0] = (p[1] >= p[3]).all()
         elif p[2] == '&':
-            p[0] = p[1] & p[3]
+            p[0] = (p[1] & p[3]).all()
         elif p[2] == '^':
-            p[0] = p[1] ^ p[3]
+            p[0] = (p[1] ^ p[3]).all()
         elif p[2] == '|':
-            p[0] = p[1] | p[3]
+            p[0] = (p[1] | p[3]).all()
 
     def p_expression_uminus(self, p):
         'expression : MINUS expression %prec UMINUS'
@@ -245,12 +249,12 @@ class Calc(Parser):
 
 
 if __name__ == '__main__':
-    calc = Calc()
+    calc = Calc(mechanism_type="regression")
     names = {
         'a': np.array(range(10)) - 5  #+ np.random.random(10)
     }
-    # print(names['a'])
-    # calc.run_example("(1 + 2) * a % 8", names)
+    print(names['a'])
+    calc.run_example("log(0)", names)
     # print(names['a'])
     # calc.run_example("((a <= 2) & (a >= -2))", names)
     # print(calc.errors)

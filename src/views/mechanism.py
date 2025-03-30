@@ -124,7 +124,7 @@ class MechanismConfig(html.Div):
                             ),
                             dbc.Collapse(
                                 children=[
-                                    html.Div(
+                                    dbc.Card(
                                         children=[
                                             dbc.CardHeader("Causes:"),
                                             dbc.CardBody(causes)
@@ -134,7 +134,7 @@ class MechanismConfig(html.Div):
                                             "margin-bottom": "10px",
                                         }
                                     ),
-                                    html.Div(
+                                    dbc.Card(
                                         children=[
                                             dbc.CardHeader("Operators:"),
                                             dbc.CardBody(MechanismConfig.operators_regression)
@@ -143,7 +143,7 @@ class MechanismConfig(html.Div):
                                             "margin-bottom": "10px"
                                         }
                                     ),
-                                    html.Div(
+                                    dbc.Card(
                                         children=[
                                             dbc.CardHeader("Functions:"),
                                             dbc.CardBody(MechanismConfig.functions)
@@ -184,25 +184,44 @@ class MechanismConfig(html.Div):
                         ),
                         dbc.Collapse(
                             children=[
-                                html.Div([
-                                    dbc.CardHeader("Causes:"),
-                                    dbc.CardBody(causes)
-                                ]),
-                                html.Div([
-                                    dbc.CardHeader("Operators:"),
-                                    dbc.CardBody(MechanismConfig.operators_classfication)
-                                ]),
-                                html.Div([
-                                    dbc.CardHeader("Functions:"),
-                                    dbc.CardBody(MechanismConfig.functions)
-                                ]),
-                                html.Div([
-                                    dbc.CardHeader("Note:"),
-                                    dbc.CardBody(
-                                        "expressions evaluated to booleans need to wrapped in parenthesis e.g.:\n"
-                                            "'(a > 3) & (b > 2)' works, but 'a > 3 & b > 2' does not work"
-                                    )
-                                ]),
+
+                                dbc.Card(
+                                    children=[
+                                        dbc.CardHeader("Causes:"),
+                                        dbc.CardBody(causes)
+                                    ],
+                                    style={
+                                        "margin-top": "10px",
+                                        "margin-bottom": "10px",
+                                    }
+                                ),
+                                dbc.Card(
+                                    children=[
+                                        dbc.CardHeader("Operators:"),
+                                        dbc.CardBody(MechanismConfig.operators_classfication)
+                                    ],
+                                    style={
+                                        "margin-bottom": "10px",
+                                    }
+                                ),
+                                dbc.Card(
+                                    children=[
+                                        dbc.CardHeader("Functions:"),
+                                        dbc.CardBody(MechanismConfig.functions)
+                                    ],
+                                    style={
+                                        "margin-bottom": "10px",
+                                    }
+                                ),
+                                dbc.Card(
+                                    children=[
+                                        dbc.CardHeader("Note:"),
+                                        dbc.CardBody(
+                                            "expressions evaluated to booleans need to wrapped in parenthesis e.g.:\n"
+                                                "'(a > 3) & (b > 2)' works, but 'a > 3 & b > 2' does not work"
+                                        )
+                                    ]
+                                ),
                             ],
                             id="collapse-classification", is_open=MechanismConfig.is_open
                         ),
@@ -345,10 +364,6 @@ class MechanismViewer(html.Div):
         causes = ", ".join(in_nodes)
 
         self.children = []
-        if MechanismViewer.error is not None:
-            self.children.append(dbc.Alert(MechanismViewer.error, color="danger"))
-        else:
-            self.children.append(dbc.Alert("mechanism OK", color="success"))
 
         formulas = node.mechanism_metadata.get_formulas()
         mechanism_type = node.mechanism_metadata.mechanism_type
@@ -375,3 +390,7 @@ class MechanismViewer(html.Div):
                 self.children.append(
                     dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
             )
+        if MechanismViewer.error is not None:
+            self.children.append(dbc.Alert(MechanismViewer.error, color="danger"))
+        else:
+            self.children.append(dbc.Alert("mechanism OK", color="success"))

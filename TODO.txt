@@ -150,6 +150,9 @@ TODO:
             - [X] fix card for toggle
             - [X] fix np function with non-finite results e.g. log(0), sqrt(-1)
             - [ ] if confirmed, save status
+            - [ ] revise MechanismViewer.error -> not used, remove or rework
+                -> not that trivial, need to rework erro system for mechanism
+                -> error for componenet and valid-state for node mechanism
         - [ ] lock
         - [ ] data summary
             - [ ] dont disable on ml result

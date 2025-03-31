@@ -52,7 +52,7 @@ MechanismState = Literal["editable", "locked"]
 @dataclass
 class MechanismMetadata:
     mechanism_type: MechanismType = "regression"
-    valid: bool = True
+    valid: bool = False
     formulas: dict[str, str | None] = field(init=False)  # depends on the type
 
     def __post_init__(self) -> None:
@@ -161,7 +161,6 @@ class ClassificationMechanism(BaseMechanism):
         for formula in self.formulas:
             calc.run_example(formula, self.inputs)
         if len(calc.errors) > 0:
-            print(calc.errors)
             return MechanismResult(None, "invalid_formula")
 
         results = np.full(

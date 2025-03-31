@@ -174,7 +174,6 @@ def setup_callbacks():
         mechanism_check = node.formulas_are_valid()
         MechanismViewer.error = mechanism_check.error
         node.mechanism_metadata.valid = mechanism_check.error is None
-        print(f"error: {mechanism_check.error}")
 
         return (
             MechanismConfig().children,

@@ -4,9 +4,10 @@ import random
 from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
+from pandas.io.formats.printing import justify
 
 from models.graph import graph
-from views.lock_data import LockDataBuilder, LockDataViewer
+from views.lock_data import LockDataBuilder
 from views.data_summary import DataSummaryViewer
 from views.ml_prep import MLPreparation
 
@@ -14,7 +15,6 @@ from views.ml_prep import MLPreparation
 
 def setup_callbacks():
     @callback(
-        # Output("data-generation-builder", "children", allow_duplicate=True),
         Output("tab1", "disabled", allow_duplicate=True),
         Output("tab2", "disabled", allow_duplicate=True),
         Output("tab3", "disabled", allow_duplicate=True),
@@ -22,7 +22,6 @@ def setup_callbacks():
         Output("tab5", "disabled", allow_duplicate=True),
         Output("tab6", "disabled", allow_duplicate=True),
         Output("tab7", "disabled", allow_duplicate=True),
-        # Output("data-generation-viewer", "children", allow_duplicate=True),
         Output("data-summary-viewer", "children", allow_duplicate=True),
         Output("ml-preparation", "children", allow_duplicate=True),
         Output("loading-4", "children", allow_duplicate=True),
@@ -35,7 +34,6 @@ def setup_callbacks():
             raise PreventUpdate()
         if LockDataBuilder.is_locked:
             LockDataBuilder.is_locked = not LockDataBuilder.is_locked
-            LockDataViewer.error = False
             graph.data = None
             return (
                 False,
@@ -45,20 +43,20 @@ def setup_callbacks():
                 True,
                 True,
                 True,
-                # LockDataViewer().children,
                 DataSummaryViewer().children,
                 MLPreparation().children,
-                dbc.Row(children=[
-                    dbc.Col(LockDataBuilder().children),
-                    dbc.Col(LockDataViewer().children),
-                ]),
+                dbc.Row(
+                    children=[
+                        dbc.Col(LockDataBuilder(), width="10"),
+                    ],
+                    justify="center"
+                ),
                 "tab-4"
             )
 
         try:
             full_data_set = graph.generate_full_data_set()
         except Exception as e:
-            LockDataViewer.error = True
             graph.data = None
             return (
                 False,
@@ -68,20 +66,21 @@ def setup_callbacks():
                 True,
                 True,
                 True,
-                # LockDataViewer().children,
                 DataSummaryViewer().children,
                 MLPreparation().children,
-                dbc.Row(children=[
-                    dbc.Col(LockDataBuilder().children),
-                    dbc.Col(LockDataViewer().children),
-                ]),
+                dbc.Row(
+                    children=[
+                        dbc.Col(LockDataBuilder(True), width="10"),
+                    ],
+                    justify="center"
+                ),
                 "tab-4"
             )
 
         graph.data = full_data_set
 
         LockDataBuilder.is_locked = not LockDataBuilder.is_locked
-        LockDataViewer.error = False
+
         return (
             True,
             True,
@@ -90,14 +89,15 @@ def setup_callbacks():
             False,
             False,
             False,
-            # LockDataViewer().children,
             DataSummaryViewer().children,
             MLPreparation().children,
-            dbc.Row(children=[
-                dbc.Col(LockDataBuilder().children),
-                dbc.Col(LockDataViewer().children),
-            ]),
-            "tab-5"
+            dbc.Row(
+                children=[
+                    dbc.Col(LockDataBuilder(), width="10"),
+                ],
+                justify="center"
+            ),
+            "tab-4"
         )
 
     @callback(

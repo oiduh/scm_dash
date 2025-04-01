@@ -146,7 +146,7 @@ TODO:
             - [X] toggle for noise view (individual or combined -> less space = clean)
             - [X] remove some distributions for sake of simplicity e.g. poisson, bernoulli
             - [X] name the parameters properly and make smaller
-        - [ ] mechanism
+        - [X] mechanism
             - [X] fix card for toggle
             - [X] fix np function with non-finite results e.g. log(0), sqrt(-1)
             - [X] if confirmed, save status
@@ -155,11 +155,12 @@ TODO:
                 -> error for componenet and valid-state for node mechanism
                 -> removed, use valid state of mechanism instead
         - [ ] lock
-            - [ ] loading with blur
+            - [X] loading with blur
             - [X] revise export function
                 -> since export only allowed if all formulas valid, make the import valid true
-            - [ ] make nice boxes as other types
-            - [ ] revise unlock for resetting stuff
+            - [X] make nice boxes as other types
+            - [X] revise unlock for resetting stuff
+            - [ ] rework layout e.g. row, col, center, width with no split view tab
         - [ ] data summary
             - [ ] dont disable on ml result
             - [ ] ...

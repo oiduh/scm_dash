@@ -1,6 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import Dash, html, dcc
 import dash_cytoscape as cyto
+from pandas.io.formats.printing import justify
 
 from controllers import setup_callbacks
 from views.data_summary import DataSummaryViewer
@@ -10,7 +11,7 @@ from views.ml_prep import MLPreparation, MLViewer
 from views.ml_result import MLResultViewer
 from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
-from views.lock_data import LockDataBuilder, LockDataViewer
+from views.lock_data import LockDataBuilder
 from views.ml_lock import MLLockBuilder, MLLockViewer
 
 
@@ -80,11 +81,11 @@ app.layout = html.Div(
                                 type="dot",
                                 children=dbc.Row(
                                     children=[
-                                        dbc.Col(LockDataBuilder()),
-                                        dbc.Col(LockDataViewer()),
+                                        dbc.Col(LockDataBuilder(), width="10"),
                                     ],
+                                    justify="center",
                                 ),
-                                overlay_style={"visibility":"visible", "filter": "blur(2px)"}
+                                overlay_style={"visibility":"visible", "filter": "blur(2px)"},
                             ),
                             disabled=False,
                         ),

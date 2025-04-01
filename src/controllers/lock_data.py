@@ -38,7 +38,6 @@ def setup_callbacks():
             LockDataViewer.error = False
             graph.data = None
             return (
-                # LockDataBuilder().children,
                 False,
                 False,
                 False,
@@ -62,7 +61,6 @@ def setup_callbacks():
             LockDataViewer.error = True
             graph.data = None
             return (
-                # LockDataBuilder().children,
                 False,
                 False,
                 False,
@@ -84,10 +82,7 @@ def setup_callbacks():
 
         LockDataBuilder.is_locked = not LockDataBuilder.is_locked
         LockDataViewer.error = False
-        # import time
-        # time.sleep(3)
         return (
-            # LockDataBuilder().children,
             True,
             True,
             True,

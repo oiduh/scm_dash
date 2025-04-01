@@ -110,7 +110,7 @@ class MechanismMetadata:
             assert len(formulas) > 0, "invalid amount of formulas for classification"
         for id_, formula in formulas.items():
             new_mechanism.formulas[id_] = formula
-            new_mechanism.valid = False
+            new_mechanism.valid = True
 
         return new_mechanism
 

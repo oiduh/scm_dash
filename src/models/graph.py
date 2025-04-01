@@ -87,8 +87,12 @@ class Node:
                 mechanism = RegressionMechanism(formulas, data)
             case "classification":
                 mechanism = ClassificationMechanism(formulas, data)
-        # we do not care about the data, only if the data generation failed
-        return mechanism.transform()
+
+        # we do not care about the data, only if the data generation failed e.g. invalid values
+        # its just a data generation trial to check for basic errors, might be a false positive
+        mechanism_result = mechanism.transform()
+        self.mechanism_metadata.valid = mechanism_result.error is None
+        return mechanism_result
 
     @classmethod
     def parse_from_dict(cls, node_id: str, node_dict: dict[str, Any]) -> Self:

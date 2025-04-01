@@ -344,7 +344,6 @@ class ClassificationBuilder(html.Div):
 
 
 class MechanismViewer(html.Div):
-    error: str | None = "invalid formula"
     # TODO: depending on chosen node on left -> only show
     def __init__(self):
         super().__init__(id="mechanism-viewer")
@@ -379,8 +378,6 @@ class MechanismViewer(html.Div):
             )
         else:
             for class_id, formula in formulas.items():
-                # TODO: replace all python formulas with equivalent latex formulas
-                # formula = formula.replace(f"n_{to_replace}", f"n_{{ {to_replace} }}").replace("&", "\wedge")
                 try:
                     x = py_to_latex(f"f_{class_id}({causes})", in_nodes)
                     y = py_to_latex(f"{formula}", in_nodes)
@@ -390,7 +387,7 @@ class MechanismViewer(html.Div):
                 self.children.append(
                     dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
             )
-        if MechanismViewer.error is not None:
-            self.children.append(dbc.Alert(MechanismViewer.error, color="danger"))
+        if not node.mechanism_metadata.valid:
+            self.children.append(dbc.Alert("Mechanism invalid", color="danger"))
         else:
-            self.children.append(dbc.Alert("mechanism OK", color="success"))
+            self.children.append(dbc.Alert("Mechanism OK", color="success"))

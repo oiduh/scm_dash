@@ -268,8 +268,6 @@ def setup_callbacks() -> None:
             graph_data: dict[str, Any] = json.loads(base64.b64decode(b64_str))
             new_graph = Graph.parse_from_dict(graph_data)
             GraphUploader.last_uploaded_graph = True
-            print("new graph imported")
-            print(new_graph.get_node_ids())
         except Exception as e:
             GraphUploader.last_uploaded_graph = False
             print(e)
@@ -295,8 +293,6 @@ def setup_callbacks() -> None:
             setattr(graph, field.name, getattr(new_graph, field.name))
 
         new_graph = None
-        print("new graph assigned")
-        print(graph.get_node_ids())
 
         GraphUploader.last_uploaded_graph = None
         VariableSelectionGraph.selected_node_id = None
@@ -304,7 +300,6 @@ def setup_callbacks() -> None:
         VariableSelectionMechanism.variable = None
         MechanismConfig.mechanism_type = None
         MechanismConfig.is_open = False
-        MechanismViewer.error = None
 
         return (
             GraphBuilder().children,

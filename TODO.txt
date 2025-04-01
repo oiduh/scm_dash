@@ -149,11 +149,17 @@ TODO:
         - [ ] mechanism
             - [X] fix card for toggle
             - [X] fix np function with non-finite results e.g. log(0), sqrt(-1)
-            - [ ] if confirmed, save status
-            - [ ] revise MechanismViewer.error -> not used, remove or rework
+            - [X] if confirmed, save status
+            - [X] revise MechanismViewer.error -> not used, remove or rework
                 -> not that trivial, need to rework erro system for mechanism
                 -> error for componenet and valid-state for node mechanism
+                -> removed, use valid state of mechanism instead
         - [ ] lock
+            - [ ] loading with blur
+            - [X] revise export function
+                -> since export only allowed if all formulas valid, make the import valid true
+            - [ ] make nice boxes as other types
+            - [ ] revise unlock for resetting stuff
         - [ ] data summary
             - [ ] dont disable on ml result
             - [ ] ...

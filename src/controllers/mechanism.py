@@ -41,7 +41,6 @@ def setup_callbacks():
         assert node is not None
         MechanismConfig.mechanism_type = node.mechanism_metadata.mechanism_type
         MechanismConfig.is_open = False  # closed on default
-        MechanismViewer.error = "invalid_formula"
         return (
             VariableSelection().children,
             MechanismConfig().children,
@@ -73,7 +72,6 @@ def setup_callbacks():
         node.mechanism_metadata.reset_formulas()
         MechanismConfig.mechanism_type = new_mechanism
         MechanismConfig.is_open = False
-        MechanismViewer.error = "invalid_formula"
         return (
             MechanismConfig().children,
             VariableSelection().children,
@@ -107,7 +105,6 @@ def setup_callbacks():
             LOGGER.exception("Failed to add class")
             raise PreventUpdate from e
 
-        MechanismViewer.error = "invalid_formula"
         return (
             ClassificationBuilder().children,
             MechanismViewer().children
@@ -120,7 +117,6 @@ def setup_callbacks():
         prevent_initial_call=True,
     )
     def remove_class(clicked):
-        print(clicked)
         if not any(clicked):
             raise PreventUpdate()
 
@@ -141,7 +137,6 @@ def setup_callbacks():
             LOGGER.error("Failed to remove class")
             raise PreventUpdate()
 
-        MechanismViewer.error = "confirmation needed"
         return (
             ClassificationBuilder().children,
             MechanismViewer().children,
@@ -171,9 +166,7 @@ def setup_callbacks():
         for c_id, c_input in new_formulas.items():
             node.mechanism_metadata.formulas[c_id] = c_input
 
-        mechanism_check = node.formulas_are_valid()
-        MechanismViewer.error = mechanism_check.error
-        node.mechanism_metadata.valid = mechanism_check.error is None
+        _ = node.formulas_are_valid()
 
         return (
             MechanismConfig().children,
@@ -196,10 +189,8 @@ def setup_callbacks():
         assert node is not None
 
         node.mechanism_metadata.formulas["0"] = regression_input
-        mechanism_check = node.formulas_are_valid()
-        print("ERROR:", mechanism_check)
-        MechanismViewer.error = mechanism_check.error
-        node.mechanism_metadata.valid = mechanism_check.error is None
+
+        _ = node.formulas_are_valid()
 
         return (
             MechanismConfig().children,

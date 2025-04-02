@@ -14,6 +14,40 @@ from views.graph import GraphBuilder
 from utils.latexify import py_to_latex
 
 
+class DataSummary(html.Div):
+    """
+    container for all individual data summary components
+    -> make all collapsable?
+    1) graph -> static, but can change layout
+       graph/node inspector -> click or select node via dropdown
+       show noise and data distribution
+       -> with max min and some other stats for data distribution?
+       -> classification distribution vs. regression distr graph
+       show mechanism type and formula
+    2) toggle/collapse for overview of all data?
+       -> noise, data, mechanism type, formula, in nodes, out nodes
+    3) correlation graphs
+       -> all at once
+       -> individual with bigger scale
+    4) correlation heat maps, 3 types
+    5) maybe more if useful
+    """
+    def __init__(self):
+        super().__init__(id="data-summary")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
+        self.children = []
+        self.children.append(
+            dbc.Row(
+
+            )
+        )
+
+
 class NodeViewer(html.Div):
     def __init__(self, node_id: str):
         super().__init__(id="node-viewer")

@@ -18,6 +18,9 @@ class LockDataBuilder(html.Div):
                     "Unlock",
                     id="lock-button",
                     className="one-button",
+                    style={
+                        "margin-right": "10px"
+                    }
                 ),
                 html.Button(
                     "Export Graph",
@@ -83,7 +86,7 @@ class LockDataBuilder(html.Div):
             dbc.Row(
                 dbc.Col(
                     buttons,
-                    width="auto"
+                    width="6"
                 ),
                 justify="center"
             )

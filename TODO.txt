@@ -154,21 +154,31 @@ TODO:
                 -> not that trivial, need to rework erro system for mechanism
                 -> error for componenet and valid-state for node mechanism
                 -> removed, use valid state of mechanism instead
-        - [ ] lock
+        - [X] lock
             - [X] loading with blur
             - [X] revise export function
                 -> since export only allowed if all formulas valid, make the import valid true
             - [X] make nice boxes as other types
             - [X] revise unlock for resetting stuff
-            - [ ] rework layout e.g. row, col, center, width with no split view tab
+            - [X] rework layout e.g. row, col, center, width with no split view tab
         - [ ] data summary
+            - [ ] similar layout as data lock
+                - [ ] graph view component (with layout change)
+                - [ ] noise/data distribution view component
+                    -> selectable via dropdown?
+                - [ ] mechanism view component
+                - [ ] scatter plot (all and individual)
+                - [ ] heat maps
+            - [ ] show all mechanisms at once
+            - [ ] more description and titles
+            - [ ] grouping of graphs/data
             - [ ] dont disable on ml result
-            - [ ] ...
         - [ ] ml prep
         - [ ] ml lock
         - [ ] ml result
         - [ ] tabs
     - [X] tabs styling and uniformity
+    - [ ] fix distribution bucket size
     - [ ] universal reset button + callbacks
         -> reset all component variables
     - [ ] lock/unlock callbacks to reset stuff e.g. data set selection

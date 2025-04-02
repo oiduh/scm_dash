@@ -17,6 +17,12 @@ from utils.latexify import py_to_latex
 class NodeViewer(html.Div):
     def __init__(self, node_id: str):
         super().__init__(id="node-viewer")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         self.children = []
         container = dbc.Col()
         container.children = []
@@ -113,9 +119,10 @@ class DataSummaryViewer(html.Div):
     def __init__(self):
         super().__init__(id="data-summary-viewer")
         self.style = {
-            # "width": "80%",
-            # "margin-inline": "auto",
-            # "border": "1px solid black"
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
         }
         data = graph.data
         if data is None:

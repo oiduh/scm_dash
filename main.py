@@ -4,7 +4,7 @@ import dash_cytoscape as cyto
 from pandas.io.formats.printing import justify
 
 from controllers import setup_callbacks
-from views.data_summary import DataSummaryViewer
+from views.data_summary import DataSummary, DataSummaryViewer
 from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilder, MechanismViewer
 from views.ml_prep import MLPreparation, MLViewer
@@ -95,7 +95,7 @@ app.layout = html.Div(
                             value="tab-5",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(DataSummaryViewer()),
+                                    dbc.Col(DataSummary()),
                                 ],
                             ),
                             disabled=True

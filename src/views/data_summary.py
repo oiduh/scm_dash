@@ -20,12 +20,13 @@ class DataSummary(html.Div):
     -> make all collapsable?
     1) graph -> static, but can change layout
        graph/node inspector -> click or select node via dropdown
-       show noise and data distribution
-       -> with max min and some other stats for data distribution?
-       -> classification distribution vs. regression distr graph
-       show mechanism type and formula
-    2) toggle/collapse for overview of all data?
-       -> noise, data, mechanism type, formula, in nodes, out nodes
+       show noise and data distribution as graphs
+       -> classification distribution vs. regression distr graph e.g. pie
+       more visual
+    2) all data stats
+       -> raw stats, no graphs
+       -> nodes, in nodes, out nodes, noise range, data range, mechanism type, formulas
+       more textual
     3) correlation graphs
        -> all at once
        -> individual with bigger scale
@@ -33,7 +34,7 @@ class DataSummary(html.Div):
     5) maybe more if useful
     """
     def __init__(self):
-        super().__init__(id="data-summary")
+        super().__init__(id="data-summary-container")
         self.style = {
             "border": "solid black 2px",
             "border-radius": "8px",
@@ -41,11 +42,111 @@ class DataSummary(html.Div):
             "margin": "10px",
         }
         self.children = []
-        self.children.append(
+        self.children.extend([
             dbc.Row(
+                StaticGraph()
+            ),
+            dbc.Row(
+                ConfigurationViewer()
+            ),
+        ])
 
-            )
-        )
+
+class StaticGraph(html.Div):
+    class Layouts(StrEnum):
+        circle = "circle"
+        random = "random"
+        grid = "grid"
+        concentric = "concentric"
+        breadthfirst = "breadthfirst"
+        cola = "cola"
+        spread = "spread"
+
+        @classmethod
+        def get_all(cls) -> list[Self]:
+            return [e for e in cls]
+
+        @classmethod
+        def get_random(cls, current: Self) -> Self:
+            while (m:=choice(cls.get_all())) and m == current: pass
+            return m
+
+    layout = Layouts.circle
+    def __init__(self):
+        super().__init__(id="data-summary-static-graph")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
+        self.children = []
+        self.children.append(html.H5("Static graph viewer:"))
+        self.children.append(dbc.Row(
+            children=[
+                dbc.Col(html.P("Select variable"), width="auto"),
+                dbc.Col(dcc.Dropdown(
+                    options=self.Layouts.get_all(),
+                    value=self.layout,
+                    id="layout-choices-summary",
+                    searchable=False,
+                    multi=False,
+                    clearable=False,
+                    style={"border-radius": "8px"},
+                ))
+            ]
+        ))
+        self.children.append(html.Div(Cytoscape(
+            id="summary-graph",
+            layout={"name": self.layout},
+            userPanningEnabled=False,
+            zoomingEnabled=False,
+            style={"width": "100%", "height": "700px"},
+            elements=GraphBuilder.get_graph_data(),
+            stylesheet=[
+                {"selector": "node", "style": {"label": "data(label)"}},
+                {
+                    "selector": "edge",
+                    "style": {
+                        "curve-style": "bezier",
+                        "target-arrow-shape": "triangle",
+                        "arrow-scale": 2,
+                    },
+                },
+            ],
+        )))
+
+
+class ConfigurationViewer(html.Div):
+    def __init__(self):
+        super().__init__(id="data-summary-configuration")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
+        self.children = []
+        global graph
+        if any(node.data is None for node in graph.get_nodes()):
+            return
+        for node in graph.get_nodes():
+            self.children.append(html.H5(f"Node: {node.id_}"))
+            self.children.append(html.H6(f"In Nodes: {node.in_nodes}"))
+            self.children.append(html.H6(f"Out Nodes: {node.out_nodes}"))
+            noise = np.array(list(node.noise.data.values())).flatten()
+            self.children.append(html.H6(f"Noise Range: {noise.min():.4f} - {noise.max():.4f}"))
+            assert node.data is not None
+            self.children.append(html.H6(f"Data Range: {node.data.min():.4f} - {node.data.max():.4f}"))
+            if node.mechanism_metadata.mechanism_type == "regression":
+                self.children.append(html.H6("regression"))
+                self.children.append(html.P(f"{node.mechanism_metadata.formulas['0']}"))
+            else:
+                self.children.append(html.H6("classification"))
+                for formula in node.mechanism_metadata.get_formulas().values():
+                    self.children.append(html.P(f"{formula}"))
+
+
 
 
 class NodeViewer(html.Div):

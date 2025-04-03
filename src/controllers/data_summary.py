@@ -5,7 +5,7 @@ from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
 
 from utils.logger import DashLogger
-from views.data_summary import DataSummaryViewer, NodeViewer
+from views.data_summary import DataSummary, DataSummaryViewer, NodeViewer
 from views.graph import GraphBuilder
 
 
@@ -17,7 +17,7 @@ def setup_callbacks() -> None:
     LOGGER.info("initializing data summary callbacks")
 
     @callback(
-        Output("data-summary-viewer", "children", allow_duplicate=True),
+        Output("data-summary-container", "children", allow_duplicate=True),
         Input("scatter-x", "value"),
         Input("scatter-y", "value"),
         prevent_initial_call="initial_duplicate"
@@ -28,7 +28,7 @@ def setup_callbacks() -> None:
 
         DataSummaryViewer.scatter_x = first_node
         DataSummaryViewer.scatter_y = second_node
-        return DataSummaryViewer().children
+        return DataSummary().children
 
     @callback(
         Output("summary-graph", "layout", allow_duplicate=True),

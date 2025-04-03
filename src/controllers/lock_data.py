@@ -8,7 +8,7 @@ from pandas.io.formats.printing import justify
 
 from models.graph import graph
 from views.lock_data import LockDataBuilder
-from views.data_summary import DataSummaryViewer
+from views.data_summary import DataSummary, DataSummaryViewer
 from views.ml_prep import MLPreparation
 
 
@@ -22,7 +22,7 @@ def setup_callbacks():
         Output("tab5", "disabled", allow_duplicate=True),
         Output("tab6", "disabled", allow_duplicate=True),
         Output("tab7", "disabled", allow_duplicate=True),
-        Output("data-summary-viewer", "children", allow_duplicate=True),
+        Output("data-summary-container", "children", allow_duplicate=True),
         Output("ml-preparation", "children", allow_duplicate=True),
         Output("loading-4", "children", allow_duplicate=True),
         Output("tabs", "value", allow_duplicate=True),
@@ -43,7 +43,7 @@ def setup_callbacks():
                 True,
                 True,
                 True,
-                DataSummaryViewer().children,
+                DataSummary().children,
                 MLPreparation().children,
                 dbc.Row(
                     children=[
@@ -66,7 +66,7 @@ def setup_callbacks():
                 True,
                 True,
                 True,
-                DataSummaryViewer().children,
+                DataSummary().children,
                 MLPreparation().children,
                 dbc.Row(
                     children=[
@@ -89,7 +89,7 @@ def setup_callbacks():
             False,
             False,
             False,
-            DataSummaryViewer().children,
+            DataSummary().children,
             MLPreparation().children,
             dbc.Row(
                 children=[

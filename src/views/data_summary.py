@@ -72,8 +72,11 @@ class StaticGraph(html.Div):
             return m
 
     layout = Layouts.circle
+    selected_node: str | None = None
     def __init__(self):
         super().__init__(id="data-summary-static-graph")
+        if StaticGraph.selected_node is None:
+            StaticGraph.selected_node = graph.get_node_ids()[0]
         self.style = {
             "border": "solid black 2px",
             "border-radius": "8px",
@@ -81,10 +84,10 @@ class StaticGraph(html.Div):
             "margin": "10px",
         }
         self.children = []
-        self.children.append(html.H5("Static graph viewer:"))
+        self.children.append(html.H5("Graph inspector:"))
         self.children.append(dbc.Row(
             children=[
-                dbc.Col(html.P("Select variable"), width="auto"),
+                dbc.Col(html.P("Select Layout:"), width="auto"),
                 dbc.Col(dcc.Dropdown(
                     options=self.Layouts.get_all(),
                     value=self.layout,
@@ -96,25 +99,57 @@ class StaticGraph(html.Div):
                 ))
             ]
         ))
-        self.children.append(html.Div(Cytoscape(
-            id="summary-graph",
-            layout={"name": self.layout},
-            userPanningEnabled=False,
-            zoomingEnabled=False,
-            style={"width": "100%", "height": "700px"},
-            elements=GraphBuilder.get_graph_data(),
-            stylesheet=[
-                {"selector": "node", "style": {"label": "data(label)"}},
-                {
-                    "selector": "edge",
-                    "style": {
-                        "curve-style": "bezier",
-                        "target-arrow-shape": "triangle",
-                        "arrow-scale": 2,
+        self.children.append(dbc.Row(
+            children=[
+                dbc.Col(html.P("Select Variable:"), width="auto"),
+                dbc.Col(dcc.Dropdown(
+                    options=graph.get_node_ids(),
+                    value=StaticGraph.selected_node,
+                    id="static-graph-selected-node",
+                    searchable=False,
+                    multi=False,
+                    clearable=False,
+                    style={"border-radius": "8px"},
+                ))
+            ]
+        ))
+
+        viewer = dbc.Row()
+        viewer.children = []
+        viewer.children.append(dbc.Col(
+            children=Cytoscape(
+                id="summary-graph",
+                layout={"name": self.layout},
+                userPanningEnabled=False,
+                zoomingEnabled=False,
+                style={"width": "100%", "height": "700px"},
+                elements=GraphBuilder.get_graph_data(),
+                stylesheet=[
+                    {"selector": "node", "style": {"label": "data(label)"}},
+                    {
+                        "selector": "edge",
+                        "style": {
+                            "curve-style": "bezier",
+                            "target-arrow-shape": "triangle",
+                            "arrow-scale": 2,
+                        },
                     },
-                },
-            ],
-        )))
+                ],
+            ), 
+            style={
+                "border": "solid black 2px",
+                "border-radius": "8px",
+                "padding": "10px",
+                "margin": "10px",
+            }
+        ))
+        viewer.children.append(dbc.Col("placeholder", style={
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }))
+        self.children.append(viewer)
 
 
 class ConfigurationViewer(html.Div):

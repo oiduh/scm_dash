@@ -164,6 +164,12 @@ TODO:
         - [ ] data summary
             - [ ] similar layout as data lock
                 - [ ] graph view component (with layout change)
+                    - [X] layout dropdown
+                    - [X] var dropddown
+                    - [X] graph cyto
+                    - [ ] distr + mechanism viewer
+                    - [ ] callbacks e.g. dropdown sync
+                    - [ ] reset on unlock
                 - [ ] noise/data distribution view component
                     -> selectable via dropdown?
                 - [ ] mechanism view component

@@ -44,10 +44,10 @@ class DataSummary(html.Div):
         self.children = []
         self.children.extend([
             dbc.Row(
-                StaticGraph()
+                dbc.Col(StaticGraph())
             ),
             dbc.Row(
-                ConfigurationViewer()
+                dbc.Col(ConfigurationViewer())
             ),
         ])
 
@@ -90,23 +90,32 @@ class StaticGraph(html.Div):
             "margin": "10px",
         }
         self.children = []
-        self.children.append(html.H5("Graph inspector:"))
-        self.children.append(dbc.Row(
+        self.children.append(html.Div(
             children=[
-                dbc.Col(html.P("Select Variable:"), width="auto"),
-                dbc.Col(dcc.Dropdown(
-                    options=graph.get_node_ids(),
-                    value=StaticGraph.selected_node,
-                    id="static-graph-selected-node",
-                    searchable=False,
-                    multi=False,
-                    clearable=False,
-                    style={"border-radius": "8px"},
-                ))
-            ]
+                html.H5("Graph inspector:"),
+                dbc.Row(
+                    children=[
+                        dbc.Col(html.P("Select Variable:"), width="auto"),
+                        dbc.Col(
+                            dcc.Dropdown(
+                                options=graph.get_node_ids(),
+                                value=StaticGraph.selected_node,
+                                id="static-graph-selected-node",
+                                searchable=False,
+                                multi=False,
+                                clearable=False,
+                                style={"border-radius": "8px"},
+                            ),
+                        )
+                    ]
+                )
+            ],
+            style={
+                "margin": "10px",
+            }
         ))
 
-        viewer = dbc.Row()
+        viewer = dbc.Row(justify="evenly")
         viewer.children = []
         viewer.children.append(dbc.Col(
             children=[
@@ -142,13 +151,14 @@ class StaticGraph(html.Div):
                             },
                         },
                     ],
-                ))
+                ), align="center")
             ],
             style={
                 "border": "solid black 2px",
                 "border-radius": "8px",
-                "padding": "10px",
+                "padding": "20px",
                 "margin": "10px",
+                "margin-left": "20px",
             }
         ))
 
@@ -159,7 +169,22 @@ class StaticGraph(html.Div):
         noise_graph = ff.create_distplot(
             [noise], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["blue"]
         )
-        node_inspector.children.append(dbc.Row(dcc.Graph("data-summary-noise-view", figure=noise_graph, config={"staticPlot": True})))
+        noise_graph.update_layout(
+            {
+                "title_text": "some title",
+                "showlegend": False,
+                "height": 300,
+                "margin_l": 0,
+                "margin_r": 0,
+                "margin_t": 50,
+                "margin_b": 0,
+            }
+        )
+        node_inspector.children.append(dbc.Row(dcc.Graph(
+            "data-summary-noise-view",
+            figure=noise_graph,
+            config={"staticPlot": True},
+        )))
 
         data = node.data
         assert data is not None
@@ -170,8 +195,23 @@ class StaticGraph(html.Div):
         else:
             unique, counts = np.unique(data, return_counts=True)
             data_graph = go.Figure(go.Pie(values=counts, labels=[str(x) for x in unique]))
+        data_graph.update_layout(
+            {
+                "title_text": "some other title",
+                "showlegend": False,
+                "height": 300,
+                "margin_l": 0,
+                "margin_r": 0,
+                "margin_t": 50,
+                "margin_b": 0,
+            }
+        )
 
-        node_inspector.children.append(dbc.Row(dcc.Graph("data-summary-data-view", figure=data_graph, config={"staticPlot": True})))
+        node_inspector.children.append(dbc.Row(dcc.Graph(
+            "data-summary-data-view",
+            figure=data_graph,
+            config={"staticPlot": True},
+        )))
 
         in_nodes = [w for w in [graph.get_node_by_id(x) for x in node.in_nodes] if w is not None]
         in_nodes = [x.name or x.id_ for x in in_nodes]
@@ -211,8 +251,9 @@ class StaticGraph(html.Div):
         viewer.children.append(dbc.Col(node_inspector, style={
             "border": "solid black 2px",
             "border-radius": "8px",
-            "padding": "10px",
+            "padding": "20px",
             "margin": "10px",
+            "margin-right": "20px",
         }))
         self.children.append(viewer)
 

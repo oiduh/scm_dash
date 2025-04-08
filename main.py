@@ -95,8 +95,9 @@ app.layout = html.Div(
                             value="tab-5",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(DataSummary()),
+                                    dbc.Col(DataSummary(), width="11"),
                                 ],
+                                justify="center"
                             ),
                             disabled=True
                         ),

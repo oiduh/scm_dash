@@ -5,7 +5,7 @@ from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
 
 from utils.logger import DashLogger
-from views.data_summary import DataSummary, DataSummaryViewer, NodeViewer
+from views.data_summary import DataSummary, DataSummaryViewer, NodeViewer, StaticGraph
 from views.graph import GraphBuilder
 
 
@@ -15,6 +15,18 @@ LOGGER = DashLogger(name="DataSummary", level=logging.DEBUG)
 
 def setup_callbacks() -> None:
     LOGGER.info("initializing data summary callbacks")
+
+
+    @callback(
+        Output("data-summary-static-graph", "children"),
+        Input("static-graph-selected-node", "value"),
+    )
+    def select_variabled_in_inspector(new_value: str):
+        if new_value == StaticGraph.selected_node:
+            raise PreventUpdate()
+        StaticGraph.selected_node = new_value
+        return StaticGraph().children
+
 
     @callback(
         Output("data-summary-container", "children", allow_duplicate=True),

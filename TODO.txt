@@ -168,6 +168,7 @@ TODO:
                     - [X] var dropddown
                     - [X] graph cyto
                     - [ ] distr + mechanism viewer
+                    -> fix formula for else class (currently label looks shit)
                     - [ ] callbacks e.g. dropdown sync
                     - [ ] reset on unlock
                 - [ ] noise/data distribution view component

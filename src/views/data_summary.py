@@ -77,6 +77,12 @@ class StaticGraph(html.Div):
         super().__init__(id="data-summary-static-graph")
         if StaticGraph.selected_node is None:
             StaticGraph.selected_node = graph.get_node_ids()[0]
+
+        node = graph.get_node_by_id(StaticGraph.selected_node)
+        assert node is not None
+        if node.data is None:
+            return
+
         self.style = {
             "border": "solid black 2px",
             "border-radius": "8px",
@@ -85,20 +91,6 @@ class StaticGraph(html.Div):
         }
         self.children = []
         self.children.append(html.H5("Graph inspector:"))
-        self.children.append(dbc.Row(
-            children=[
-                dbc.Col(html.P("Select Layout:"), width="auto"),
-                dbc.Col(dcc.Dropdown(
-                    options=self.Layouts.get_all(),
-                    value=self.layout,
-                    id="layout-choices-summary",
-                    searchable=False,
-                    multi=False,
-                    clearable=False,
-                    style={"border-radius": "8px"},
-                ))
-            ]
-        ))
         self.children.append(dbc.Row(
             children=[
                 dbc.Col(html.P("Select Variable:"), width="auto"),
@@ -117,25 +109,41 @@ class StaticGraph(html.Div):
         viewer = dbc.Row()
         viewer.children = []
         viewer.children.append(dbc.Col(
-            children=Cytoscape(
-                id="summary-graph",
-                layout={"name": self.layout},
-                userPanningEnabled=False,
-                zoomingEnabled=False,
-                style={"width": "100%", "height": "700px"},
-                elements=GraphBuilder.get_graph_data(),
-                stylesheet=[
-                    {"selector": "node", "style": {"label": "data(label)"}},
-                    {
-                        "selector": "edge",
-                        "style": {
-                            "curve-style": "bezier",
-                            "target-arrow-shape": "triangle",
-                            "arrow-scale": 2,
+            children=[
+                dbc.Row(
+                    children=[
+                        dbc.Col(html.P("Select Layout:"), width="auto"),
+                        dbc.Col(dcc.Dropdown(
+                            options=self.Layouts.get_all(),
+                            value=self.layout,
+                            id="layout-choices-summary",
+                            searchable=False,
+                            multi=False,
+                            clearable=False,
+                            style={"border-radius": "8px"},
+                        ))
+                    ]
+                ),
+                dbc.Row(Cytoscape(
+                    id="summary-graph",
+                    layout={"name": self.layout},
+                    userPanningEnabled=False,
+                    zoomingEnabled=False,
+                    style={"width": "100%", "height": "700px"},
+                    elements=GraphBuilder.get_graph_data(),
+                    stylesheet=[
+                        {"selector": "node", "style": {"label": "data(label)"}},
+                        {
+                            "selector": "edge",
+                            "style": {
+                                "curve-style": "bezier",
+                                "target-arrow-shape": "triangle",
+                                "arrow-scale": 2,
+                            },
                         },
-                    },
-                ],
-            ), 
+                    ],
+                ))
+            ],
             style={
                 "border": "solid black 2px",
                 "border-radius": "8px",
@@ -143,7 +151,64 @@ class StaticGraph(html.Div):
                 "margin": "10px",
             }
         ))
-        viewer.children.append(dbc.Col("placeholder", style={
+
+        node_inspector = html.Div()
+        node_inspector.children = []
+        # TODO:add graphs for noise distribution, data distribution and mechanism
+        noise = np.array(list(node.noise.data.values())).flatten()
+        noise_graph = ff.create_distplot(
+            [noise], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["blue"]
+        )
+        node_inspector.children.append(dbc.Row(dcc.Graph("data-summary-noise-view", figure=noise_graph, config={"staticPlot": True})))
+
+        data = node.data
+        assert data is not None
+        if node.mechanism_metadata.mechanism_type == "regression":
+            data_graph = ff.create_distplot(
+                [data], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["green"]
+            )
+        else:
+            unique, counts = np.unique(data, return_counts=True)
+            data_graph = go.Figure(go.Pie(values=counts, labels=[str(x) for x in unique]))
+
+        node_inspector.children.append(dbc.Row(dcc.Graph("data-summary-data-view", figure=data_graph, config={"staticPlot": True})))
+
+        in_nodes = [w for w in [graph.get_node_by_id(x) for x in node.in_nodes] if w is not None]
+        in_nodes = [x.name or x.id_ for x in in_nodes]
+        in_nodes.append(f"n_{node.name or node.id_}")
+        causes = ", ".join(in_nodes)
+        formulas = node.mechanism_metadata.get_formulas()
+        mechanism_type = node.mechanism_metadata.mechanism_type
+        mechanism_viewer = html.Div()
+        mechanism_viewer.children = []
+        if mechanism_type == "regression":
+            try:
+                x = py_to_latex(f"f({causes})", in_nodes)
+                y = py_to_latex(f"{list(formulas.values())[0]}", in_nodes)
+                latex_formula = x + ":=" + y
+            except:
+                latex_formula = py_to_latex(f"f({causes})", in_nodes) + " := \\text{<invalid>}"
+            mechanism_viewer.children.append(
+                dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
+            )
+        else:
+            for class_id, formula in formulas.items():
+                try:
+                    x = py_to_latex(f"f_{class_id}({causes})", in_nodes)
+                    y = py_to_latex(f"{formula}", in_nodes)
+                    latex_formula = x + ":=" + y
+                except:
+                    latex_formula = py_to_latex(f"f_{class_id}({causes})", in_nodes) + " := \\text{<invalid>}"
+                mechanism_viewer.children.append(
+                    dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
+            )
+            # TODO: label the else class correctly
+            latex_formula = py_to_latex(f"f_{'else'}({causes})", in_nodes)
+            mechanism_viewer.children.append(
+                dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
+            )
+        node_inspector.children.append(dbc.Row(mechanism_viewer))
+        viewer.children.append(dbc.Col(node_inspector, style={
             "border": "solid black 2px",
             "border-radius": "8px",
             "padding": "10px",

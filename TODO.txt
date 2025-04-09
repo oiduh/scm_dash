@@ -163,14 +163,13 @@ TODO:
             - [X] rework layout e.g. row, col, center, width with no split view tab
         - [ ] data summary
             - [ ] similar layout as data lock
-                - [ ] graph view component (with layout change)
+                - [X] graph view component (with layout change)
                     - [X] layout dropdown
                     - [X] var dropddown
                     - [X] graph cyto
-                    - [ ] distr + mechanism viewer
-                    -> fix formula for else class (cu rently label looks shit)
-                    - [ ] callbacks e.g. dropdown sync
-                    - [ ] reset on unlock
+                    - [X] distr + mechanism viewer
+                    -> fix formula for else class (currently label looks shit)
+                    - [X] callbacks e.g. dropdown sync
                 - [ ] noise/data distribution view component
                     -> selectable via dropdown?
                 - [ ] mechanism view component
@@ -194,6 +193,9 @@ TODO:
     - [ ] dockerize (simple)
     - [X] fix naming or remove it (fixing in all stages)
     -> for now removed
+    - [ ] fix graphs
+        -> height, width, aspect ratio, center e.g. in data summary very shit
+        -> solution: 'oneshot' callback that adjusts on tab click
 
 
 

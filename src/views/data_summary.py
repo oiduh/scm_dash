@@ -1,6 +1,7 @@
 from enum import StrEnum
 from typing import Self
 from dash import html, dcc
+from pandas.io.formats.printing import justify
 import plotly.express as px
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
@@ -171,20 +172,23 @@ class StaticGraph(html.Div):
         )
         noise_graph.update_layout(
             {
-                "title_text": "some title",
                 "showlegend": False,
                 "height": 300,
+                "width": 700,
                 "margin_l": 0,
                 "margin_r": 0,
-                "margin_t": 50,
-                "margin_b": 0,
+                "margin_t": 0,
+                "margin_b": 30,
             }
         )
-        node_inspector.children.append(dbc.Row(dcc.Graph(
-            "data-summary-noise-view",
-            figure=noise_graph,
-            config={"staticPlot": True},
-        )))
+        node_inspector.children.extend([
+            dbc.Row(html.H6("Noise distribution:")),
+            dbc.Row(dcc.Graph(
+                "data-summary-noise-view",
+                figure=noise_graph,
+                config={"staticPlot": True},
+            ))
+        ])
 
         data = node.data
         assert data is not None
@@ -197,21 +201,24 @@ class StaticGraph(html.Div):
             data_graph = go.Figure(go.Pie(values=counts, labels=[str(x) for x in unique]))
         data_graph.update_layout(
             {
-                "title_text": "some other title",
                 "showlegend": False,
                 "height": 300,
+                "width": 700,
                 "margin_l": 0,
                 "margin_r": 0,
-                "margin_t": 50,
-                "margin_b": 0,
+                "margin_t": 0,
+                "margin_b": 30,
             }
         )
 
-        node_inspector.children.append(dbc.Row(dcc.Graph(
-            "data-summary-data-view",
-            figure=data_graph,
-            config={"staticPlot": True},
-        )))
+        node_inspector.children.extend([
+            dbc.Row(html.H6("Data distribution:")),
+            dcc.Graph(
+                "data-summary-data-view",
+                figure=data_graph,
+                config={"staticPlot": True},
+            )
+        ])
 
         in_nodes = [w for w in [graph.get_node_by_id(x) for x in node.in_nodes] if w is not None]
         in_nodes = [x.name or x.id_ for x in in_nodes]
@@ -247,7 +254,10 @@ class StaticGraph(html.Div):
             mechanism_viewer.children.append(
                 dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
             )
-        node_inspector.children.append(dbc.Row(mechanism_viewer))
+        node_inspector.children.extend([
+            dbc.Row(html.H6("Mechanisms:")),
+            dbc.Row(mechanism_viewer)
+        ])
         viewer.children.append(dbc.Col(node_inspector, style={
             "border": "solid black 2px",
             "border-radius": "8px",

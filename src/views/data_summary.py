@@ -281,23 +281,63 @@ class RawStatsViewer(html.Div):
         global graph
         if any(node.data is None for node in graph.get_nodes()):
             return
-        for node in graph.get_nodes():
-            self.children.append(html.H5(f"Node: {node.id_}"))
-            self.children.append(html.H6(f"In Nodes: {node.in_nodes}"))
-            self.children.append(html.H6(f"Out Nodes: {node.out_nodes}"))
-            noise = np.array(list(node.noise.data.values())).flatten()
-            self.children.append(html.H6(f"Noise Range: {noise.min():.4f} - {noise.max():.4f}"))
-            assert node.data is not None
-            self.children.append(html.H6(f"Data Range: {node.data.min():.4f} - {node.data.max():.4f}"))
-            if node.mechanism_metadata.mechanism_type == "regression":
-                self.children.append(html.H6("regression"))
-                self.children.append(html.P(f"{node.mechanism_metadata.formulas['0']}"))
-            else:
-                self.children.append(html.H6("classification"))
-                for formula in node.mechanism_metadata.get_formulas().values():
-                    self.children.append(html.P(f"{formula}"))
 
+        self.children.append(html.H5("Raw Stats:", style={"margin": "10px"}))
 
+        nodes = graph.get_nodes()
+        num_nodes = len(nodes)
+        rem = num_nodes % 3
+        num_empty = 0 if rem == 0 else 3 - rem
+
+        for idx in range(0, num_nodes + num_empty, 3):
+            row = dbc.Row(
+                children=[
+                    dbc.Col(style={
+                        "border": "solid black 2px",
+                        "border-radius": "8px",
+                        "padding": "10px",
+                        "margin": "10px",
+                        "margin-left": "22px",
+                    }),
+                    dbc.Col(style={
+                        "border": "solid black 2px" if idx + 1 < num_nodes else None,
+                        "border-radius": "8px" if idx + 1 < num_nodes else None,
+                        "padding": "10px",
+                        "margin": "10px",
+                    }),
+                    dbc.Col(style={
+                        "border": "solid black 2px" if idx + 2 < num_nodes else None,
+                        "border-radius": "8px" if idx + 2 < num_nodes else None,
+                        "padding": "10px",
+                        "margin": "10px",
+                        "margin-right": "22px",
+                    }),
+                ],
+            )
+            assert row.children is not None
+            for jdx in range(3):
+                kdx = idx + jdx
+                print(f"{idx=}, {kdx=}")
+                if kdx >= num_nodes:
+                    break
+                node = nodes[kdx]
+                cur_col = row.children[jdx]
+                cur_col.children = []
+                cur_col.children.append(html.H5(f"Node: {node.id_}"))
+                cur_col.children.append(html.H6(f"In Nodes: {node.in_nodes}"))
+                cur_col.children.append(html.H6(f"Out Nodes: {node.out_nodes}"))
+                noise = np.array(list(node.noise.data.values())).flatten()
+                cur_col.children.append(html.H6(f"Noise Range: {noise.min():.4f} - {noise.max():.4f}"))
+                assert node.data is not None
+                cur_col.children.append(html.H6(f"Data Range: {node.data.min():.4f} - {node.data.max():.4f}"))
+                if node.mechanism_metadata.mechanism_type == "regression":
+                    cur_col.children.append(html.H6("regression"))
+                    cur_col.children.append(html.P(f"{node.mechanism_metadata.formulas['0']}"))
+                else:
+                    cur_col.children.append(html.H6("classification"))
+                    for formula in node.mechanism_metadata.get_formulas().values():
+                        cur_col.children.append(html.P(f"{formula}"))
+            self.children.append(row)
 
 
 class NodeViewer(html.Div):

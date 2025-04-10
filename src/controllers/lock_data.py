@@ -8,7 +8,7 @@ from pandas.io.formats.printing import justify
 
 from models.graph import graph
 from views.lock_data import LockDataBuilder
-from views.data_summary import DataSummary, DataSummaryViewer
+from views.data_summary import DataSummary, DataSummaryViewer, StaticGraph
 from views.ml_prep import MLPreparation
 
 
@@ -33,8 +33,10 @@ def setup_callbacks():
         if not clicked:
             raise PreventUpdate()
         if LockDataBuilder.is_locked:
+            # unlock data and reset class variables
             LockDataBuilder.is_locked = not LockDataBuilder.is_locked
             graph.data = None
+            StaticGraph.selected_node = None
             return (
                 False,
                 False,

@@ -48,7 +48,7 @@ class DataSummary(html.Div):
                 dbc.Col(StaticGraph())
             ),
             dbc.Row(
-                dbc.Col(ConfigurationViewer())
+                dbc.Col(RawStatsViewer())
             ),
         ])
 
@@ -268,7 +268,7 @@ class StaticGraph(html.Div):
         self.children.append(viewer)
 
 
-class ConfigurationViewer(html.Div):
+class RawStatsViewer(html.Div):
     def __init__(self):
         super().__init__(id="data-summary-configuration")
         self.style = {

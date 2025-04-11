@@ -324,20 +324,28 @@ class RawStatsViewer(html.Div):
                 cur_col = row.children[jdx]
                 cur_col.children = []
                 cur_col.children.append(html.H5(f"Node: {node.id_}"))
-                cur_col.children.append(html.H6(f"In Nodes: {node.in_nodes}"))
-                cur_col.children.append(html.H6(f"Out Nodes: {node.out_nodes}"))
+                in_nodes = "\\{\\}" if len(node.in_nodes) > 0 else "\\{" + ", ".join(node.in_nodes) + "\\}"
+                cur_col.children.append(dcc.Markdown(f"$${node.id_}_{{in}} = {in_nodes}$$", mathjax=True))
+                out_nodes = "\\{\\}" if len(node.out_nodes) < 1 else "\\{" + ", ".join(node.out_nodes) + "\\}"
+                cur_col.children.append(dcc.Markdown(f"$${node.id_}_{{out}} = {out_nodes}$$", mathjax=True))
                 noise = np.array(list(node.noise.data.values())).flatten()
-                cur_col.children.append(html.H6(f"Noise Range: {noise.min():.4f} - {noise.max():.4f}"))
+                cur_col.children.append(dcc.Markdown(f"$$n_{{{node.id_}}} := \\{{ x | x \\in [{noise.min():.4f}, {noise.max():.4f}] \\}}$$", mathjax=True))
                 assert node.data is not None
-                cur_col.children.append(html.H6(f"Data Range: {node.data.min():.4f} - {node.data.max():.4f}"))
+                cur_col.children.append(dcc.Markdown(f"$$data_{{{node.id_}}} := \\{{ x | x \\in [{node.data.min():.4f}, {node.data.max():.4f}] \\}}$$", mathjax=True))
                 if node.mechanism_metadata.mechanism_type == "regression":
-                    cur_col.children.append(html.H6("regression"))
-                    cur_col.children.append(html.P(f"{node.mechanism_metadata.formulas['0']}"))
+                    cur_col.children.append(dcc.Markdown("Mechanism type: regression"))
+                    # todo: fix the formulas, as in views/mechanism.py
+                    x = py_to_latex(f"f({causes})", in_nodes)
+                    y = py_to_latex(f"{list(formulas.values())[0]}", in_nodes)
+                    latex_formula = x + ":=" + y
+                    cur_col.children.append(dcc.Markdown(f"{node.mechanism_metadata.formulas['0']}"))
                 else:
-                    cur_col.children.append(html.H6("classification"))
+                    cur_col.children.append(dcc.Markdown("Mechanism type: classification"))
                     for formula in node.mechanism_metadata.get_formulas().values():
-                        cur_col.children.append(html.P(f"{formula}"))
+                        cur_col.children.append(dcc.Markdown(f"{formula}"))
             self.children.append(row)
+            # dcc.Markdown(f"$$f({', '.join(displayed_names)}):=$$", mathjax=True),
+            # width="auto", style={"paddingTop": "10px"}
 
 
 class NodeViewer(html.Div):

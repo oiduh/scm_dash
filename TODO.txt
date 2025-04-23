@@ -170,8 +170,12 @@ TODO:
                     - [X] distr + mechanism viewer
                     -> fix formula for else class (currently label looks shit)
                     - [X] callbacks e.g. dropdown sync
-                - [ ] noise/data distribution view component
-                    -> selectable via dropdown?
+                - [ ] raw stats viewer
+                -> like cards with 3 in a row
+                -> graph structure in writte form
+                -> range of noise and data
+                -> mechanisms viewer for all formulas
+                    - [ ] fix mechanism viewer
                 - [ ] mechanism view component
                 - [ ] scatter plot (all and individual)
                 - [ ] heat maps

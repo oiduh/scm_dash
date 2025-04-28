@@ -161,8 +161,8 @@ TODO:
             - [X] make nice boxes as other types
             - [X] revise unlock for resetting stuff
             - [X] rework layout e.g. row, col, center, width with no split view tab
-        - [ ] data summary
-            - [ ] similar layout as data lock
+        - [X] data summary
+            - [X] similar layout as data lock
                 - [X] graph view component (with layout change)
                     - [X] layout dropdown
                     - [X] var dropddown
@@ -170,19 +170,16 @@ TODO:
                     - [X] distr + mechanism viewer
                     -> fix formula for else class (currently label looks shit)
                     - [X] callbacks e.g. dropdown sync
-                - [ ] raw stats viewer
+                - [X] raw stats viewer
                 -> like cards with 3 in a row
                 -> graph structure in writte form
                 -> range of noise and data
                 -> mechanisms viewer for all formulas
-                    - [ ] fix mechanism viewer
-                - [ ] mechanism view component
-                - [ ] scatter plot (all and individual)
-                - [ ] heat maps
-            - [ ] show all mechanisms at once
-            - [ ] more description and titles
-            - [ ] grouping of graphs/data
-            - [ ] dont disable on ml result
+                    - [X] fix mechanism viewer
+                - [X] mechanism view component
+                - [X] scatter plot (all and individual)
+                - [X] heat maps
+        - [ ] dont disable data summary on ml result
         - [ ] ml prep
         - [ ] ml lock
         - [ ] ml result

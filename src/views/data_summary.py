@@ -1,7 +1,6 @@
 from enum import StrEnum
 from typing import Self
 from dash import html, dcc
-from pandas.io.formats.printing import justify
 import plotly.express as px
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
@@ -50,6 +49,15 @@ class DataSummary(html.Div):
             dbc.Row(
                 dbc.Col(RawStatsViewer())
             ),
+            dbc.Row(
+                dbc.Col(ScatterPlotViewerAll())
+            ),
+            dbc.Row(
+                dbc.Col(ScatterPlotViewerInidvidual())
+            ),
+            dbc.Row(
+                dbc.Col(CorrelationMatrixView())
+            )
         ])
 
 
@@ -231,23 +239,17 @@ class StaticGraph(html.Div):
         mechanism_viewer = html.Div()
         mechanism_viewer.children = []
         if mechanism_type == "regression":
-            try:
-                x = py_to_latex(f"f({causes})", in_nodes)
-                y = py_to_latex(f"{list(formulas.values())[0]}", in_nodes)
-                latex_formula = x + ":=" + y
-            except:
-                latex_formula = py_to_latex(f"f({causes})", in_nodes) + " := \\text{<invalid>}"
+            x = py_to_latex(f"f({causes})", in_nodes)
+            y = py_to_latex(f"{list(formulas.values())[0]}", in_nodes)
+            latex_formula = x + ":=" + y
             mechanism_viewer.children.append(
                 dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
             )
         else:
             for class_id, formula in formulas.items():
-                try:
-                    x = py_to_latex(f"f_{class_id}({causes})", in_nodes)
-                    y = py_to_latex(f"{formula}", in_nodes)
-                    latex_formula = x + ":=" + y
-                except:
-                    latex_formula = py_to_latex(f"f_{class_id}({causes})", in_nodes) + " := \\text{<invalid>}"
+                x = py_to_latex(f"f_{class_id}({causes})", in_nodes)
+                y = py_to_latex(f"{formula}", in_nodes)
+                latex_formula = x + ":=" + y
                 mechanism_viewer.children.append(
                     dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
             )
@@ -328,14 +330,20 @@ class RawStatsViewer(html.Div):
                 # TODO:find a nice way to display the range of the data
 
                 cur_col.children.append(html.H5(f"Node: {node.id_}"))
-                in_nodes = "\\{\\}" if len(node.in_nodes) > 1 else "\\{" + ", ".join(node.in_nodes) + "\\}"
+                in_nodes = "\\{\\}" if len(node.in_nodes) < 1 else "\\{" + ", ".join(node.in_nodes) + "\\}"
                 cur_col.children.append(dcc.Markdown(f"$${node.id_}_{{in}} = {in_nodes}$$", mathjax=True))
                 out_nodes = "\\{\\}" if len(node.out_nodes) < 1 else "\\{" + ", ".join(node.out_nodes) + "\\}"
                 cur_col.children.append(dcc.Markdown(f"$${node.id_}_{{out}} = {out_nodes}$$", mathjax=True))
                 noise = np.array(list(node.noise.data.values())).flatten()
-                cur_col.children.append(dcc.Markdown(f"$$n_{{{node.id_}}} := \\{{ x | x \\in [{noise.min():.4f}, {noise.max():.4f}] \\}}$$", mathjax=True))
+                cur_col.children.append(dcc.Markdown(f"$$n_{{min}} = {noise.min():.4f}$$", mathjax=True))
+                cur_col.children.append(dcc.Markdown(f"$$n_{{max}} = {noise.max():.4f}$$", mathjax=True))
+                cur_col.children.append(dcc.Markdown(f"$$n_{{mean}} = {noise.mean():.4f}$$", mathjax=True))
+                cur_col.children.append(dcc.Markdown(f"$$n_{{median}} = {np.median(noise):.4f}$$", mathjax=True))
                 assert node.data is not None
-                cur_col.children.append(dcc.Markdown(f"$$data_{{{node.id_}}} := \\{{ x | x \\in [{node.data.min():.4f}, {node.data.max():.4f}] \\}}$$", mathjax=True))
+                cur_col.children.append(dcc.Markdown(f"$$data_{{min}} = {node.data.min():.4f}$$", mathjax=True))
+                cur_col.children.append(dcc.Markdown(f"$$data_{{max}} = {node.data.max():.4f}$$", mathjax=True))
+                cur_col.children.append(dcc.Markdown(f"$$data_{{mean}} = {node.data.mean():.4f}$$", mathjax=True))
+                cur_col.children.append(dcc.Markdown(f"$$data_{{median}} = {np.median(node.data):.4f}$$", mathjax=True))
 
                 causes = node.in_nodes
                 causes.append(f"n_{node.id_}")
@@ -359,9 +367,9 @@ class RawStatsViewer(html.Div):
             self.children.append(row)
 
 
-class NodeViewer(html.Div):
-    def __init__(self, node_id: str):
-        super().__init__(id="node-viewer")
+class ScatterPlotViewerAll(html.Div):
+    def __init__(self):
+        super().__init__(id="scatter-plot-viewer-all")
         self.style = {
             "border": "solid black 2px",
             "border-radius": "8px",
@@ -369,188 +377,118 @@ class NodeViewer(html.Div):
             "margin": "10px",
         }
         self.children = []
-        container = dbc.Col()
-        container.children = []
-        node = graph.get_node_by_id(node_id)
-        assert node is not None
-        # TODO: 1) distribution for noise
-        noise = np.array(list(node.noise.data.values())).flatten()
-        noise_graph = ff.create_distplot(
-            [noise], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["blue"]
-        )
-        container.children.append(dbc.Row(dcc.Graph("data-summary-noise-view", figure=noise_graph, config={"staticPlot": True})))
-
-        # TODO: 2) distribution for data
-        data = node.data
-        assert data is not None
-        if node.mechanism_metadata.mechanism_type == "regression":
-            data_graph = ff.create_distplot(
-                [data], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["green"]
-            )
-        else:
-            unique, counts = np.unique(data, return_counts=True)
-            data_graph = go.Figure(go.Pie(values=counts, labels=[str(x) for x in unique]))
-
-        container.children.append(dbc.Row(dcc.Graph("data-summary-data-view", figure=data_graph, config={"staticPlot": True})))
-        # TODO: 3) mechanisms
-        in_nodes = [w for w in [graph.get_node_by_id(x) for x in node.in_nodes] if w is not None]
-        in_nodes = [x.name or x.id_ for x in in_nodes]
-        in_nodes.append(f"n_{node.name or node.id_}")
-        causes = ", ".join(in_nodes)
-        formulas = node.mechanism_metadata.get_formulas()
-        mechanism_type = node.mechanism_metadata.mechanism_type
-        mechanism_viewer = html.Div()
-        mechanism_viewer.children = []
-        if mechanism_type == "regression":
-            try:
-                x = py_to_latex(f"f({causes})", in_nodes)
-                y = py_to_latex(f"{list(formulas.values())[0]}", in_nodes)
-                latex_formula = x + ":=" + y
-            except:
-                latex_formula = py_to_latex(f"f({causes})", in_nodes) + " := \\text{<invalid>}"
-            mechanism_viewer.children.append(
-                dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
-            )
-        else:
-            for class_id, formula in formulas.items():
-                try:
-                    x = py_to_latex(f"f_{class_id}({causes})", in_nodes)
-                    y = py_to_latex(f"{formula}", in_nodes)
-                    latex_formula = x + ":=" + y
-                except:
-                    latex_formula = py_to_latex(f"f_{class_id}({causes})", in_nodes) + " := \\text{<invalid>}"
-                mechanism_viewer.children.append(
-                    dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
-            )
-        container.children.append(dbc.Row(mechanism_viewer))
-        self.children.append(container)
-
-
-class GraphViewer(html.Div):
-    def __init__(self):
-        super().__init__()
-        # TODO: 1) left side dropdown, reset button and graph
-        # TODO: 2) right side noise distr, data distr, mechanisms (maybe make it tabbed)
-
-
-class DataSummaryViewer(html.Div):
-    scatter_x: str | None = None
-    scatter_y: str | None = None
-    class Layouts(StrEnum):
-        circle = "circle"
-        random = "random"
-        grid = "grid"
-        concentric = "concentric"
-        breadthfirst = "breadthfirst"
-        # cose = "cose"
-        # cose_bilkent = "cose-bilkent"
-        cola = "cola"
-        # euler = "euler"
-        spread = "spread"
-        # dagre = "dagre"
-        # klay = "klay"
-
-        @classmethod
-        def get_all(cls) -> list[Self]:
-            return [e for e in cls]
-
-        @classmethod
-        def get_random(cls, current: Self) -> Self:
-            while (m:=choice(cls.get_all())) and m == current: pass
-            return m
-
-    layout = Layouts.circle
-
-    def __init__(self):
-        super().__init__(id="data-summary-viewer")
-        self.style = {
-            "border": "solid black 2px",
-            "border-radius": "8px",
-            "padding": "10px",
-            "margin": "10px",
-        }
-        data = graph.data
-        if data is None:
+        if graph.data is None:
             return
+        data = graph.data
+        dimensions = [
+            {"label": x, "values": data[x]} for x in data.columns
+        ]
+        scatter_plot = go.Figure(data=go.Splom(
+            dimensions=dimensions,
+            # TODO: add or leave?
+            # showupperhalf=False,
+            # diagonal_visible=False,
+        ))
+        self.children.extend([
+            dbc.Row(dbc.Col(html.H3("Scatter Plot - All"))),
+            dbc.Row(dbc.Col(dcc.Graph(id="scatter-plot", figure=scatter_plot, config={"staticPlot": True})))
+        ])
+
+
+class ScatterPlotViewerInidvidual(html.Div):
+    Selected_first: str | None = None
+    Selected_second: str | None = None
+    def __init__(self):
+        super().__init__(id="scatter-plot-viewer-individual")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         self.children = []
 
-        self.children.extend([
-            dcc.Dropdown(
-                options=self.Layouts.get_all(),
-                value=self.layout,
-                id="layout-choices-summary",
-                searchable=False,
-                multi=False,
-                clearable=False,
-                style={"border-radius": "8px"},
-            ),
-            html.Button(
-                "reset view",
-                id="data-summary-reset",
-                n_clicks=0,
-                className="one-button",
-            ),
-            dbc.Row([
-                dbc.Col(Cytoscape(
-                    id="summary-graph",
-                    layout={"name": self.layout},
-                    userPanningEnabled=False,
-                    zoomingEnabled=False,
-                    style={"width": "100%", "height": "700px"},
-                    elements=GraphBuilder.get_graph_data(),
-                    stylesheet=[
-                        {"selector": "node", "style": {"label": "data(label)"}},
-                        {
-                            "selector": "edge",
-                            "style": {
-                                "curve-style": "bezier",
-                                "target-arrow-shape": "triangle",
-                                "arrow-scale": 2,
-                            },
-                        },
-                    ],
-                )),
-                dbc.Col(NodeViewer("a"))
-            ]),
-        ])
+        if graph.data is None:
+            return
 
-        scatter_plot = px.scatter_matrix(data)
-        self.children.extend([
-            html.H3("scatter plot"),
-            dcc.Graph(id="scatter-plot", figure=scatter_plot, config={"staticPlot": True})
-        ])
 
-        for corr in ["pearson", "kendall", "spearman"]:
-            mat = data.corr(method=corr)
-            self.children.append(
-                html.Div([
-                    html.H3(f"correlation: {corr}"),
-                    dcc.Graph(id=corr, figure=px.imshow(mat, text_auto=True), config={"staticPlot": True})
-                ])
-            )
+        node_ids = graph.get_node_ids()
+        if (
+            ScatterPlotViewerInidvidual.Selected_first is None
+            or ScatterPlotViewerInidvidual.Selected_second is None
+        ):
+            assert len(node_ids) > 1, "invalid node count"
+            ScatterPlotViewerInidvidual.Selected_first = node_ids[0]
+            ScatterPlotViewerInidvidual.Selected_second = node_ids[1]
 
-        nodes = graph.get_nodes()
-        ids = [x.id_ for x in nodes]
-        if DataSummaryViewer.scatter_x is None:
-            DataSummaryViewer.scatter_x = ids[0]
-        if DataSummaryViewer.scatter_y is None:
-            DataSummaryViewer.scatter_y = ids[1]
-        scatter_graph = px.scatter(data, x=DataSummaryViewer.scatter_x, y=DataSummaryViewer.scatter_y)
-        self.children.append(
-            dbc.Row([
-                dbc.Col(dcc.Dropdown(
-                    id="scatter-x",
-                    options=ids,
-                    value=DataSummaryViewer.scatter_x,
-                    style={"border-radius": "8px"},
-                )),
-                dbc.Col(dcc.Dropdown(
-                    id="scatter-y",
-                    options=ids,
-                    value=DataSummaryViewer.scatter_y,
-                    style={"border-radius": "8px"},
-                )),
-                dcc.Graph(id="scatter-graph", figure=scatter_graph, config={"staticPlot": True})
-            ]),
+        scatter_graph = px.scatter(
+            graph.data,
+            x=ScatterPlotViewerInidvidual.Selected_first,
+            y=ScatterPlotViewerInidvidual.Selected_second
         )
+        self.children.extend([
+            dbc.Row(dbc.Col(html.H3("Scatter Plot - Individual"))),
+            dbc.Row([
+                dbc.Col(dcc.Dropdown(
+                    id="scatter-plot-viewer-individual-x",
+                    options=node_ids,
+                    value=ScatterPlotViewerInidvidual.Selected_first,
+                    style={"border-radius": "8px"},
+                )),
+                dbc.Col(dcc.Dropdown(
+                    id="scatter-plot-viewer-individual-y",
+                    options=node_ids,
+                    value=ScatterPlotViewerInidvidual.Selected_second,
+                    style={"border-radius": "8px"},
+                )),
+            ]),
+            dbc.Row(
+                dcc.Graph(id="scatter-graph", figure=scatter_graph, config={"staticPlot": True})
+            ),
+        ])
+
+
+class CorrelationMatrixView(html.Div):
+    def __init__(self):
+        super().__init__(id="correlation-matrix-view")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
+        self.children = []
+
+        if graph.data is None:
+            return
+
+        self.children.append(dbc.Row(
+            dbc.Col(html.H3("Correlation Matrices")))
+        )
+        row = dbc.Row()
+        row.children = []
+        for corr in ["pearson", "kendall", "spearman"]:
+            mat = graph.data.corr(method=corr).round(4)  # type: ignore
+            figure = go.Figure(px.imshow(
+                mat,
+                text_auto=True,
+            ))
+            figure.update_layout(
+                title={
+                    "text": corr.capitalize(),
+                    "y": 0.92,
+                    "x": 0.5,
+                    "xanchor": "center",
+                    "yanchor": "top",
+                }
+            )
+            row.children.append(
+                dbc.Col(dcc.Graph(
+                    id=corr,
+                    figure=figure,
+                    config={"staticPlot": True},
+
+                ))
+            )
+        self.children.append(row)
 

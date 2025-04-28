@@ -5,7 +5,7 @@ from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
 
 from utils.logger import DashLogger
-from views.data_summary import DataSummary, DataSummaryViewer, NodeViewer, StaticGraph
+from views.data_summary import DataSummary, DataSummaryViewer, NodeViewer, ScatterPlotViewerInidvidual, StaticGraph
 from views.graph import GraphBuilder
 
 
@@ -50,17 +50,20 @@ def setup_callbacks() -> None:
         StaticGraph.selected_node = node_id
         return StaticGraph().children
 
-    # @callback(
-    #     Output("data-summary-container", "children", allow_duplicate=True),
-    #     Input("scatter-x", "value"),
-    #     Input("scatter-y", "value"),
-    #     prevent_initial_call="initial_duplicate"
-    # )
-    # def select_nodes(first_node: str, second_node: str):
-    #     if DataSummaryViewer.scatter_x == first_node and DataSummaryViewer.scatter_y == second_node:
-    #         raise PreventUpdate
-    #
-    #     DataSummaryViewer.scatter_x = first_node
-    #     DataSummaryViewer.scatter_y = second_node
-    #     return DataSummary().children
+    @callback(
+        Output("scatter-plot-viewer-individual", "children", allow_duplicate=True),
+        Input("scatter-plot-viewer-individual-x", "value"),
+        Input("scatter-plot-viewer-individual-y", "value"),
+        prevent_initial_call="initial_duplicate"
+    )
+    def select_nodes(first_node: str, second_node: str):
+        if (
+            ScatterPlotViewerInidvidual.Selected_first == first_node
+            and ScatterPlotViewerInidvidual.Selected_second == second_node
+        ):
+            raise PreventUpdate()
+
+        ScatterPlotViewerInidvidual.Selected_first = first_node
+        ScatterPlotViewerInidvidual.Selected_second = second_node
+        return ScatterPlotViewerInidvidual().children
 

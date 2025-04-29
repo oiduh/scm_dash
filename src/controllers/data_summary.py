@@ -5,7 +5,7 @@ from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
 
 from utils.logger import DashLogger
-from views.data_summary import DataSummary, DataSummaryViewer, NodeViewer, ScatterPlotViewerInidvidual, StaticGraph
+from views.data_summary import DataSummary, ScatterPlotViewerInidvidual, StaticGraph
 from views.graph import GraphBuilder
 
 
@@ -25,17 +25,6 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
         StaticGraph.selected_node = new_value
         return StaticGraph().children
-
-    @callback(
-        Output("summary-graph", "layout", allow_duplicate=True),
-        Input("layout-choices-summary", "value"),
-        prevent_initial_call="initial_duplicate"
-    )
-    def update_layout_choice(new_value: DataSummaryViewer.Layouts | None):
-        if not new_value:
-            raise PreventUpdate()
-        DataSummaryViewer.layout = new_value
-        return {"name": new_value, "animate": True}
 
     @callback(
         Output("data-summary-static-graph", "children", allow_duplicate=True),

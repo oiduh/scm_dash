@@ -8,7 +8,7 @@ from pandas.io.formats.printing import justify
 
 from models.graph import graph
 from views.lock_data import LockDataBuilder
-from views.data_summary import DataSummary, DataSummaryViewer, StaticGraph
+from views.data_summary import DataSummary, StaticGraph
 from views.ml_prep import MLPreparation
 
 

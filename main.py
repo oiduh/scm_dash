@@ -1,10 +1,9 @@
 import dash_bootstrap_components as dbc
 from dash import Dash, html, dcc
 import dash_cytoscape as cyto
-from pandas.io.formats.printing import justify
 
 from controllers import setup_callbacks
-from views.data_summary import DataSummary, DataSummaryViewer
+from views.data_summary import DataSummary
 from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilder, MechanismViewer
 from views.ml_prep import MLPreparation, MLViewer

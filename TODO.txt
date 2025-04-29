@@ -181,6 +181,18 @@ TODO:
                 - [X] heat maps
         - [ ] dont disable data summary on ml result
         - [ ] ml prep
+            -> ability to define and add test sets e.g. what variables are input and what variables are output
+            -> everything is basically done, but needs stylistic rework
+            - [ ] style for most left component
+                - [ ] button to add -> show config menu
+                - [ ] config menu
+                    - [ ] drop down for 1 target variable
+                    - [ ] multi choice for source variables (default all except target)
+                    - [ ] button to add to final data sets
+            - [ ] style for most right component
+                - [ ] initial info that no data set has been defined
+                - [ ] show all currently defined data sets + option to remove
+            - [ ] custom config component (currently using Card)
         - [ ] ml lock
         - [ ] ml result
         - [ ] tabs

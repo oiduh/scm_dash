@@ -9,6 +9,12 @@ class TrainingDataSetEditor(html.Div):
     target_id: str | None = None
     def __init__(self):
         super().__init__(id="training-data-set-editor")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         self.children = []
         if TrainingDataSetEditor.active is False:
             return
@@ -75,6 +81,12 @@ class MLPreparation(html.Div):
     training_set_limit = 10
     def __init__(self):
         super().__init__(id="ml-preparation")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         self.children = []
         self.children.append(html.Button(
             id="add-training-set",
@@ -87,6 +99,12 @@ class MLPreparation(html.Div):
 class MLViewer(html.Div):
     def __init__(self):
         super().__init__(id="ml-viewer")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
         self.children = []
 
         for idx, data_set in enumerate(graph.data_sets):

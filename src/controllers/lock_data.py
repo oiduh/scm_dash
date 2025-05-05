@@ -4,12 +4,11 @@ import random
 from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
-from pandas.io.formats.printing import justify
 
 from models.graph import graph
 from views.lock_data import LockDataBuilder
 from views.data_summary import DataSummary, StaticGraph
-from views.ml_prep import MLPreparation
+from views.ml_prep import TrainingDataSetEditor
 
 
 
@@ -23,7 +22,7 @@ def setup_callbacks():
         Output("tab6", "disabled", allow_duplicate=True),
         Output("tab7", "disabled", allow_duplicate=True),
         Output("data-summary-container", "children", allow_duplicate=True),
-        Output("ml-preparation", "children", allow_duplicate=True),
+        Output("training-data-set-editor", "children", allow_duplicate=True),
         Output("loading-4", "children", allow_duplicate=True),
         Output("tabs", "value", allow_duplicate=True),
         Input("lock-button", "n_clicks"),
@@ -46,7 +45,7 @@ def setup_callbacks():
                 True,
                 True,
                 DataSummary().children,
-                MLPreparation().children,
+                TrainingDataSetEditor().children,
                 dbc.Row(
                     children=[
                         dbc.Col(LockDataBuilder(), width="10"),
@@ -69,7 +68,7 @@ def setup_callbacks():
                 True,
                 True,
                 DataSummary().children,
-                MLPreparation().children,
+                TrainingDataSetEditor().children,
                 dbc.Row(
                     children=[
                         dbc.Col(LockDataBuilder(True), width="10"),
@@ -92,7 +91,7 @@ def setup_callbacks():
             False,
             False,
             DataSummary().children,
-            MLPreparation().children,
+            TrainingDataSetEditor().children,
             dbc.Row(
                 children=[
                     dbc.Col(LockDataBuilder(), width="10"),

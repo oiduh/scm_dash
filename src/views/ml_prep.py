@@ -5,8 +5,9 @@ from models.graph import graph
 
 
 class TrainingDataSetEditor(html.Div):
-    active: bool = False
     target_id: str | None = None
+    training_set_counter = 0
+    training_set_limit = 10
     def __init__(self):
         super().__init__(id="training-data-set-editor")
         self.style = {
@@ -16,22 +17,13 @@ class TrainingDataSetEditor(html.Div):
             "margin": "10px",
         }
         self.children = []
-        if TrainingDataSetEditor.active is False:
+        if graph.data is None:
             return
 
-        # button to remove training set
-        self.children.append(dbc.Row([
-            dbc.Col(html.Button(
-                id="save-training-set",
-                children="Save Training Set",
-                className="one-button",
-            )),
-            dbc.Col(html.Button(
-                id="remove-training-set",
-                children="Remove Training Set",
-                className="one-button",
-            )),
-        ]))
+        self.children.extend([
+            html.H3("Define training sets:"),
+            html.Hr(),
+        ])
         nodes = graph.get_nodes()
         node_ids = [node.name or node.id_ for node in nodes]
         assert len(nodes) > 0
@@ -46,15 +38,17 @@ class TrainingDataSetEditor(html.Div):
         # TODO: add field for optional intervention -> simple float number input
 
         self.children.extend([
-            html.P("select the target variable:"),
+            html.H6("Select target variable:"),
             dcc.Dropdown(
                 id="selected-target-id",
                 options=node_ids,
                 value=target,
                 style={"border-radius": "8px"},
+                searchable=False,
+                clearable=False,
             ),
             html.Hr(),
-            html.P("select the source variables:"),
+            html.H6("Select source variables:"),
         ])
 
         cardbody = dbc.CardBody()
@@ -75,25 +69,15 @@ class TrainingDataSetEditor(html.Div):
             ], className="mb-3", size="lg"))
         self.children.append(dbc.Card(cardbody))
 
-
-class MLPreparation(html.Div):
-    training_set_counter = 0
-    training_set_limit = 10
-    def __init__(self):
-        super().__init__(id="ml-preparation")
-        self.style = {
-            "border": "solid black 2px",
-            "border-radius": "8px",
-            "padding": "10px",
-            "margin": "10px",
-        }
-        self.children = []
-        self.children.append(html.Button(
-            id="add-training-set",
-            children="Add Training Set +",
-            className="one-button",
-        ))
-        self.children.append(TrainingDataSetEditor())
+        # button to remove training set
+        self.children.extend([
+            html.Hr(),
+            html.Button(
+                id="save-training-set",
+                children="Save Training Set",
+                className="one-button",
+            )
+        ])
 
 
 class MLViewer(html.Div):

@@ -6,7 +6,7 @@ from controllers import setup_callbacks
 from views.data_summary import DataSummary
 from views.graph import GraphBuilder, GraphViewer
 from views.mechanism import MechanismBuilder, MechanismViewer
-from views.ml_prep import MLPreparation, MLViewer
+from views.ml_prep import TrainingDataSetEditor, MLViewer
 from views.ml_result import MLResultViewer
 from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
@@ -106,7 +106,7 @@ app.layout = html.Div(
                             value="tab-6",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(MLPreparation()),
+                                    dbc.Col(TrainingDataSetEditor()),
                                     dbc.Col(MLViewer()),
                                 ],
                             ),

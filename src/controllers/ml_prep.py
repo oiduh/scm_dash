@@ -1,12 +1,11 @@
 import logging
-import json
 
 from dash import ALL, Input, Output, State, callback
 from dash.exceptions import PreventUpdate
 
 from models.graph import graph
 from utils.logger import DashLogger
-from views.ml_prep import MLPreparation, MLViewer, TrainingDataSetEditor
+from views.ml_prep import MLViewer, TrainingDataSetEditor
 
 
 # TODO: add logs to functions
@@ -17,37 +16,7 @@ def setup_callbacks() -> None:
     LOGGER.info("initializing ml prep callbacks")
 
     @callback(
-        Output("ml-preparation", "children", allow_duplicate=True),
-        Input("add-training-set", "n_clicks"),
-        prevent_initial_call="initial_duplicate"
-    )
-    def add_data_set(clicked):
-        if not clicked:
-            raise PreventUpdate()
-        if TrainingDataSetEditor.active is True:
-            raise PreventUpdate()
-
-        TrainingDataSetEditor.active = True
-        return MLPreparation().children
-
-    @callback(
-        Output("ml-preparation", "children", allow_duplicate=True),
-        Output("ml-viewer", "children", allow_duplicate=True),
-        Input("remove-training-set", "n_clicks"),
-        prevent_initial_call="initial_duplicate"
-    )
-    def remove_data_set_editor(clicked):
-        if not clicked:
-            raise PreventUpdate()
-        assert TrainingDataSetEditor.active is True
-        TrainingDataSetEditor.active = False
-        return (
-            MLPreparation().children,
-            MLViewer().children,
-        )
-
-    @callback(
-        Output("ml-preparation", "children", allow_duplicate=True),
+        Output("training-data-set-editor", "children", allow_duplicate=True),
         Output("ml-viewer", "children", allow_duplicate=True),
         Input("save-training-set", "n_clicks"),
         State({ "type": "selected-source-id", "index": ALL}, "id"),
@@ -56,7 +25,7 @@ def setup_callbacks() -> None:
         prevent_initial_call="initial_duplicate"
     )
     def save_data_set(clicked, source_ids: list[dict[str, str]], source_values: list[bool], target_id: str):
-        if not clicked or TrainingDataSetEditor.active is False:
+        if not clicked:
             raise PreventUpdate()
 
         variables = [x.get("index", "") for x in source_ids]
@@ -76,14 +45,13 @@ def setup_callbacks() -> None:
         if graph.add_data_set(source_id_dict, target_id) is False:
             raise PreventUpdate()
 
-        TrainingDataSetEditor.active = False
         return (
-            MLPreparation().children,
+            TrainingDataSetEditor().children,
             MLViewer().children,
         )
 
     @callback(
-        Output("ml-preparation", "children", allow_duplicate=True),
+        Output("training-data-set-editor", "children", allow_duplicate=True),
         Input("selected-target-id", "value"),
         prevent_initial_call="initial_duplicate"
     )
@@ -91,9 +59,8 @@ def setup_callbacks() -> None:
         if new_value == TrainingDataSetEditor.target_id:
             raise PreventUpdate()
 
-        assert TrainingDataSetEditor.active is True
         TrainingDataSetEditor.target_id = new_value
-        return MLPreparation().children
+        return TrainingDataSetEditor().children
 
     @callback(
         Output("ml-viewer", "children", allow_duplicate=True),

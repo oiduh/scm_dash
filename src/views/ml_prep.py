@@ -51,23 +51,18 @@ class TrainingDataSetEditor(html.Div):
             html.H6("Select source variables:"),
         ])
 
-        cardbody = dbc.CardBody()
-        cardbody.children = []
-        for node in nodes:
-            text = node.name or node.id_
-            if node.id_ == target:
-                text += " (target)"
-            cardbody.children.append(dbc.InputGroup([
-                dbc.InputGroupText([
-                    dbc.Checkbox(
-                        id={"type": "selected-source-id", "index": node.id_},
-                        disabled=node.id_==target,
-                        value=node.id_ in sources,
-                    ),
-                ]),
-                dbc.InputGroupText(text)
-            ], className="mb-3", size="lg"))
-        self.children.append(dbc.Card(cardbody))
+        options: list = [{
+            "label": html.Span(node.id_ + (" (target)" if target in [node.name, node.id_] else ""), style={"padding-left": 10}),
+            "value": node.id_,
+            "disabled": node.id_ == target,
+        } for node in nodes]
+
+        checkbox = dcc.Checklist(
+            id="selected-source-ids",
+            options=options,
+            value=[option.get("value") for option in options if option.get("disabled") is False]
+        )
+        self.children.append(checkbox)
 
         # button to remove training set
         self.children.extend([
@@ -90,11 +85,12 @@ class MLViewer(html.Div):
             "margin": "10px",
         }
         self.children = []
+        self.children.append(html.H3("Configured data sets:"))
 
         for idx, data_set in enumerate(graph.data_sets):
             row = dbc.Row([
-                dbc.Col(html.P(f"sources: {data_set['s']}")),
-                dbc.Col(html.P(f"target: {data_set['t']}")),
+                dbc.Col(dcc.Markdown(f"$$sources: {{{', '.join(data_set['s'])}}}$$", mathjax=True)),
+                dbc.Col(dcc.Markdown(f"$$target: {data_set['t']}$$", mathjax=True)),
                 dbc.Col(html.Button(
                     "remove",
                     id={

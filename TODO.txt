@@ -179,23 +179,24 @@ TODO:
                 - [X] mechanism view component
                 - [X] scatter plot (all and individual)
                 - [X] heat maps
-        - [ ] dont disable data summary on ml result
-        - [ ] ml prep
+        - [X] ml prep
             -> ability to define and add test sets e.g. what variables are input and what variables are output
             -> everything is basically done, but needs stylistic rework
-            - [ ] style for most left component
-                - [ ] button to add -> show config menu
-                - [ ] config menu
-                    - [ ] drop down for 1 target variable
-                    - [ ] multi choice for source variables (default all except target)
-                    - [ ] button to add to final data sets
-            - [ ] style for most right component
-                - [ ] initial info that no data set has been defined
-                - [ ] show all currently defined data sets + option to remove
-            - [ ] custom config component (currently using Card)
+            - [X] style for most left component
+                - [X] button to add -> show config menu
+                -> button removed, changed style
+                - [X] config menu
+                    - [X] drop down for 1 target variable
+                    - [X] multi choice for source variables (default all except target)
+                    - [X] button to add to final data sets
+                - [X] re-style
+            - [X] style for most right component
+                - [X] initial info that no data set has been defined
+                - [X] show all currently defined data sets + option to remove
         - [ ] ml lock
         - [ ] ml result
         - [ ] tabs
+        - [ ] dont disable data summary on ml result
     - [X] tabs styling and uniformity
     - [ ] fix distribution bucket size
     - [ ] universal reset button + callbacks

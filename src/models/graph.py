@@ -151,7 +151,7 @@ class Graph:
         default_factory=lambda: {str(id): None for id in string.ascii_lowercase}
     )
     data: pd.DataFrame | None = None
-    data_sets: list[dict[str, str | list[str]]] = field(default_factory=list)
+    data_sets: list[dict[str, list[str]]] = field(default_factory=list)
     # TODO:add support for intervention for data sets field e.g. bool and int accepted
 
     def get_nodes(self) -> list[Node]:

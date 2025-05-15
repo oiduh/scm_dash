@@ -2,13 +2,13 @@ import logging
 from dash import callback, Output, Input
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
+from pandas.io.formats.printing import justify
 
 from views.ml_lock import MLLockBuilder
 from views.ml_result import MLResultViewer
 
 def setup_callbacks():
     @callback(
-        # Output("ml-lock-builder", "children", allow_duplicate=True),
         Output("ml-result-viewer", "children", allow_duplicate=True),
         Output("tab4", "disabled"),
         Output("tab5", "disabled"),
@@ -29,45 +29,51 @@ def setup_callbacks():
         if MLLockBuilder.is_locked:
             MLLockBuilder.is_locked = not MLLockBuilder.is_locked
             return (
-                # MLLockBuilder().children,
                 [],
                 False,
                 False,
                 False,
                 True,
                 "tab-7",
-                dbc.Row(children=[
-                    dbc.Col(MLLockBuilder().children)
-                ]),
+                dbc.Row(
+                    children=[
+                        dbc.Col(MLLockBuilder().children, width="10")
+                    ],
+                    justify="center"
+                ),
             )
 
         try:
-            # TODO: should be a cancellable job via button
-            print("runnin all ml algos...")
+            # TODO: should be a cancellable job via button?
+            print("running all ml algos...")
         except Exception as e:
             return (
-                # MLLockBuilder().children,
                 [],
                 False,
                 False,
                 False,
                 True,
                 "tab-7",
-                dbc.Row(children=[
-                    dbc.Col(MLLockBuilder().children)
-                ]),
+                dbc.Row(
+                    children=[
+                        dbc.Col(MLLockBuilder().children, width="10")
+                    ],
+                    justify="center"
+                ),
             )
 
         MLLockBuilder.is_locked = not MLLockBuilder.is_locked
         return (
-            # MLLockBuilder().children,
             MLResultViewer().children,
             True,
-            True,
+            False,
             True,
             False,
-            "tab-8",
-            dbc.Row(children=[
-                dbc.Col(MLLockBuilder().children)
-            ]),
+            "tab-7",
+            dbc.Row(
+                children=[
+                    dbc.Col(MLLockBuilder().children, width="10")
+                ],
+                justify="center"
+            ),
         )

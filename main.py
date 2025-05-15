@@ -11,7 +11,7 @@ from views.ml_result import MLResultViewer
 from views.noise import NoiseBuilder, NoiseViewer
 from views.utils import Placeholder
 from views.lock_data import LockDataBuilder
-from views.ml_lock import MLLockBuilder, MLLockViewer
+from views.ml_lock import MLLockBuilder
 
 
 
@@ -121,11 +121,11 @@ app.layout = html.Div(
                                 type="dot",
                                 children=dbc.Row(
                                     children=[
-                                        dbc.Col(MLLockBuilder()),
-                                        dbc.Col(MLLockViewer()),
+                                        dbc.Col(MLLockBuilder(), width="10"),
                                     ],
+                                    justify="center",
                                 ),
-                                overlay_style={"visibility":"visible", "filter": "blur(2px)"}
+                                overlay_style={"visibility":"visible", "filter": "blur(2px)"},
                             ),
                             disabled=True
                         ),

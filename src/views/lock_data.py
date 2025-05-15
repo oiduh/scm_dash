@@ -11,6 +11,7 @@ class LockDataBuilder(html.Div):
             "padding": "10px",
             "margin": "10px",
         }
+
         buttons = []
         if LockDataBuilder.is_locked:
             buttons.extend([
@@ -76,8 +77,6 @@ class LockDataBuilder(html.Div):
                         }
                     )
                 )
-
-
 
         self.children = [
             dbc.Row(

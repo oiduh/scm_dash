@@ -19,6 +19,7 @@ from views.graph import (
     GraphBuilder,
     GraphUploader,
 )
+from views.ml_prep import MLViewer
 from views.noise import NoiseBuilder, NoiseViewer, VariableSelection as VariableSelectionNoise
 from views.mechanism import MechanismBuilder, MechanismConfig, MechanismViewer, VariableSelection as VariableSelectionMechanism
 
@@ -280,6 +281,7 @@ def setup_callbacks() -> None:
         Output("noise-viewer", "children", allow_duplicate=True),
         Output("mechanism-builder", "children", allow_duplicate=True),
         Output("mechanism-viewer", "children", allow_duplicate=True),
+        Output("ml-viewer", "children", allow_duplicate=True),
         Input("use-graph-button", "n_clicks"),
         prevent_initial_call="initial_duplicate",
     )
@@ -308,5 +310,6 @@ def setup_callbacks() -> None:
             NoiseViewer().children,
             MechanismBuilder().children,
             MechanismViewer().children,
+            MLViewer().children,
         )
 

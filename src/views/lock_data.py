@@ -59,7 +59,7 @@ class LockDataBuilder(html.Div):
                 buttons.append(
                     dbc.Alert(
                         "No Data generated yet",
-                        color="warning",
+                        color="info",
                         style={
                             "white-space": "pre-line",
                             "margin-top": "10px"

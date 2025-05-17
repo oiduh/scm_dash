@@ -1,9 +1,11 @@
+import random
 import logging
 from dash import callback, Output, Input
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from pandas.io.formats.printing import justify
 
+from models.graph import graph
 from views.ml_lock import MLLockBuilder
 from views.ml_result import MLResultViewer
 
@@ -37,7 +39,23 @@ def setup_callbacks():
                 "tab-7",
                 dbc.Row(
                     children=[
-                        dbc.Col(MLLockBuilder().children, width="10")
+                        dbc.Col(MLLockBuilder(), width="10")
+                    ],
+                    justify="center"
+                ),
+            )
+        global graph
+        if len(graph.data_sets) == 0:
+            return (
+                [],
+                False,
+                False,
+                False,
+                True,
+                "tab-7",
+                dbc.Row(
+                    children=[
+                        dbc.Col(MLLockBuilder(True), width="10")
                     ],
                     justify="center"
                 ),
@@ -56,7 +74,7 @@ def setup_callbacks():
                 "tab-7",
                 dbc.Row(
                     children=[
-                        dbc.Col(MLLockBuilder().children, width="10")
+                        dbc.Col(MLLockBuilder(), width="10")
                     ],
                     justify="center"
                 ),
@@ -72,8 +90,22 @@ def setup_callbacks():
             "tab-7",
             dbc.Row(
                 children=[
-                    dbc.Col(MLLockBuilder().children, width="10")
+                    dbc.Col(MLLockBuilder(), width="10")
                 ],
                 justify="center"
             ),
         )
+
+    @callback(
+        Output("export-graph-text-ml", "data"),
+        Input("export-graph-ml", "n_clicks"),
+        prevent_initial_call=True
+    )
+    def export_data(clicked):
+        if not clicked:
+            raise PreventUpdate()
+        return {
+            "content": graph.to_dict(),
+            "filename": f"graph_{random.randint(1000,9999)}.txt"
+        }
+

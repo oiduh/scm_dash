@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 
 class MLLockBuilder(html.Div):
     is_locked: bool = False
-    def __init__(self):
+    def __init__(self, error: bool = False):
         super().__init__(id="ml-lock-builder")
         self.style = {
             "border": "solid black 2px",
@@ -41,7 +41,7 @@ class MLLockBuilder(html.Div):
         else:
             buttons.extend([
                 html.Button(
-                    "Lock",
+                    "Start training",
                     id="ml-lock-button",
                     className="one-button",
                 ),
@@ -52,6 +52,28 @@ class MLLockBuilder(html.Div):
                     disabled=True
                 ),
             ])
+            if error is False:
+                buttons.append(
+                    dbc.Alert(
+                        "Depending on the configuratin, the Training might take a while.",
+                        color="info",
+                        style={
+                            "white-space": "pre-line",
+                            "margin-top": "10px"
+                        }
+                    )
+                )
+            else:
+                buttons.append(
+                    dbc.Alert(
+                        "No training set has been specified yet.\nCheck the ML Prep Tab!",
+                        color="danger",
+                        style={
+                            "white-space": "pre-line",
+                            "margin-top": "10px"
+                        }
+                    )
+                )
 
         self.children = [
             dbc.Row(

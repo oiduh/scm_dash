@@ -1,4 +1,5 @@
 from enum import StrEnum
+from copy import deepcopy
 from typing import Self
 from dash import html, dcc
 import plotly.express as px
@@ -173,7 +174,6 @@ class StaticGraph(html.Div):
 
         node_inspector = html.Div()
         node_inspector.children = []
-        # TODO:add graphs for noise distribution, data distribution and mechanism
         noise = np.array(list(node.noise.data.values())).flatten()
         noise_graph = ff.create_distplot(
             [noise], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["blue"]
@@ -345,12 +345,11 @@ class RawStatsViewer(html.Div):
                 cur_col.children.append(dcc.Markdown(f"$$data_{{mean}} = {node.data.mean():.4f}$$", mathjax=True))
                 cur_col.children.append(dcc.Markdown(f"$$data_{{median}} = {np.median(node.data):.4f}$$", mathjax=True))
 
-                causes = node.in_nodes
+                causes = deepcopy(node.in_nodes)
                 causes.append(f"n_{node.id_}")
                 causes = ", ".join(causes)
                 if node.mechanism_metadata.mechanism_type == "regression":
                     cur_col.children.append(dcc.Markdown("Mechanism type: regression"))
-                    # TODO: fix the formulas, as in views/mechanism.py
                     x = f"f({causes})"
                     y = py_to_latex(f"{list(node.mechanism_metadata.formulas.values())[0]}", node.in_nodes)
                     formula = x + ":=" + y

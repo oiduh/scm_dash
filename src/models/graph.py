@@ -281,7 +281,16 @@ class Graph:
         )
         hierarchy[0] = available_node_ids
         current_layer = 1
+
+
+        print(f"{available_node_ids=}")
+        print(f"{all_nodes_ids=}")
+        for node in self.get_nodes():
+            print(node.id_, node.in_nodes, node.out_nodes)
+
+
         while len(available_node_ids) != len(all_nodes_ids):
+            # TODO: why infinite loop
             unassigned_node_ids = [
                 x for x in all_nodes_ids if x not in available_node_ids
             ]
@@ -334,6 +343,8 @@ class Graph:
                         result = mechanism.transform()
                         if result.error is not None:
                             raise Exception("Failed to evaluate")
+                    case _:
+                        raise Exception("no mechanism type found")
 
                 assert result.values is not None
                 node.data = result.values
@@ -388,11 +399,53 @@ class Graph:
                 if formula is None:
                     continue
                 graph_as_dict[id_]["mechanism"]["formulas"][mechanism_id] = formula
+
+        if len(self.data_sets) > 0:
+            graph_as_dict["data_sets"] = deepcopy(self.data_sets)
+
         return json.dumps(graph_as_dict)
+
+    @staticmethod
+    def verify_data_sets(target_graph: "Graph", data_sets: list[dict[str, list[str]]]) -> bool:
+        hashable_data_sets: list[str] = []
+        for data_set in data_sets:
+            sources, target = data_set.get("s"), data_set.get("t")
+            if not isinstance(sources, list):
+                return False
+            if not isinstance(target, str):
+                return False
+
+            # verify target
+            if target not in target_graph.get_node_ids():
+                return False
+
+            # verify effects
+            if len(sources) != len(set(sources)):
+                return False
+            if len(sources) == 0 or len(sources) >= len(target_graph.get_node_ids()):
+                return False
+            if target in sources:
+                return False
+            for source in sources:
+                if source not in target_graph.get_node_ids():
+                    return False
+
+            hashable_data_sets.append(str(target) + "".join(sources))
+
+        if len(hashable_data_sets) != len(set(hashable_data_sets)):
+            return False
+
+        return True
+
+
 
     @classmethod
     def parse_from_dict(cls, graph_data: dict[str, Any]) -> Self:
         graph_cpy = cls()
+        data_sets = graph_data.get("data_sets")
+        if data_sets is not None:
+            del graph_data["data_sets"]
+
         # ids valid
         ids_ = list(graph_data.keys())
         assert all(isinstance(id_, str) and id_ in string.ascii_lowercase for id_ in ids_), (
@@ -404,6 +457,13 @@ class Graph:
         for id_, d_ in graph_data.items():
             new_node = Node.parse_from_dict(id_, d_)
             graph_cpy.nodes[id_] = new_node
+
+        # TODO: not sure if verification is needed
+        if data_sets is not None and Graph.verify_data_sets(graph_cpy, data_sets):
+            graph_cpy.data_sets = deepcopy(data_sets)
+        else:
+            assert False, "data sets not valid"
+
         return graph_cpy
 
 

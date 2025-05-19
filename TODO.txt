@@ -205,6 +205,7 @@ TODO:
             - [ ] nicer looking tables
             - [ ] consistent styling
         - [ ] tabs
+            - [ ] when loading e.g. during ml part -> disable all other function like switching tabs
         - [ ] dont disable data summary on ml result
     - [X] bug when locking data, unlocking and locking again
     - [X] tabs styling and uniformity

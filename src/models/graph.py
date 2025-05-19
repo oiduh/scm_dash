@@ -459,10 +459,10 @@ class Graph:
             graph_cpy.nodes[id_] = new_node
 
         # TODO: not sure if verification is needed
-        if data_sets is not None and Graph.verify_data_sets(graph_cpy, data_sets):
+        if data_sets is not None:
+            if not Graph.verify_data_sets(graph_cpy, data_sets):
+                assert False, "data sets not valid"
             graph_cpy.data_sets = deepcopy(data_sets)
-        else:
-            assert False, "data sets not valid"
 
         return graph_cpy
 

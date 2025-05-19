@@ -135,8 +135,9 @@ app.layout = html.Div(
                             value="tab-8",
                             children=dbc.Row(
                                 children=[
-                                    dbc.Col(MLResultViewer()),
+                                    dbc.Col(MLResultViewer(), width="10"),
                                 ],
+                                justify="center",
                             ),
                             disabled=True
                         ),

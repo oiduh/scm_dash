@@ -79,7 +79,7 @@ class Regression:
 
         scores = {k: list(v.values()) for k, v in scores.items()}
         frame = pd.DataFrame.from_dict(scores, orient="index", columns=list(scorings.values()))
-        frame["name"] = frame.index
+        frame["Model"] = frame.index
         cols = list(frame.columns)
         cols.reverse()
         frame = frame[cols]
@@ -152,7 +152,7 @@ class Classification:
             final_score = Decimal(f"{np.mean(scores_):.4f}")
             scores.append([model.__class__.__name__, final_score])
 
-        return pd.DataFrame(scores, columns=["name", "mean"])
+        return pd.DataFrame(scores, columns=["Model", "mean"])
 
 semi_supervised_classification_models = [
     LabelPropagation,
@@ -190,7 +190,7 @@ class SemiSupervisedClassification:
             final_score = Decimal(f"{np.mean(model_scores):.4f}")
             scores.append([model.__class__.__name__, final_score])
 
-        return pd.DataFrame(scores, columns=["name", "mean"])
+        return pd.DataFrame(scores, columns=["Model", "mean"])
 
 self_training_classification_models = [
     DecisionTreeClassifier,
@@ -231,7 +231,7 @@ class SelfTrainingClassification:
             final_score = Decimal(f"{np.mean(model_scores):.4f}")
             scores.append(["SelfTrainingClassifier " + estimator.__class__.__name__, final_score])
 
-        return pd.DataFrame(scores, columns=["name", "mean"])
+        return pd.DataFrame(scores, columns=["Model", "mean"])
 
 # FIXME:mvlearn has not been updated for a while, find another or implement from scratch
 class CoTrainingClassification:
@@ -273,7 +273,7 @@ class CoTrainingClassification:
             ])
 
         return (
-            pd.DataFrame(scores, columns=["name", "mean", "std"])
+            pd.DataFrame(scores, columns=["Model", "mean", "std"])
             .sort_values(by=["mean"], ascending=False)
         )
 

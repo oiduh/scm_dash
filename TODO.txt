@@ -223,7 +223,10 @@ TODO:
     - [ ] ml prep -> if possible, show state of current training
         -> which data set is being trained
         -> which algo is being trained
-    - [ ] mechanism toggle help replace card component
+    - [ ] fix layout (chromium):
+        - [ ] correlation matrix (why not in one line?)
+        - [ ] slider max for distr (why not in one line?)
+    - [X] mechanism toggle help replace card component
     - [ ] fix distribution bucket size
     - [ ] universal reset button + callbacks
         -> reset all component variables

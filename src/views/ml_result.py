@@ -19,6 +19,10 @@ class MLResultViewer(html.Div):
         if len(graph.data_sets) < 1:
             return
 
+        self.children.append(
+            html.H3("ML results:")
+        )
+
         for data_set in graph.data_sets:
             row = dbc.Row()
             row.children = []
@@ -60,49 +64,6 @@ class MLResultViewer(html.Div):
                     )
                 ]).sort_values(by=["mean"], ascending=False)
             self.children.append(MLTable(scores, {"source": sources, "target": target}, mechanism_type))
-            # self.children.append(MLResultCard(scores, {"source": sources, "target": target}, mechanism_type))
-
-
-class MLResultCard(html.Div):
-    # TODO:separate component for table + labels
-    def __init__(self, data_table: pd.DataFrame, variables: dict, mechanism_type: Literal["regression", "classification"]):
-        super().__init__()
-        self.children = []
-        if mechanism_type == "regression":
-            card = dbc.Card(
-                dbc.CardBody([
-                    html.H4(f"Cause: {', '.join(variables['source'])}"),
-                    html.H4(f"Effect: {variables['target']}"),
-                    html.H6(f"Type: {mechanism_type}"),
-                    dash_table.DataTable(
-                        data=data_table.to_dict("records"),
-                        columns=[{"name": i, "id": i} for i in data_table.columns],
-                        style_data_conditional=[  # type: ignore
-                            {
-                                "if": {
-                                    "filter_query": f"{{{x}}} = {data_table[x].max()}",
-                                    "column_id": f"{x}",
-                                },
-                                "backgroundColor": "#FF4136",
-                                "color": "white",
-                            } for x in ["R2", "NMSE", "NRMSE", "NMAE"]
-                        ]
-                    )
-                ])
-            )
-        else:
-            card = dbc.Card(
-                dbc.CardBody([
-                    html.H4(f"Cause: {', '.join(variables['source'])}"),
-                    html.H4(f"Effect: {variables['target']}"),
-                    html.H6(f"Type: {mechanism_type}"),
-                    dash_table.DataTable(
-                        data=data_table.to_dict("records"),
-                        columns=[{"name": i, "id": i} for i in data_table.columns],
-                    )
-                ])
-            )
-        self.children.append(card)
 
 
 class MLTable(html.Div):
@@ -117,7 +78,13 @@ class MLTable(html.Div):
         }
         row = dbc.Row()
         row.children = []
+        row.children.extend([
+            html.H5(f"Causes: {', '.join(variables['source'])}"),
+            html.H5(f"Effects: {variables['target']}"),
+
+        ])
         if mechanism_type == "regression":
+            row.children.append(html.H5(f"Mechanism type: Regression"))
             row.children.append(
                 dash_table.DataTable(
                     data=data_table.to_dict("records"),
@@ -135,6 +102,7 @@ class MLTable(html.Div):
                 )
             )
         else:
+            row.children.append(html.H5(f"Mechanism type: Classification"))
             row.children.append(
                 dash_table.DataTable(
                     data=data_table.to_dict("records"),

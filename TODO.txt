@@ -201,22 +201,24 @@ TODO:
             - [X] dont block data view
             - [X] error/alert when no training set defined
             - [X] default message before training with info that it might take a while
-        - [ ] ml result
+        - [X] ml result
             -> rework: remove card component and use some customstuff for table containers
-            - [ ] nicer looking tables
-                - [ ] add causes and effects as text/headers
-                - [ ] add mechanism type
-                - [ ] adjust width to text 
-                - [ ] regression
+            - [X] nicer looking tables
+                - [X] add causes and effects as text/headers
+                - [X] add mechanism type
+                - [X] adjust width to text
+                - [X] regression
                     -> different evaluator scores
-                    - [ ] highlight best score for each evaluator with nice color
-                - [ ] classification
+                    - [X] highlight best score for each evaluator with nice color
+                - [X] classification
                     -> ranked by mean scores
-                    - [ ] speed up the process (less data, less algos)
-            - [ ] consistent styling with other components
+                    - [X] speed up the process (less data, less algos)
+            - [X] consistent styling with other components
         - [ ] tabs
             - [ ] when loading e.g. during ml part -> disable all other function like switching tabs
-        - [ ] dont disable data summary on ml result
+        - [X] dont disable data summary on ml result
+        - [ ] loading component
+            - [ ] custom spinner with text and spinner check docu
     - [X] bug when locking data, unlocking and locking again
     - [X] tabs styling and uniformity
     - [ ] ml prep -> show type of mechanism: reg or class

@@ -24,7 +24,7 @@ class MLResultViewer(html.Div):
         )
 
         for data_set in graph.data_sets:
-            row = dbc.Row()
+            row = dbc.Row(justify="center")
             row.children = []
             sources = data_set["s"]
             assert isinstance(sources, list)
@@ -76,39 +76,43 @@ class MLTable(html.Div):
             "padding": "10px",
             "margin": "10px",
         }
-        row = dbc.Row()
-        row.children = []
-        row.children.extend([
+        self.children.extend([
             html.H5(f"Causes: {', '.join(variables['source'])}"),
             html.H5(f"Effects: {variables['target']}"),
-
         ])
         if mechanism_type == "regression":
-            row.children.append(html.H5(f"Mechanism type: Regression"))
-            row.children.append(
-                dash_table.DataTable(
-                    data=data_table.to_dict("records"),
-                    columns=[{"name": i, "id": i} for i in data_table.columns],
-                    style_data_conditional=[  # type: ignore
-                        {
-                            "if": {
-                                "filter_query": f"{{{x}}} = {data_table[x].max()}",
-                                "column_id": f"{x}",
-                            },
-                            "backgroundColor": "#FF4136",
-                            "color": "white",
-                        } for x in ["R2", "NMSE", "NRMSE", "NMAE"]
-                    ]
-                )
+            self.children.append(html.H5(f"Mechanism type: Regression"))
+            self.children.append(
+                dbc.Row(children=[
+                    dbc.Col(),
+                    dbc.Col(dash_table.DataTable(
+                        data=data_table.to_dict("records"),
+                        columns=[{"name": i, "id": i} for i in data_table.columns],
+                        cell_selectable=False,
+                        column_selectable=False,
+                        row_selectable=False,
+                        fill_width=False,
+                        style_data_conditional=[  # type: ignore
+                            {
+                                "if": {
+                                    "filter_query": f"{{{x}}} = {data_table[x].max()}",
+                                    "column_id": f"{x}",
+                                },
+                                "backgroundColor": "#FF4136",
+                                "color": "white",
+                            } for x in ["R2", "NMSE", "NRMSE", "NMAE"]
+                        ]
+                    )),
+                    dbc.Col()
+                ])
             )
         else:
-            row.children.append(html.H5(f"Mechanism type: Classification"))
-            row.children.append(
+            self.children.append(html.H5(f"Mechanism type: Classification"))
+            self.children.append(
                 dash_table.DataTable(
                     data=data_table.to_dict("records"),
                     columns=[{"name": i, "id": i} for i in data_table.columns],
                 )
             )
-        self.children.append(row)
 
 

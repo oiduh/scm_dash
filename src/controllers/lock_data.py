@@ -1,5 +1,6 @@
 import logging  # TODO: logging
 import random
+from time import sleep
 
 from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
@@ -57,6 +58,7 @@ def setup_callbacks():
 
         try:
             full_data_set = graph.generate_full_data_set()
+            sleep(1.)
         except Exception as e:
             graph.data = None
             return (

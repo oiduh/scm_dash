@@ -216,6 +216,12 @@ TODO:
             - [X] consistent styling with other components
         - [ ] tabs
             - [ ] when loading e.g. during ml part -> disable all other function like switching tabs
+            -> use dcc.Store to store a flag
+            -> loading triggers a change to the flag 
+            -> the flag changes the disable state of the tabs
+            -> once the loading has finished, set the flag again
+            -> depending on the flag, disable/enable tabs
+            -> flag for re-enabled tabs finishes at the same time as the loaded new content
         - [X] dont disable data summary on ml result
         - [ ] loading component
             - [ ] custom spinner with text and spinner check docu

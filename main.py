@@ -78,13 +78,22 @@ app.layout = html.Div(
                             children=dcc.Loading(
                                 id="loading-4",
                                 type="dot",
+                                custom_spinner=html.Div(
+                                    html.H2(["Generating data...", dbc.Spinner(color="info")]),
+                                    style={
+                                        "border": "solid black 2px",
+                                        "border-radius": "8px",
+                                        "padding": "10px",
+                                        "background-color": "rgba(255, 255, 0, 0.5)",
+                                    }
+                                ),
                                 children=dbc.Row(
                                     children=[
                                         dbc.Col(LockDataBuilder(), width="10"),
                                     ],
                                     justify="center",
                                 ),
-                                overlay_style={"visibility":"visible", "filter": "blur(2px)"},
+                                overlay_style={"visibility":"visible", "filter": "blur(5px)"},
                             ),
                             disabled=False,
                         ),
@@ -119,13 +128,22 @@ app.layout = html.Div(
                             children=dcc.Loading(
                                 id="loading-7",
                                 type="dot",
+                                custom_spinner=html.Div(
+                                    html.H2(["Training models...", dbc.Spinner(color="info")]),
+                                    style={
+                                        "border": "solid black 2px",
+                                        "border-radius": "8px",
+                                        "padding": "10px",
+                                        "background-color": "rgba(255, 255, 0, 0.5)",
+                                    }
+                                ),
                                 children=dbc.Row(
                                     children=[
                                         dbc.Col(MLLockBuilder(), width="10"),
                                     ],
                                     justify="center",
                                 ),
-                                overlay_style={"visibility":"visible", "filter": "blur(2px)"},
+                                overlay_style={"visibility":"visible", "filter": "blur(5px)"},
                             ),
                             disabled=True
                         ),

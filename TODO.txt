@@ -222,9 +222,14 @@ TODO:
             -> once the loading has finished, set the flag again
             -> depending on the flag, disable/enable tabs
             -> flag for re-enabled tabs finishes at the same time as the loaded new content
+                - [X] data gen
+                - [ ] ml train
         - [X] dont disable data summary on ml result
-        - [ ] loading component
+        - [X] loading component
             - [ ] custom spinner with text and spinner check docu
+                - [X] data gen
+                - [ ] ml train
+        - [ ] move ml training code from views to controller
     - [X] bug when locking data, unlocking and locking again
     - [X] tabs styling and uniformity
     - [ ] ml prep -> show type of mechanism: reg or class

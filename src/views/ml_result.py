@@ -23,6 +23,8 @@ class MLResultViewer(html.Div):
             html.H3("ML results:")
         )
 
+        # TODO: move all this logic from view to controller!
+
         for data_set in graph.data_sets:
             row = dbc.Row(justify="center")
             row.children = []

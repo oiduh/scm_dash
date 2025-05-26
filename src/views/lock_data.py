@@ -79,6 +79,7 @@ class LockDataBuilder(html.Div):
                 )
 
         self.children = [
+            dcc.Store(id="data-generation-store", data=False),
             dbc.Row(
                 html.H5("Generate Data:")
             ),

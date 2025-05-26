@@ -76,6 +76,7 @@ class MLLockBuilder(html.Div):
                 )
 
         self.children = [
+            dcc.Store(id="ml-prep-store", data=False),
             dbc.Row(
                 html.H5("Train & evaluate models:")
             ),

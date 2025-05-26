@@ -14,7 +14,6 @@ from views.lock_data import LockDataBuilder
 from views.ml_lock import MLLockBuilder
 
 
-
 cyto.load_extra_layouts()
 
 

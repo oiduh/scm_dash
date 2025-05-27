@@ -1,10 +1,14 @@
 import random
+from time import sleep
 import logging
 from dash import callback, Output, Input
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
+import pandas as pd
 
 from models.graph import graph
+from models.mechanism import MechanismType
+from models.ml import Classification, Regression, SelfTrainingClassification, SemiSupervisedClassification
 from views.ml_lock import MLLockBuilder
 from views.ml_result import MLResultViewer
 
@@ -23,8 +27,9 @@ def setup_callbacks():
         # maybe add a stop button to stop all algos with no results
         if not clicked:
             raise PreventUpdate()
+        sleep(1.)
         if MLLockBuilder.is_locked:
-            MLLockBuilder.is_locked = not MLLockBuilder.is_locked
+            MLLockBuilder.is_locked = False
             return (
                 [],
                 dbc.Row(
@@ -35,6 +40,7 @@ def setup_callbacks():
                 ),
                 False
             )
+
         global graph
         if len(graph.data_sets) == 0:
             return (
@@ -48,9 +54,52 @@ def setup_callbacks():
                 False
             )
 
+        all_scores: list[tuple[pd.DataFrame, dict, MechanismType]] = []
         try:
             # TODO: should be a cancellable job via button?
             print("running all ml algos...")
+            for data_set in graph.data_sets:
+                row = dbc.Row(justify="center")
+                row.children = []
+                sources = data_set["s"]
+                assert isinstance(sources, list)
+                target = data_set["t"]
+                assert isinstance(target, str)
+                data = graph.data
+                assert data is not None
+                target_node = graph.get_node_by_id(target)
+                assert target_node is not None
+                mechanism_type = target_node.mechanism_metadata.mechanism_type
+                if mechanism_type == "regression":
+                    scores = Regression().evaluate_models(
+                        data=data,
+                        sources=sources,
+                        target=target,
+                    )
+                else:
+                    scores = Classification().evaluate_models(
+                        data=data,
+                        sources=sources,
+                        target=target,
+                    )
+                    scores = pd.concat([
+                        scores,
+                        SemiSupervisedClassification().evaluate_models(
+                            data=data,
+                            sources=sources,
+                            target=target,
+                        )
+                    ])
+                    scores = pd.concat([
+                        scores,
+                        SelfTrainingClassification().evaluate_models(
+                            data=data,
+                            sources=sources,
+                            target=target,
+                        )
+                    ]).sort_values(by=["mean"], ascending=False)
+                all_scores.append((scores, {"source": sources, "target": target}, mechanism_type))
+
         except Exception as e:
             return (
                 [],
@@ -63,9 +112,9 @@ def setup_callbacks():
                 False
             )
 
-        MLLockBuilder.is_locked = not MLLockBuilder.is_locked
+        MLLockBuilder.is_locked = True
         return (
-            MLResultViewer().children,
+            MLResultViewer(all_scores).children,
             dbc.Row(
                 children=[
                     dbc.Col(MLLockBuilder(), width="10")
@@ -87,6 +136,7 @@ def setup_callbacks():
     )
     def toggle_ui_components(is_loading: bool):
         if is_loading is True:
+            print("error it is loading")
             return (
                 True,
                 True,

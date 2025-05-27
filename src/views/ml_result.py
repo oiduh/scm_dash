@@ -1,12 +1,13 @@
 from dash import html, dash_table
 import dash_bootstrap_components as dbc
 from models.graph import graph
+from models.mechanism import MechanismType
 from models.ml import Classification, Regression, SemiSupervisedClassification, SelfTrainingClassification
 import pandas as pd
 from typing import Literal
 
 class MLResultViewer(html.Div):
-    def __init__(self):
+    def __init__(self, all_scores: list[tuple[pd.DataFrame, dict, MechanismType]] | None = None):
         super().__init__(id="ml-result-viewer")
         self.children = []
         self.style = {
@@ -16,56 +17,13 @@ class MLResultViewer(html.Div):
             "margin": "10px",
         }
 
-        if len(graph.data_sets) < 1:
+        if all_scores is None:
             return
 
-        self.children.append(
-            html.H3("ML results:")
-        )
-
-        # TODO: move all this logic from view to controller!
-
-        for data_set in graph.data_sets:
-            row = dbc.Row(justify="center")
-            row.children = []
-            sources = data_set["s"]
-            assert isinstance(sources, list)
-            target = data_set["t"]
-            assert isinstance(target, str)
-            data = graph.data
-            assert data is not None
-            target_node = graph.get_node_by_id(target)
-            assert target_node is not None
-            mechanism_type = target_node.mechanism_metadata.mechanism_type
-            if mechanism_type == "regression":
-                scores = Regression().evaluate_models(
-                    data=data,
-                    sources=sources,
-                    target=target,
-                )
-            else:
-                scores = Classification().evaluate_models(
-                    data=data,
-                    sources=sources,
-                    target=target,
-                )
-                scores = pd.concat([
-                    scores,
-                    SemiSupervisedClassification().evaluate_models(
-                        data=data,
-                        sources=sources,
-                        target=target,
-                    )
-                ])
-                scores = pd.concat([
-                    scores,
-                    SelfTrainingClassification().evaluate_models(
-                        data=data,
-                        sources=sources,
-                        target=target,
-                    )
-                ]).sort_values(by=["mean"], ascending=False)
-            self.children.append(MLTable(scores, {"source": sources, "target": target}, mechanism_type))
+        self.children.append(html.H3("ML results:"))
+        for score_tuple in all_scores:
+            scores, variable_dict, mechanism_type = score_tuple
+            self.children.append(MLTable(scores, variable_dict, mechanism_type))
 
 
 class MLTable(html.Div):

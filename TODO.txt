@@ -229,6 +229,7 @@ TODO:
             - [ ] custom spinner with text and spinner check docu
                 - [X] data gen
                 - [ ] ml train
+            - [ ] fix race conditions with toggling the lock states
         - [ ] move ml training code from views to controller
     - [X] bug when locking data, unlocking and locking again
     - [X] tabs styling and uniformity

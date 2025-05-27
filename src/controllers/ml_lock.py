@@ -1,10 +1,10 @@
 import random
-from time import sleep
 import logging
-from dash import callback, Output, Input
+from dash import callback, Output, Input, State
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import pandas as pd
+from uuid import uuid4
 
 from models.graph import graph
 from models.mechanism import MechanismType
@@ -16,44 +16,19 @@ def setup_callbacks():
     @callback(
         Output("ml-result-viewer", "children", allow_duplicate=True),
         Output("loading-7", "children", allow_duplicate=True),
-        Output("ml-prep-store", "data", allow_duplicate=True),
-        Input("ml-lock-button", "n_clicks"),
+        Output("ml-lock-store", "data", allow_duplicate=True),
+        Input("ml-lock-store", "data"),
         prevent_initial_call=True
     )
-    def toggle_lock(clicked):
+    def toggle_lock(should_train: bool):
         # TODO: when we lock, we should also start running the ml algos
         # since it might take longer: progress bar for each algo
         # lock all previous tabs
         # maybe add a stop button to stop all algos with no results
-        if not clicked:
+        if not should_train or MLLockBuilder.training_done:
             raise PreventUpdate()
-        sleep(1.)
-        if MLLockBuilder.is_locked:
-            MLLockBuilder.is_locked = False
-            return (
-                [],
-                dbc.Row(
-                    children=[
-                        dbc.Col(MLLockBuilder(), width="10")
-                    ],
-                    justify="center"
-                ),
-                False
-            )
 
         global graph
-        if len(graph.data_sets) == 0:
-            return (
-                [],
-                dbc.Row(
-                    children=[
-                        dbc.Col(MLLockBuilder(True), width="10")
-                    ],
-                    justify="center"
-                ),
-                False
-            )
-
         all_scores: list[tuple[pd.DataFrame, dict, MechanismType]] = []
         try:
             # TODO: should be a cancellable job via button?
@@ -101,6 +76,7 @@ def setup_callbacks():
                 all_scores.append((scores, {"source": sources, "target": target}, mechanism_type))
 
         except Exception as e:
+            MLLockBuilder.is_locked = False
             return (
                 [],
                 dbc.Row(
@@ -109,10 +85,10 @@ def setup_callbacks():
                     ],
                     justify="center"
                 ),
-                False
+                True
             )
 
-        MLLockBuilder.is_locked = True
+        MLLockBuilder.training_done = True
         return (
             MLResultViewer(all_scores).children,
             dbc.Row(
@@ -121,7 +97,7 @@ def setup_callbacks():
                 ],
                 justify="center"
             ),
-            True
+            str(uuid4())
         )
 
     @callback(
@@ -131,41 +107,44 @@ def setup_callbacks():
         Output("tab7", "disabled"),
         Output("tab8", "disabled"),
         Output("tabs", "value"),
-        Input("ml-prep-store", "data"),
+        Input("ml-lock-store", "data"),
         prevent_initial_call=True
     )
-    def toggle_ui_components(is_loading: bool):
-        if is_loading is True:
-            print("error it is loading")
-            return (
-                True,
-                True,
-                True,
-                False,
-                True,
-                "tab-7",
-            )
-        elif MLLockBuilder.is_locked:
-            return (
-                True,
-                False,
-                True,
-                False,
-                False,
-                "tab-7",
-            )
-        else:
-            return (
-                False,
-                False,
-                False,
-                False,
-                True,
-                "tab-7",
-            )
+    def toggle_ui_components(_):
+        match (MLLockBuilder.is_locked, MLLockBuilder.training_done):
+            case True, False:
+                return (
+                    True,
+                    True,
+                    True,
+                    False,
+                    True,
+                    "tab-7",
+                )
+            case True, True:
+                return (
+                    True,
+                    False,
+                    True,
+                    False,
+                    False,
+                    "tab-7",
+                )
+            case False, False:
+                return (
+                    False,
+                    False,
+                    False,
+                    False,
+                    True,
+                    "tab-7",
+                )
+            case _:
+                print("this should not be possible")
+                raise PreventUpdate()
 
     @callback(
-        Output("ml-prep-store", "data"),
+        Output("ml-lock-store", "data"),
         Input("ml-lock-button", "n_clicks"),
         prevent_initial_call=True,
     )
@@ -173,10 +152,14 @@ def setup_callbacks():
         if not clicked:
             raise PreventUpdate()
 
-        if MLLockBuilder.is_locked is True:
+        global graph
+        if len(graph.data_sets) == 0:
             MLLockBuilder.is_locked = False
             return False
 
+        MLLockBuilder.is_locked = not MLLockBuilder.is_locked
+        if MLLockBuilder.training_done is True:
+            MLLockBuilder.training_done = False
         return True
 
     @callback(

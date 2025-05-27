@@ -224,12 +224,15 @@ TODO:
             -> flag for re-enabled tabs finishes at the same time as the loaded new content
                 - [X] data gen
                 - [ ] ml train
+                    - [ ] fix the training of models after unlocking, should be skipped
         - [X] dont disable data summary on ml result
         - [X] loading component
             - [ ] custom spinner with text and spinner check docu
                 - [X] data gen
                 - [ ] ml train
             - [ ] fix race conditions with toggling the lock states
+            - [ ] use storaged_type="memory" for dcc.Store
+                -> ask chatgpt
         - [ ] move ml training code from views to controller
     - [X] bug when locking data, unlocking and locking again
     - [X] tabs styling and uniformity

@@ -3,6 +3,7 @@ import dash_bootstrap_components as dbc
 
 class MLLockBuilder(html.Div):
     is_locked: bool = False
+    training_done: bool = False
     def __init__(self, error: bool = False):
         super().__init__(id="ml-lock-builder")
         self.style = {
@@ -76,7 +77,7 @@ class MLLockBuilder(html.Div):
                 )
 
         self.children = [
-            dcc.Store(id="ml-prep-store", data=False),
+            dcc.Store(id="ml-lock-store"),
             dbc.Row(
                 html.H5("Train & evaluate models:")
             ),

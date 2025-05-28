@@ -151,7 +151,7 @@ class Graph:
         default_factory=lambda: {str(id): None for id in string.ascii_lowercase}
     )
     data: pd.DataFrame | None = None
-    data_sets: list[dict[str, list[str]]] = field(default_factory=list)
+    data_sets: list[dict[str, str | list[str]]] = field(default_factory=list)
     # TODO:add support for intervention for data sets field e.g. bool and int accepted
 
     def get_nodes(self) -> list[Node]:
@@ -362,9 +362,11 @@ class Graph:
         return dataframe
 
     def add_data_set(self, sources: dict[str, bool], target: str) -> bool:
+        node = self.get_node_by_id(target)
+        assert node is not None, "there must be a node"
         sources_list = [k for k, v in sources.items() if v]
         new_data_set: dict[str, str | list[str]] = {
-            "s": sources_list, "t": target
+            "s": sources_list, "t": target, "m": node.mechanism_metadata.mechanism_type,
         }
         if new_data_set in self.data_sets:
             return False

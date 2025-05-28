@@ -91,6 +91,7 @@ class MLViewer(html.Div):
             row = dbc.Row([
                 dbc.Col(dcc.Markdown(f"$$sources: {{{', '.join(data_set['s'])}}}$$", mathjax=True)),
                 dbc.Col(dcc.Markdown(f"$$target: {data_set['t']}$$", mathjax=True)),
+                dbc.Col(dcc.Markdown(f"$${data_set['m']}$$", mathjax=True)),
                 dbc.Col(html.Button(
                     "remove",
                     id={

@@ -69,10 +69,18 @@ class MLTable(html.Div):
         else:
             self.children.append(html.H5(f"Mechanism type: Classification"))
             self.children.append(
-                dash_table.DataTable(
-                    data=data_table.to_dict("records"),
-                    columns=[{"name": i, "id": i} for i in data_table.columns],
-                )
+                dbc.Row(children=[
+                    dbc.Col(),
+                    dbc.Col(dash_table.DataTable(
+                        data=data_table.to_dict("records"),
+                        columns=[{"name": i, "id": i} for i in data_table.columns],
+                        cell_selectable=False,
+                        column_selectable=False,
+                        row_selectable=False,
+                        fill_width=False,
+                    )),
+                    dbc.Col()
+                ])
             )
 
 

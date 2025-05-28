@@ -214,8 +214,8 @@ TODO:
                     -> ranked by mean scores
                     - [X] speed up the process (less data, less algos)
             - [X] consistent styling with other components
-        - [ ] tabs
-            - [ ] when loading e.g. during ml part -> disable all other function like switching tabs
+        - [X] tabs
+            - [X] when loading e.g. during ml part -> disable all other function like switching tabs
             -> use dcc.Store to store a flag
             -> loading triggers a change to the flag 
             -> the flag changes the disable state of the tabs
@@ -223,20 +223,22 @@ TODO:
             -> depending on the flag, disable/enable tabs
             -> flag for re-enabled tabs finishes at the same time as the loaded new content
                 - [X] data gen
-                - [ ] ml train
-                    - [ ] fix the training of models after unlocking, should be skipped
+                - [X] ml train
+                    - [X] fix the training of models after unlocking, should be skipped
         - [X] dont disable data summary on ml result
         - [X] loading component
-            - [ ] custom spinner with text and spinner check docu
+            - [X] custom spinner with text and spinner check docu
                 - [X] data gen
-                - [ ] ml train
-            - [ ] fix race conditions with toggling the lock states
-            - [ ] use storaged_type="memory" for dcc.Store
-                -> ask chatgpt
-        - [ ] move ml training code from views to controller
+                - [X] ml train
+            - [X] fix race conditions with toggling the lock states
+        - [X] move ml training code from views to controller
     - [X] bug when locking data, unlocking and locking again
     - [X] tabs styling and uniformity
-    - [ ] ml prep -> show type of mechanism: reg or class
+    - [X] ml prep -> show type of mechanism: reg or class
+    - [X] fix the table for classification
+    - [ ] data viewer fix layout for graph -> does not update
+    - [ ] mechanism tool tip box -> replace card component with custom stuff
+    - [ ] reduce data points for faster learning (classification)
     - [ ] ml prep -> if possible, show state of current training
         -> which data set is being trained
         -> which algo is being trained
@@ -247,15 +249,13 @@ TODO:
     - [ ] fix distribution bucket size
     - [ ] universal reset button + callbacks
         -> reset all component variables
-    - [ ] lock/unlock callbacks to reset stuff e.g. data set selection
-    - [ ] right/left split on ml result -> show graph + mechanisms for analysis
-        - [ ] handle case where data set is empty
     - [ ] dockerize (simple)
     - [X] fix naming or remove it (fixing in all stages)
     -> for now removed
     - [ ] fix graphs
         -> height, width, aspect ratio, center e.g. in data summary very shit
         -> solution: 'oneshot' callback that adjusts on tab click
+    - [ ] raw stats -> some things like min, max for classifcation do not make much sense
 
 
 

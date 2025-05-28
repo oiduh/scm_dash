@@ -160,6 +160,8 @@ def setup_callbacks():
         MLLockBuilder.is_locked = not MLLockBuilder.is_locked
         if MLLockBuilder.training_done is True:
             MLLockBuilder.training_done = False
+            return False
+
         return True
 
     @callback(

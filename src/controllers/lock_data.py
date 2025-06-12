@@ -19,25 +19,12 @@ def setup_callbacks():
         Output("training-data-set-editor", "children", allow_duplicate=True),
         Output("loading-4", "children", allow_duplicate=True),
         Output("data-generation-store", "data", allow_duplicate=True),
-        Input("lock-button", "n_clicks"),
+        Input("data-generation-store", "data"),
         prevent_initial_call=True,
     )
-    def generate_data(clicked):
-        if not clicked:
+    def generate_data(should_train: bool):
+        if not should_train or LockDataBuilder.data_generated:
             raise PreventUpdate()
-
-        if LockDataBuilder.is_locked:
-            return (
-                DataSummary().children,
-                TrainingDataSetEditor().children,
-                dbc.Row(
-                    children=[
-                        dbc.Col(LockDataBuilder(), width="10"),
-                    ],
-                    justify="center"
-                ),
-                False
-            )
 
         try:
             full_data_set = graph.generate_full_data_set()
@@ -57,7 +44,7 @@ def setup_callbacks():
             )
 
         graph.data = full_data_set
-        LockDataBuilder.is_locked = True
+        LockDataBuilder.data_generated = True
         return (
             DataSummary().children,
             TrainingDataSetEditor().children,
@@ -79,43 +66,51 @@ def setup_callbacks():
         Output("tab6", "disabled", allow_duplicate=True),
         Output("tab7", "disabled", allow_duplicate=True),
         Output("tabs", "value", allow_duplicate=True),
+        Output("data-generation-builder", "children", allow_duplicate=True),
         Input("data-generation-store", "data"),
         prevent_initial_call=True
     )
-    def toggle_ui_components(is_loading: bool):
-        if is_loading is True:
-            return (
-                True,
-                True,
-                True,
-                False,
-                True,
-                True,
-                True,
-                "tab-4",
-            )
-        elif LockDataBuilder.is_locked:
-            return (
-                True,
-                True,
-                True,
-                False,
-                False,
-                False,
-                False,
-                "tab-4",
-            )
-        else:
-            return (
-                False,
-                False,
-                False,
-                False,
-                True,
-                True,
-                True,
-                "tab-4",
-            )
+    def toggle_ui_components(_):
+        match (LockDataBuilder.is_locked, LockDataBuilder.data_generated):
+            case True, False:
+                return (
+                    True,
+                    True,
+                    True,
+                    False,
+                    True,
+                    True,
+                    True,
+                    "tab-4",
+                    LockDataBuilder().children,
+                )
+            case True, True:
+                return (
+                    True,
+                    True,
+                    True,
+                    False,
+                    False,
+                    False,
+                    False,
+                    "tab-4",
+                    LockDataBuilder().children,
+                )
+            case False, False:
+                return (
+                    False,
+                    False,
+                    False,
+                    False,
+                    True,
+                    True,
+                    True,
+                    "tab-4",
+                    LockDataBuilder().children,
+                )
+            case _:
+                print("this should not be possible")
+                raise PreventUpdate()
 
     @callback(
         Output("data-generation-store", "data"),
@@ -126,8 +121,10 @@ def setup_callbacks():
         if not clicked:
             raise PreventUpdate()
 
-        if LockDataBuilder.is_locked is True:
-            LockDataBuilder.is_locked = False
+        global graph
+        LockDataBuilder.is_locked = not LockDataBuilder.is_locked
+        if LockDataBuilder.data_generated is True:
+            LockDataBuilder.data_generated = False
             graph.data = None
             StaticGraph.selected_node = None
             return False

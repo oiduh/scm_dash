@@ -76,7 +76,7 @@ def setup_callbacks():
                 all_scores.append((scores, {"source": sources, "target": target}, mechanism_type))
 
         except Exception as e:
-            MLLockBuilder.is_locked = False
+            MLLockBuilder.training_done = False
             return (
                 [],
                 dbc.Row(

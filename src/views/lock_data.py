@@ -3,6 +3,7 @@ import dash_bootstrap_components as dbc
 
 class LockDataBuilder(html.Div):
     is_locked: bool = False
+    data_generated: bool = False
     def __init__(self, error: bool=False):
         super().__init__(id="data-generation-builder")
         self.style = {

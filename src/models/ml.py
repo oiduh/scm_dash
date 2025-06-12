@@ -25,9 +25,9 @@ from sklearn.svm import (
 from sklearn.gaussian_process import (
     GaussianProcessRegressor,
 )
-from mvlearn.semi_supervised import (
-    CTClassifier,
-)
+# from mvlearn.semi_supervised import (
+#     CTClassifier,
+# )
 import pandas as pd
 import numpy as np
 
@@ -234,46 +234,46 @@ class SelfTrainingClassification:
         return pd.DataFrame(scores, columns=["Model", "mean"])
 
 # FIXME:mvlearn has not been updated for a while, find another or implement from scratch
-class CoTrainingClassification:
-    def __init__(self) -> None:
-        self.models = list(combinations(self_training_classification_models, 2))
-
-    def evaluate_models(self, data: pd.DataFrame, sources: list[str], target: str) -> pd.DataFrame:
-        source_matrix = data[sources].to_numpy()
-        target_array = data[target].to_numpy()
-        scores = []
-
-        for estimators in self.models:
-            estimator1 = estimators[0]()
-            estimator2 = estimators[1]()
-            print(f"training model '{estimator1.__class__.__name__}' and '{estimator2.__class__.__name__}'")
-            model = CTClassifier(estimator1, estimator2)
-            model_scores = []
-            for i in range(10):
-                X_train, X_test, y_train, y_test = train_test_split(
-                    source_matrix, target_array, test_size=.1, random_state=i
-                )
-                y_train = y_train.astype(np.float64)
-                y_test = y_test.astype(np.float64)
-
-                class_indices = np.unique(y_train)
-                for class_index in class_indices:
-                    indices = np.argwhere(y_train == class_index).reshape(1, -1)[0]
-                    amount = int(np.floor(len(indices)*0.7))
-                    unlabelled_indices = np.random.choice(indices, amount, False)
-                    y_train[unlabelled_indices] = np.nan
-
-                model.fit([X_train, X_train], y_train)
-                y_pred = model.predict([X_test, X_test])
-                model_scores.append(accuracy_score(y_pred, y_test))
-            scores.append([
-                "CoTraining " + estimator1.__class__.__name__ + " " + estimator2.__class__.__name__,
-                np.mean(model_scores),
-                np.std(model_scores)
-            ])
-
-        return (
-            pd.DataFrame(scores, columns=["Model", "mean", "std"])
-            .sort_values(by=["mean"], ascending=False)
-        )
+# class CoTrainingClassification:
+#     def __init__(self) -> None:
+#         self.models = list(combinations(self_training_classification_models, 2))
+#
+#     def evaluate_models(self, data: pd.DataFrame, sources: list[str], target: str) -> pd.DataFrame:
+#         source_matrix = data[sources].to_numpy()
+#         target_array = data[target].to_numpy()
+#         scores = []
+#
+#         for estimators in self.models:
+#             estimator1 = estimators[0]()
+#             estimator2 = estimators[1]()
+#             print(f"training model '{estimator1.__class__.__name__}' and '{estimator2.__class__.__name__}'")
+#             model = CTClassifier(estimator1, estimator2)
+#             model_scores = []
+#             for i in range(10):
+#                 X_train, X_test, y_train, y_test = train_test_split(
+#                     source_matrix, target_array, test_size=.1, random_state=i
+#                 )
+#                 y_train = y_train.astype(np.float64)
+#                 y_test = y_test.astype(np.float64)
+#
+#                 class_indices = np.unique(y_train)
+#                 for class_index in class_indices:
+#                     indices = np.argwhere(y_train == class_index).reshape(1, -1)[0]
+#                     amount = int(np.floor(len(indices)*0.7))
+#                     unlabelled_indices = np.random.choice(indices, amount, False)
+#                     y_train[unlabelled_indices] = np.nan
+#
+#                 model.fit([X_train, X_train], y_train)
+#                 y_pred = model.predict([X_test, X_test])
+#                 model_scores.append(accuracy_score(y_pred, y_test))
+#             scores.append([
+#                 "CoTraining " + estimator1.__class__.__name__ + " " + estimator2.__class__.__name__,
+#                 np.mean(model_scores),
+#                 np.std(model_scores)
+#             ])
+#
+#         return (
+#             pd.DataFrame(scores, columns=["Model", "mean", "std"])
+#             .sort_values(by=["mean"], ascending=False)
+#         )
 

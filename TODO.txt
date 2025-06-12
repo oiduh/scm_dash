@@ -236,6 +236,15 @@ TODO:
     - [X] tabs styling and uniformity
     - [X] ml prep -> show type of mechanism: reg or class
     - [X] fix the table for classification
+    - [X] fix data generation tab on notebook with firefox
+	-> unlock does not seem to work
+	-> loading shows only for a short time
+	-> update requirements.txt file
+	-> loading screen for ML part works (use same process)
+    - [ ] in ml prep i can for some reason add c as source and target -> fix
+    - [ ] unlock button in data gen does not toggle betweeen lock/unlock
+	-> dropdown selection bug
+    - [ ] same for ml training (firefox issue?)
     - [ ] data viewer fix layout for graph -> does not update
     - [ ] mechanism tool tip box -> replace card component with custom stuff
     - [ ] reduce data points for faster learning (classification)

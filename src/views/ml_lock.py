@@ -14,7 +14,7 @@ class MLLockBuilder(html.Div):
         }
 
         buttons = []
-        if MLLockBuilder.is_locked:
+        if MLLockBuilder.training_done:
             buttons.extend([
                 html.Button(
                     "Unlock", 

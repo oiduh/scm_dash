@@ -25,10 +25,21 @@ def setup_callbacks():
         # since it might take longer: progress bar for each algo
         # lock all previous tabs
         # maybe add a stop button to stop all algos with no results
-        if not should_train or MLLockBuilder.training_done:
-            raise PreventUpdate()
-
         global graph
+        if not should_train:
+            MLLockBuilder.is_locked = False
+            MLLockBuilder.training_done = False
+            return (
+                [],
+                dbc.Row(
+                    children=[
+                        dbc.Col(MLLockBuilder(len(graph.data_sets) == 0), width="10")
+                    ],
+                    justify="center"
+                ),
+                False
+            )
+
         all_scores: list[tuple[pd.DataFrame, dict, MechanismType]] = []
         try:
             # TODO: should be a cancellable job via button?
@@ -76,18 +87,20 @@ def setup_callbacks():
                 all_scores.append((scores, {"source": sources, "target": target}, mechanism_type))
 
         except Exception as e:
+            MLLockBuilder.is_locked = False
             MLLockBuilder.training_done = False
             return (
                 [],
                 dbc.Row(
                     children=[
-                        dbc.Col(MLLockBuilder(), width="10")
+                        dbc.Col(MLLockBuilder(True), width="10")
                     ],
                     justify="center"
                 ),
-                True
+                False
             )
 
+        MLLockBuilder.is_locked = False
         MLLockBuilder.training_done = True
         return (
             MLResultViewer(all_scores).children,
@@ -97,7 +110,7 @@ def setup_callbacks():
                 ],
                 justify="center"
             ),
-            str(uuid4())
+            True
         )
 
     @callback(
@@ -112,7 +125,7 @@ def setup_callbacks():
     )
     def toggle_ui_components(_):
         match (MLLockBuilder.is_locked, MLLockBuilder.training_done):
-            case True, False:
+            case True, _:
                 return (
                     True,
                     True,
@@ -121,7 +134,7 @@ def setup_callbacks():
                     True,
                     "tab-7",
                 )
-            case True, True:
+            case False, True:
                 return (
                     True,
                     False,
@@ -153,11 +166,10 @@ def setup_callbacks():
             raise PreventUpdate()
 
         global graph
+        MLLockBuilder.is_locked = True
         if len(graph.data_sets) == 0:
-            MLLockBuilder.is_locked = False
             return False
 
-        MLLockBuilder.is_locked = not MLLockBuilder.is_locked
         if MLLockBuilder.training_done is True:
             MLLockBuilder.training_done = False
             return False

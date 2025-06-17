@@ -38,6 +38,7 @@ def setup_callbacks():
                 False
             )
 
+        global graph
         try:
             full_data_set = graph.generate_full_data_set()
             sleep(1.)

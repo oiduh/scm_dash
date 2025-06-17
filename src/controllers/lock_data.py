@@ -23,14 +23,27 @@ def setup_callbacks():
         prevent_initial_call=True,
     )
     def generate_data(should_train: bool):
-        if not should_train or LockDataBuilder.data_generated:
-            raise PreventUpdate()
+        if not should_train:
+            LockDataBuilder.is_locked = False
+            LockDataBuilder.data_generated = False
+            return (
+                [],
+                [],
+                dbc.Row(
+                    children=[
+                        dbc.Col(LockDataBuilder(), width="10"),
+                    ],
+                    justify="center"
+                ),
+                False
+            )
 
         try:
             full_data_set = graph.generate_full_data_set()
             sleep(1.)
         except Exception as e:
             LockDataBuilder.is_locked = False
+            LockDataBuilder.data_generated = False
             return (
                 DataSummary().children,
                 TrainingDataSetEditor().children,
@@ -44,6 +57,7 @@ def setup_callbacks():
             )
 
         graph.data = full_data_set
+        LockDataBuilder.is_locked = False
         LockDataBuilder.data_generated = True
         return (
             DataSummary().children,
@@ -66,13 +80,12 @@ def setup_callbacks():
         Output("tab6", "disabled", allow_duplicate=True),
         Output("tab7", "disabled", allow_duplicate=True),
         Output("tabs", "value", allow_duplicate=True),
-        Output("data-generation-builder", "children", allow_duplicate=True),
         Input("data-generation-store", "data"),
         prevent_initial_call=True
     )
     def toggle_ui_components(_):
         match (LockDataBuilder.is_locked, LockDataBuilder.data_generated):
-            case True, False:
+            case True, _:
                 return (
                     True,
                     True,
@@ -82,9 +95,8 @@ def setup_callbacks():
                     True,
                     True,
                     "tab-4",
-                    LockDataBuilder().children,
                 )
-            case True, True:
+            case False, True:
                 return (
                     True,
                     True,
@@ -94,7 +106,6 @@ def setup_callbacks():
                     False,
                     False,
                     "tab-4",
-                    LockDataBuilder().children,
                 )
             case False, False:
                 return (
@@ -106,7 +117,6 @@ def setup_callbacks():
                     True,
                     True,
                     "tab-4",
-                    LockDataBuilder().children,
                 )
             case _:
                 print("this should not be possible")
@@ -122,7 +132,7 @@ def setup_callbacks():
             raise PreventUpdate()
 
         global graph
-        LockDataBuilder.is_locked = not LockDataBuilder.is_locked
+        LockDataBuilder.is_locked = True
         if LockDataBuilder.data_generated is True:
             LockDataBuilder.data_generated = False
             graph.data = None

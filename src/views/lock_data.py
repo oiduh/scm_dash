@@ -14,7 +14,7 @@ class LockDataBuilder(html.Div):
         }
 
         buttons = []
-        if LockDataBuilder.is_locked:
+        if LockDataBuilder.data_generated:
             buttons.extend([
                 html.Button(
                     "Unlock",

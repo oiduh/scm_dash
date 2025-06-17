@@ -56,3 +56,16 @@ def setup_callbacks() -> None:
         ScatterPlotViewerInidvidual.Selected_second = second_node
         return ScatterPlotViewerInidvidual().children
 
+    @callback(
+        Output("data-summary-static-graph", "children", allow_duplicate=True),
+        Input("layout-choices-summary", "value"),
+        prevent_initial_call="initial_duplicate"
+    )
+    def update_layout_choice(new_value: StaticGraph.Layouts):
+        if new_value not in StaticGraph.Layouts.get_all():
+            LOGGER.warn(f"not updating layout: {new_value}")
+            raise PreventUpdate(f"Invalid layout choice: {new_value}")
+        StaticGraph.layout = new_value
+        LOGGER.info(f"Updating graph viewer layout in data summary to: {new_value}")
+        return StaticGraph().children
+

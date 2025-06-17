@@ -133,8 +133,8 @@ class StaticGraph(html.Div):
                     children=[
                         dbc.Col(html.P("Select Layout:"), width="auto"),
                         dbc.Col(dcc.Dropdown(
-                            options=self.Layouts.get_all(),
-                            value=self.layout,
+                            options=StaticGraph.Layouts.get_all(),
+                            value=StaticGraph.layout,
                             id="layout-choices-summary",
                             searchable=False,
                             multi=False,
@@ -145,7 +145,7 @@ class StaticGraph(html.Div):
                 ),
                 dbc.Row(Cytoscape(
                     id="summary-graph",
-                    layout={"name": self.layout},
+                    layout={"name": StaticGraph.layout},
                     userPanningEnabled=False,
                     zoomingEnabled=False,
                     style={"width": "100%", "height": "700px"},

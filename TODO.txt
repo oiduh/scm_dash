@@ -241,11 +241,12 @@ TODO:
 	-> loading shows only for a short time
 	-> update requirements.txt file
 	-> loading screen for ML part works (use same process)
-    - [ ] in ml prep i can for some reason add c as source and target -> fix
-    - [ ] unlock button in data gen does not toggle betweeen lock/unlock
+    - [X] in ml prep i can for some reason add c as source and target -> fix
+        -> seems like a firefox bug -> readme (google)
+    - [X] unlock button in data gen does not toggle betweeen lock/unlock
 	-> dropdown selection bug
-    - [ ] same for ml training (firefox issue?)
-    - [ ] data viewer fix layout for graph -> does not update
+    - [X] same for ml training (firefox issue?)
+    - [X] data viewer fix layout for graph -> does not update
     - [ ] mechanism tool tip box -> replace card component with custom stuff
     - [ ] reduce data points for faster learning (classification)
     - [ ] ml prep -> if possible, show state of current training
@@ -308,4 +309,8 @@ TODO:
               scatter plot generation variable
         - [ ] loading new graph should also clean the visualization for selected data sets
 
-n
+
+todo for readme:
+- how to build
+- how to start
+- tested and devd for chromium

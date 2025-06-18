@@ -124,30 +124,52 @@ class MechanismConfig(html.Div):
                             ),
                             dbc.Collapse(
                                 children=[
-                                    dbc.Card(
+                                    html.Div(
                                         children=[
-                                            dbc.CardHeader("Causes:"),
-                                            dbc.CardBody(causes)
+                                            html.P("Causes:"),
+                                            html.Hr(),
+                                            html.P(causes),
                                         ],
                                         style={
-                                            "margin-top": "10px",
-                                            "margin-bottom": "10px",
+                                            "border": "solid black 2px",
+                                            "border-radius": "8px",
+                                            "padding": "10px",
+                                            "margin": "10px",
+                                            "margin-left": "0px",
+                                            "margin-right": "0px",
                                         }
                                     ),
-                                    dbc.Card(
+                                    html.Div(
                                         children=[
-                                            dbc.CardHeader("Operators:"),
-                                            dbc.CardBody(MechanismConfig.operators_regression)
+                                            html.P("Operators:"),
+                                            html.Hr(),
+                                            html.P(MechanismConfig.operators_regression),
                                         ],
                                         style={
-                                            "margin-bottom": "10px"
+                                            "border": "solid black 2px",
+                                            "border-radius": "8px",
+                                            "padding": "10px",
+                                            "margin": "10px",
+                                            "margin-left": "0px",
+                                            "margin-right": "0px",
                                         }
                                     ),
-                                    dbc.Card(
+                                    html.Div(
                                         children=[
-                                            dbc.CardHeader("Functions:"),
-                                            dbc.CardBody(MechanismConfig.functions)
-                                        ]),
+                                            html.P("Functions:"),
+                                            html.Hr(),
+                                            html.P(MechanismConfig.functions),
+                                        ],
+                                        style={
+                                            "border": "solid black 2px",
+                                            "border-radius": "8px",
+                                            "padding": "10px",
+                                            "margin": "10px",
+                                            "margin-left": "0px",
+                                            "margin-right": "0px",
+                                            "margin-bottom": "0px",
+                                        }
+                                    ),
                                 ],
                                 id="collapse-regression", is_open=MechanismConfig.is_open,
                             )
@@ -184,43 +206,51 @@ class MechanismConfig(html.Div):
                         ),
                         dbc.Collapse(
                             children=[
-
-                                dbc.Card(
+                                html.Div(
                                     children=[
-                                        dbc.CardHeader("Causes:"),
-                                        dbc.CardBody(causes)
+                                        html.P("Causes:"),
+                                        html.Hr(),
+                                        html.P(causes),
                                     ],
                                     style={
-                                        "margin-top": "10px",
-                                        "margin-bottom": "10px",
+                                        "border": "solid black 2px",
+                                        "border-radius": "8px",
+                                        "padding": "10px",
+                                        "margin": "10px",
+                                        "margin-left": "0px",
+                                        "margin-right": "0px",
                                     }
                                 ),
-                                dbc.Card(
+                                html.Div(
                                     children=[
-                                        dbc.CardHeader("Operators:"),
-                                        dbc.CardBody(MechanismConfig.operators_classfication)
+                                        html.P("Operators:"),
+                                        html.Hr(),
+                                        html.P(MechanismConfig.operators_classfication),
                                     ],
                                     style={
-                                        "margin-bottom": "10px",
+                                        "border": "solid black 2px",
+                                        "border-radius": "8px",
+                                        "padding": "10px",
+                                        "margin": "10px",
+                                        "margin-left": "0px",
+                                        "margin-right": "0px",
                                     }
                                 ),
-                                dbc.Card(
+                                html.Div(
                                     children=[
-                                        dbc.CardHeader("Functions:"),
-                                        dbc.CardBody(MechanismConfig.functions)
+                                        html.P("Functions:"),
+                                        html.Hr(),
+                                        html.P(MechanismConfig.functions),
                                     ],
                                     style={
-                                        "margin-bottom": "10px",
+                                        "border": "solid black 2px",
+                                        "border-radius": "8px",
+                                        "padding": "10px",
+                                        "margin": "10px",
+                                        "margin-left": "0px",
+                                        "margin-right": "0px",
+                                        "margin-bottom": "0px",
                                     }
-                                ),
-                                dbc.Card(
-                                    children=[
-                                        dbc.CardHeader("Note:"),
-                                        dbc.CardBody(
-                                            "expressions evaluated to booleans need to wrapped in parenthesis e.g.:\n"
-                                                "'(a > 3) & (b > 2)' works, but 'a > 3 & b > 2' does not work"
-                                        )
-                                    ]
                                 ),
                             ],
                             id="collapse-classification", is_open=MechanismConfig.is_open

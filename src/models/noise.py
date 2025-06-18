@@ -9,7 +9,8 @@ from scipy.stats import rv_discrete as RVDisc
 
 
 class CONSTANTS:
-    NR_DATA_POINTS: int = 3000
+    # FIXME: make this an option to configure, before creating the data -> data lock tab
+    NR_DATA_POINTS: int = 1000
 
 
 Generator = RVCont | RVDisc

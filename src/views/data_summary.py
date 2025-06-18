@@ -464,8 +464,8 @@ class CorrelationMatrixView(html.Div):
         self.children.append(dbc.Row(
             dbc.Col(html.H3("Correlation Matrices")))
         )
-        row = dbc.Row()
-        row.children = []
+
+        figures = []
         for corr in ["pearson", "kendall", "spearman"]:
             mat = graph.data.corr(method=corr).round(4)  # type: ignore
             figure = go.Figure(px.imshow(
@@ -481,13 +481,17 @@ class CorrelationMatrixView(html.Div):
                     "yanchor": "top",
                 }
             )
-            row.children.append(
-                dbc.Col(dcc.Graph(
-                    id=corr,
-                    figure=figure,
-                    config={"staticPlot": True},
+            figures.append(dcc.Graph(
+                figure=figure,
+                config={"staticPlot": True}
+            ))
 
-                ))
-            )
+
+        row = dbc.Row(
+            children=[
+                dbc.Col(
+                    children=figure
+                ) for figure in figures
+            ]
+        )
         self.children.append(row)
-

@@ -248,7 +248,11 @@ TODO:
     - [X] same for ml training (firefox issue?)
     - [X] data viewer fix layout for graph -> does not update
     - [X] mechanism tool tip box -> replace card component with custom stuff
-    - [ ] reduce data points for faster learning (classification)
+    - [X] reduce data points for faster learning (classification)
+    - [-] data summary:
+        -  [-] heat maps should all be in one line (even if zoomed)
+        -  [-] graph viewer and distribution viewer should als be in one line (when zoomed)
+        -> zoom bug dont care
     - [ ] ml prep -> if possible, show state of current training
         -> which data set is being trained
         -> which algo is being trained
@@ -266,6 +270,7 @@ TODO:
         -> height, width, aspect ratio, center e.g. in data summary very shit
         -> solution: 'oneshot' callback that adjusts on tab click
     - [ ] raw stats -> some things like min, max for classifcation do not make much sense
+    - [ ] make number of data points an option before creating the data (data lock -> min, max etc.)
 
 
 

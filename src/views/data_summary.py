@@ -175,8 +175,9 @@ class StaticGraph(html.Div):
         node_inspector = html.Div()
         node_inspector.children = []
         noise = np.array(list(node.noise.data.values())).flatten()
+        bin_size = max((np.max(noise) - np.min(noise))/100., 0.01)
         noise_graph = ff.create_distplot(
-            [noise], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["blue"]
+            [noise], [node.name or node.id_], show_rug=False, bin_size=bin_size, colors=["blue"]
         )
         noise_graph.update_layout(
             {
@@ -201,8 +202,9 @@ class StaticGraph(html.Div):
         data = node.data
         assert data is not None
         if node.mechanism_metadata.mechanism_type == "regression":
+            bin_size = max((np.max(data) - np.min(data))/100., 0.01)
             data_graph = ff.create_distplot(
-                [data], [node.name or node.id_], show_rug=False, bin_size=0.2, colors=["green"]
+                [data], [node.name or node.id_], show_rug=False, bin_size=bin_size, colors=["green"]
             )
             legend = False
         else:

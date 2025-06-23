@@ -243,8 +243,10 @@ class NoiseViewer(html.Div):
         self.children = []
         var_data = noise.generate_data()
 
+        flat_data = [np.array(list(var_data.values())).flatten()]
+        bin_size = max((np.max(flat_data) - np.min(flat_data))/100., 0.01)
         combined_data = ff.create_distplot(
-            [np.array(list(var_data.values())).flatten()], [node_name], show_rug=False, bin_size=0.2, colors=["blue"]
+            flat_data, [node_name], show_rug=False, bin_size=bin_size, colors=["blue"]
         )
 
         sub_distr_ids = noise.get_distribution_ids()
@@ -257,8 +259,9 @@ class NoiseViewer(html.Div):
         labels = sub_distr_ids
         colors = ['rgba(0,255,0,0.3)'] * len(sub_distr_ids)
         colors[index] = 'rgba(255,0,0,0.95)'
+        bin_size = max((np.max(extracted_data) - np.min(extracted_data))/100., 0.01)
         individual_data = ff.create_distplot(
-            extracted_data, labels, show_rug=False, bin_size=0.2, colors=colors
+            extracted_data, labels, show_rug=False, bin_size=bin_size, colors=colors
         )
 
         radio_items = dcc.RadioItems(

@@ -26,7 +26,14 @@ app = Dash(
 )
 app.layout = html.Div(
     [
-        html.Div("Causality App"),
+        dbc.Row(children=[
+            dbc.Col(html.Div("Causality App"), width="auto", align="center"),
+            dbc.Col(html.Button(
+                "Reset Graph",
+                id="global-reset-button",
+                className="one-button",
+            ), width="auto"),
+        ], justify="between", align="center"),
         html.Hr(),
         html.Div(
             [

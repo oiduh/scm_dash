@@ -253,16 +253,20 @@ TODO:
         -  [-] heat maps should all be in one line (even if zoomed)
         -  [-] graph viewer and distribution viewer should als be in one line (when zoomed)
         -> zoom bug dont care
-    - [ ] ml prep -> if possible, show state of current training
+    - [-] ml prep -> if possible, show state of current training
         -> which data set is being trained
         -> which algo is being trained
-    - [ ] fix layout (chromium):
-        - [ ] correlation matrix (why not in one line?)
-        - [ ] slider max for distr (why not in one line?)
+        -> not worth it
+    - [X] fix layout:
+        -> zoom bug from above, dont care
     - [X] mechanism toggle help replace card component
-    - [ ] fix distribution bucket size
+    - [X] fix distribution bucket size
     - [ ] universal reset button + callbacks
         -> reset all component variables
+        - [X] button available in view
+        - [ ] callback to reset graph
+        - [ ] callback to go back to 1st tab
+        - [ ] disable during data gen and ml train
     - [ ] dockerize (simple)
     - [X] fix naming or remove it (fixing in all stages)
     -> for now removed

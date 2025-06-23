@@ -2,7 +2,7 @@ import logging  # TODO: logging
 import random
 from time import sleep
 
-from dash import Input, Output, State, callback, html
+from dash import Input, Output, State, callback, html, ctx
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 
@@ -85,6 +85,9 @@ def setup_callbacks():
         prevent_initial_call=True
     )
     def toggle_ui_components(_):
+        if ctx.triggered_id != "data-generation-store":
+            raise PreventUpdate()
+
         match (LockDataBuilder.is_locked, LockDataBuilder.data_generated):
             case True, _:
                 return (
@@ -130,6 +133,9 @@ def setup_callbacks():
     )
     def check_data_generation_prerequisites(clicked):
         if not clicked:
+            raise PreventUpdate()
+
+        if ctx.triggered_id != "lock-button":
             raise PreventUpdate()
 
         global graph

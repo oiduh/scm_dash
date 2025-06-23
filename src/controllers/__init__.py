@@ -1,3 +1,4 @@
+from controllers.main_callbacks import setup_callbacks as main_callbacks
 from controllers.graph import setup_callbacks as graph_callbacks
 from controllers.mechanism import setup_callbacks as mechanism_callbacks
 from controllers.noise import setup_callbacks as noise_callbacks
@@ -8,6 +9,8 @@ from controllers.ml_lock import setup_callbacks as ml_lock_callbacks
 
 
 def setup_callbacks():
+    # TODO: rework the main callbacks, use some sort of state instead of callback chain
+    # main_callbacks()
     graph_callbacks()
     noise_callbacks()
     mechanism_callbacks()

@@ -479,3 +479,14 @@ assert a is not None and b is not None, "Failed at init"
 graph.add_edge(a, b)
 
 new_graph: Graph | None = None
+
+def reset_graph_to_base() -> Graph:
+    some_graph = Graph()
+    some_graph.add_node()
+    some_graph.add_node()
+    a = some_graph.get_node_by_id("a")
+    b = some_graph.get_node_by_id("b")
+    assert a is not None and b is not None, "Failed at reset"
+    some_graph.add_edge(a, b)
+
+    return some_graph

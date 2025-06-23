@@ -174,30 +174,6 @@ class VariableConfig(html.Div):
         self.children = []
         self.children.extend([
             dbc.Row(html.H5("Change Variable Properties:")),
-            # dbc.Row([
-            #     dbc.Col([
-            #         dbc.Row([
-            #             dbc.Col(html.P(f"Rename Variable:")),
-            #             dbc.Col(dcc.Input(
-            #                 value="",
-            #                 id="variable-name",
-            #                 type="text",
-            #                 minLength=1,
-            #                 maxLength=16,
-            #                 style={"border-radius": "8px"},
-            #             )),
-            #             dbc.Col(html.Button(
-            #                 "Confirm New Name",
-            #                 id="confirm-new-name",
-            #                 n_clicks=0,
-            #                 style={
-            #                     "border-radius": "8px"
-            #                 }
-            #             )),
-            #         ]),
-            #     ]),
-            #     html.Hr()
-            # ]),
             dbc.Row([
                 dbc.Col([
                     dbc.Row([

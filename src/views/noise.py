@@ -26,6 +26,7 @@ class NoiseBuilder(html.Div):
         sub_variables = list(node.noise.sub_distributions.keys())
         assert len(sub_variables) > 0
         VariableSelection.sub_variable = sub_variables[0]
+
         self.children.append(VariableSelection())
         self.children.append(NoiseConfig())
 
@@ -236,10 +237,6 @@ class NoiseViewer(html.Div):
         noise = source_node.noise
         node_name = source_node.name or source_node.id_
 
-        # TODO: 2 graphs
-        # 1) inidiviual sub variable distribution
-        # 2) combined distribution
-        # 3) save axes option(?)
         self.children = []
         var_data = noise.generate_data()
 

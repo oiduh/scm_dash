@@ -20,7 +20,7 @@ def setup_callbacks() -> None:
         Output("data-summary-static-graph", "children"),
         Input("static-graph-selected-node", "value"),
     )
-    def select_variabled_in_inspector(new_value: str):
+    def select_variable_in_inspector(new_value: str):
         if new_value == StaticGraph.selected_node:
             raise PreventUpdate()
         StaticGraph.selected_node = new_value

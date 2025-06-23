@@ -1,6 +1,6 @@
 import random
 import logging
-from dash import callback, Output, Input, State
+from dash import callback, Output, Input, State, ctx
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -114,16 +114,18 @@ def setup_callbacks():
         )
 
     @callback(
-        Output("tab4", "disabled"),
-        Output("tab5", "disabled"),
-        Output("tab6", "disabled"),
-        Output("tab7", "disabled"),
-        Output("tab8", "disabled"),
-        Output("tabs", "value"),
+        Output("tab4", "disabled", allow_duplicate=True),
+        Output("tab5", "disabled", allow_duplicate=True),
+        Output("tab6", "disabled", allow_duplicate=True),
+        Output("tab7", "disabled", allow_duplicate=True),
+        Output("tab8", "disabled", allow_duplicate=True),
+        Output("tabs", "value", allow_duplicate=True),
         Input("ml-lock-store", "data"),
         prevent_initial_call=True
     )
     def toggle_ui_components(_):
+        if ctx.triggered_id != "ml-lock-store":
+            raise PreventUpdate()
         match (MLLockBuilder.is_locked, MLLockBuilder.training_done):
             case True, _:
                 return (
@@ -163,6 +165,9 @@ def setup_callbacks():
     )
     def check_ml_train_prerequisites(clicked):
         if not clicked:
+            raise PreventUpdate()
+
+        if ctx.triggered_id != "ml-lock-button":
             raise PreventUpdate()
 
         global graph

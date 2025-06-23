@@ -265,6 +265,7 @@ TODO:
         -> reset all component variables
         - [X] button available in view
         - [ ] callback to reset graph
+        -> initial idea did not work -> callback chain triggers other callback and we end up in a weird state
         - [ ] callback to go back to 1st tab
         - [ ] disable during data gen and ml train
     - [ ] dockerize (simple)

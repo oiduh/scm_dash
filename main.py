@@ -25,7 +25,7 @@ app = Dash(
     eager_loading=True,
 )
 app.layout = html.Div(
-    [
+    children=[
         dbc.Row(children=[
             dbc.Col(html.Div("Causality App"), width="auto", align="center"),
             dbc.Col(html.Button(

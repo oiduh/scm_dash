@@ -32,6 +32,7 @@ class LockDataBuilder(html.Div):
                 dcc.Download(id="export-graph-text"),
                 dbc.Alert(
                     "Data generated.\nExport graph or unlock graph to change the configuration",
+                    id="data-lock-alert-box",
                     color="success",
                     style={
                         "white-space": "pre-line",
@@ -60,6 +61,7 @@ class LockDataBuilder(html.Div):
                 buttons.append(
                     dbc.Alert(
                         "No Data generated yet",
+                        id="data-lock-alert-box",
                         color="info",
                         style={
                             "white-space": "pre-line",

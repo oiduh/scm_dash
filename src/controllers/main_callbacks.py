@@ -1,4 +1,4 @@
-from models.graph import reset_graph_to_base
+from models.graph import graph
 from dash import Input, Output, callback, ctx
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
@@ -7,28 +7,28 @@ from views.graph import (
     GraphBuilder,
     GraphUploader,
     GraphViewer,
-    VariableSelection as GraphVariableSelection,
+    VariableSelection as VariableSelectionGraph,
+    VariableConfig,
 )
 from views.lock_data import LockDataBuilder
 from views.noise import (
-    NoiseBuilder,
-    NoiseViewer,
+    VariableSelection as VariableSelectionNoise
 )
 from views.mechanism import (
-    MechanismBuilder,
     MechanismConfig,
-    MechanismViewer,
-    VariableSelection as MechanismVariableSelection,
+    VariableSelection as VariableSelectionMechanism,
 )
 
 
 def setup_callbacks() -> None:
     @callback(
-        Output("loading-4", "children"),
-        Output("tab3", "children"),
-        Output("tab2", "children"),
-        Output("tab1", "children"),
-        Output("tabs", "value"),
+        Output("variable-selection-graph", "children", allow_duplicate=True),
+        Output("variable-config-graph", "children", allow_duplicate=True),
+        Output("network-graph", "elements", allow_duplicate=True),
+        Output("variable-selection-noise", "children", allow_duplicate=True),
+        Output("mechanism-config", "children", allow_duplicate=True),
+        Output("data-lock-alert-box", "children", allow_duplicate=True),
+        Output("ml-lock-alert-box", "children", allow_duplicate=True),
         Output("tab1", "disabled"),
         Output("tab2", "disabled"),
         Output("tab3", "disabled"),
@@ -37,7 +37,9 @@ def setup_callbacks() -> None:
         Output("tab6", "disabled"),
         Output("tab7", "disabled"),
         Output("tab8", "disabled"),
+        Output("tabs", "value"),
         Input("global-reset-button", "n_clicks"),
+        prevent_initial_call=True
     )
     def reset_graph(clicked):
         if not clicked:
@@ -47,19 +49,21 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
 
         global graph
-        graph = reset_graph_to_base()
+        graph.reset()
+        print("new graph nodes: ", graph.get_node_ids())
 
         # graph view resets
         GraphUploader.last_uploaded_graph = None
-        GraphVariableSelection.selected_node_id = None
+        VariableSelectionGraph.selected_node_id = graph.get_node_ids()[0]
         GraphViewer.LAYOUT = GraphViewer.Layouts.circle
 
         # noise view resets
-        NoiseViewer.selected_view_option = "combined"
+        VariableSelectionNoise.variable = graph.get_node_ids()[0]
+        VariableSelectionNoise.sub_variable = "0"
 
         # mechanism view resets
-        MechanismVariableSelection.variable = None
-        MechanismConfig.mechanism_type = None
+        VariableSelectionMechanism.variable = graph.get_node_ids()[0]
+        MechanismConfig.mechanism_type = "regression"
         MechanismConfig.is_open = False
 
         # lock data view resets
@@ -70,22 +74,13 @@ def setup_callbacks() -> None:
         print('global-reset-button')
 
         return (
-            dbc.Row(children=[
-                dbc.Col(LockDataBuilder(), width="10")
-            ], justify="center"),
-            dbc.Row(children=[
-                dbc.Col(MechanismBuilder()),
-                dbc.Col(MechanismViewer()),
-            ]),
-            dbc.Row(children=[
-                dbc.Col(NoiseBuilder()),
-                dbc.Col(NoiseViewer()),
-            ]),
-            dbc.Row(children=[
-                dbc.Col(GraphBuilder()),
-                dbc.Col(GraphViewer()),
-            ]),
-            "tab1",
+            VariableSelectionGraph().children,
+            VariableSelectionNoise().children,
+            GraphBuilder.get_graph_data(),
+            VariableSelectionMechanism().children,
+            VariableConfig().children,
+            "No Data generated yet",
+            "No training set has been specified yet.\nCheck the ML Prep Tab!",
             False,
             False,
             False,
@@ -94,4 +89,5 @@ def setup_callbacks() -> None:
             True,
             True,
             True,
+            "tab-1",
         )

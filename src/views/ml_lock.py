@@ -32,6 +32,7 @@ class MLLockBuilder(html.Div):
                 dcc.Download(id="export-graph-text-ml"),
                 dbc.Alert(
                     "Models trained and evaluated.\nExport graph or unlock to change the configuration",
+                    id="ml-lock-alert-box",
                     color="success",
                     style={
                         "white-space": "pre-line",
@@ -57,6 +58,7 @@ class MLLockBuilder(html.Div):
                 buttons.append(
                     dbc.Alert(
                         "Depending on the configuratin, the Training might take a while.",
+                        id="ml-lock-alert-box",
                         color="info",
                         style={
                             "white-space": "pre-line",
@@ -68,6 +70,7 @@ class MLLockBuilder(html.Div):
                 buttons.append(
                     dbc.Alert(
                         "No training set has been specified yet.\nCheck the ML Prep Tab!",
+                        id="ml-lock-alert-box",
                         color="danger",
                         style={
                             "white-space": "pre-line",

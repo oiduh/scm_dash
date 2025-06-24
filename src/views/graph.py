@@ -164,7 +164,6 @@ class VariableConfig(html.Div):
             assert target_node is not None
             if graph.can_add_edge(selected_node, target_node):
                 can_add[target_node.id_] = target_node.name or target_node.id_
-                print(f"{VariableSelection.selected_node_id} can add {target_node.id_}")
 
         in_nodes = [y for y in [graph.get_node_by_id(x) for x in selected_node.in_nodes] if y is not None]
         out_nodes = [y for y in [graph.get_node_by_id(x) for x in selected_node.out_nodes] if y is not None]

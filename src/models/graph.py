@@ -154,6 +154,17 @@ class Graph:
     data_sets: list[dict[str, str | list[str]]] = field(default_factory=list)
     # TODO:add support for intervention for data sets field e.g. bool and int accepted
 
+    def reset(self) -> None:
+        self.nodes =  {str(id): None for id in string.ascii_lowercase}
+        self.data = None
+        self.data_sets = []
+        self.add_node()
+        self.add_node()
+        a = self.get_node_by_id("a")
+        b = self.get_node_by_id("b")
+        assert a is not None and b is not None, "Failed at init"
+        self.add_edge(a, b)
+
     def get_nodes(self) -> list[Node]:
         return [node for node in self.nodes.values() if node is not None]
 
@@ -281,13 +292,6 @@ class Graph:
         )
         hierarchy[0] = available_node_ids
         current_layer = 1
-
-
-        print(f"{available_node_ids=}")
-        print(f"{all_nodes_ids=}")
-        for node in self.get_nodes():
-            print(node.id_, node.in_nodes, node.out_nodes)
-
 
         while len(available_node_ids) != len(all_nodes_ids):
             # TODO: why infinite loop
@@ -479,14 +483,3 @@ assert a is not None and b is not None, "Failed at init"
 graph.add_edge(a, b)
 
 new_graph: Graph | None = None
-
-def reset_graph_to_base() -> Graph:
-    some_graph = Graph()
-    some_graph.add_node()
-    some_graph.add_node()
-    a = some_graph.get_node_by_id("a")
-    b = some_graph.get_node_by_id("b")
-    assert a is not None and b is not None, "Failed at reset"
-    some_graph.add_edge(a, b)
-
-    return some_graph

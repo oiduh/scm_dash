@@ -8,7 +8,6 @@ import dataclasses
 # from dash import ALL, Input, Output, State, callback, ctx
 from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
-# from dash.exceptions import PreventUpdate
 
 from models.graph import graph, new_graph, Graph
 from utils.logger import DashLogger

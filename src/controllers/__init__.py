@@ -9,8 +9,7 @@ from controllers.ml_lock import setup_callbacks as ml_lock_callbacks
 
 
 def setup_callbacks():
-    # TODO: rework the main callbacks, use some sort of state instead of callback chain
-    # main_callbacks()
+    main_callbacks()
     graph_callbacks()
     noise_callbacks()
     mechanism_callbacks()

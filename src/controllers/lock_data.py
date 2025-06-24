@@ -81,6 +81,7 @@ def setup_callbacks():
         Output("tab6", "disabled", allow_duplicate=True),
         Output("tab7", "disabled", allow_duplicate=True),
         Output("tabs", "value", allow_duplicate=True),
+        Output("global-reset-button", "disabled", allow_duplicate=True),
         Input("data-generation-store", "data"),
         prevent_initial_call=True
     )
@@ -99,6 +100,7 @@ def setup_callbacks():
                     True,
                     True,
                     "tab-4",
+                    True,
                 )
             case False, True:
                 return (
@@ -110,6 +112,7 @@ def setup_callbacks():
                     False,
                     False,
                     "tab-4",
+                    False,
                 )
             case False, False:
                 return (
@@ -121,6 +124,7 @@ def setup_callbacks():
                     True,
                     True,
                     "tab-4",
+                    False,
                 )
             case _:
                 print("this should not be possible")

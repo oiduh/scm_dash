@@ -120,6 +120,7 @@ def setup_callbacks():
         Output("tab7", "disabled", allow_duplicate=True),
         Output("tab8", "disabled", allow_duplicate=True),
         Output("tabs", "value", allow_duplicate=True),
+        Output("global-reset-button", "disabled", allow_duplicate=True),
         Input("ml-lock-store", "data"),
         prevent_initial_call=True
     )
@@ -135,6 +136,7 @@ def setup_callbacks():
                     False,
                     True,
                     "tab-7",
+                    True,
                 )
             case False, True:
                 return (
@@ -144,6 +146,7 @@ def setup_callbacks():
                     False,
                     False,
                     "tab-7",
+                    False,
                 )
             case False, False:
                 return (
@@ -153,6 +156,7 @@ def setup_callbacks():
                     False,
                     True,
                     "tab-7",
+                    False,
                 )
             case _:
                 print("this should not be possible")

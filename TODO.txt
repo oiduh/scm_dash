@@ -261,21 +261,18 @@ TODO:
         -> zoom bug from above, dont care
     - [X] mechanism toggle help replace card component
     - [X] fix distribution bucket size
-    - [ ] universal reset button + callbacks
+    - [X] universal reset button + callbacks
         -> reset all component variables
         - [X] button available in view
-        - [ ] callback to reset graph
+        - [X] callback to reset graph
         -> initial idea did not work -> callback chain triggers other callback and we end up in a weird state
-        - [ ] callback to go back to 1st tab
-        - [ ] disable during data gen and ml train
-    - [ ] dockerize (simple)
+        - [X] callback to go back to 1st tab
+        - [X] disable during data gen and ml train
     - [X] fix naming or remove it (fixing in all stages)
     -> for now removed
-    - [ ] fix graphs
-        -> height, width, aspect ratio, center e.g. in data summary very shit
-        -> solution: 'oneshot' callback that adjusts on tab click
     - [ ] raw stats -> some things like min, max for classifcation do not make much sense
     - [ ] make number of data points an option before creating the data (data lock -> min, max etc.)
+    - [ ] dockerize (simple)
 
 
 

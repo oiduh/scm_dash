@@ -44,21 +44,11 @@ class DataSummary(html.Div):
         }
         self.children = []
         self.children.extend([
-            dbc.Row(
-                dbc.Col(StaticGraph())
-            ),
-            dbc.Row(
-                dbc.Col(RawStatsViewer())
-            ),
-            dbc.Row(
-                dbc.Col(ScatterPlotViewerAll())
-            ),
-            dbc.Row(
-                dbc.Col(ScatterPlotViewerInidvidual())
-            ),
-            dbc.Row(
-                dbc.Col(CorrelationMatrixView())
-            )
+            dbc.Row(dbc.Col(StaticGraph())),
+            dbc.Row(dbc.Col(RawStatsViewer())),
+            dbc.Row(dbc.Col(ScatterPlotViewerAll())),
+            dbc.Row(dbc.Col(ScatterPlotViewerInidvidual())),
+            dbc.Row(dbc.Col(CorrelationMatrixView()))
         ])
 
 

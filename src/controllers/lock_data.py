@@ -24,6 +24,7 @@ def setup_callbacks():
     )
     def generate_data(should_train: bool):
         if not should_train:
+            print(2)
             LockDataBuilder.is_locked = False
             LockDataBuilder.data_generated = False
             return (
@@ -54,7 +55,7 @@ def setup_callbacks():
                     ],
                     justify="center"
                 ),
-                False
+                True
             )
 
         graph.data = full_data_set
@@ -69,7 +70,7 @@ def setup_callbacks():
                 ],
                 justify="center"
             ),
-            False
+            True
         )
 
     @callback(
@@ -85,9 +86,13 @@ def setup_callbacks():
         Input("data-generation-store", "data"),
         prevent_initial_call=True
     )
-    def toggle_ui_components(_):
+    def toggle_ui_components(do):
         if ctx.triggered_id != "data-generation-store":
             raise PreventUpdate()
+        if do is not True:
+            raise PreventUpdate()
+
+        print(f"toggle ui components: {do=}")
 
         match (LockDataBuilder.is_locked, LockDataBuilder.data_generated):
             case True, _:
@@ -148,7 +153,7 @@ def setup_callbacks():
             LockDataBuilder.data_generated = False
             graph.data = None
             StaticGraph.selected_node = None
-            return False
+            return True
 
         return True
 

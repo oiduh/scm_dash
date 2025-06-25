@@ -11,6 +11,7 @@ from views.graph import (
     VariableConfig,
 )
 from views.lock_data import LockDataBuilder
+from views.ml_lock import MLLockBuilder
 from views.noise import (
     VariableSelection as VariableSelectionNoise
 )
@@ -27,8 +28,8 @@ def setup_callbacks() -> None:
         Output("network-graph", "elements", allow_duplicate=True),
         Output("variable-selection-noise", "children", allow_duplicate=True),
         Output("mechanism-config", "children", allow_duplicate=True),
-        Output("data-lock-alert-box", "children", allow_duplicate=True),
-        Output("ml-lock-alert-box", "children", allow_duplicate=True),
+        Output("data-generation-builder", "children", allow_duplicate=True),
+        Output("ml-lock-builder", "children", allow_duplicate=True),
         Output("tab1", "disabled"),
         Output("tab2", "disabled"),
         Output("tab3", "disabled"),
@@ -79,8 +80,8 @@ def setup_callbacks() -> None:
             GraphBuilder.get_graph_data(),
             VariableSelectionMechanism().children,
             VariableConfig().children,
-            "No Data generated yet",
-            "No training set has been specified yet.\nCheck the ML Prep Tab!",
+            LockDataBuilder().children,
+            MLLockBuilder().children,
             False,
             False,
             False,

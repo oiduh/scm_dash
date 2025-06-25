@@ -17,7 +17,7 @@ class MLLockBuilder(html.Div):
         if MLLockBuilder.training_done:
             buttons.extend([
                 html.Button(
-                    "Unlock", 
+                    "Unlock",
                     id="ml-lock-button",
                     className="one-button",
                     style={
@@ -80,7 +80,7 @@ class MLLockBuilder(html.Div):
                 )
 
         self.children = [
-            dcc.Store(id="ml-lock-store"),
+            dcc.Store(id="ml-lock-store", data=False),
             dbc.Row(
                 html.H5("Train & evaluate models:")
             ),

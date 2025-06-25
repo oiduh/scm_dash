@@ -97,7 +97,7 @@ def setup_callbacks():
                     ],
                     justify="center"
                 ),
-                False
+                True
             )
 
         MLLockBuilder.is_locked = False
@@ -124,9 +124,13 @@ def setup_callbacks():
         Input("ml-lock-store", "data"),
         prevent_initial_call=True
     )
-    def toggle_ui_components(_):
+    def toggle_ui_components(do):
         if ctx.triggered_id != "ml-lock-store":
             raise PreventUpdate()
+
+        if do is not True:
+            raise PreventUpdate()
+
         match (MLLockBuilder.is_locked, MLLockBuilder.training_done):
             case True, _:
                 return (
@@ -181,7 +185,7 @@ def setup_callbacks():
 
         if MLLockBuilder.training_done is True:
             MLLockBuilder.training_done = False
-            return False
+            return True
 
         return True
 

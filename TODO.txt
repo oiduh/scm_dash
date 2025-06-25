@@ -271,11 +271,14 @@ TODO:
     - [X] fix naming or remove it (fixing in all stages)
     -> for now removed
     - [ ] raw stats -> some things like min, max for classifcation do not make much sense
+        -> distinction class/reg
+        -> nicer arrangement (not everything in separate line)
     - [ ] make number of data points an option before creating the data (data lock -> min, max etc.)
+        -> before locking data or on first tab (effect on distribuion config?)
     - [ ] dockerize (simple)
 
 
-
+    -> send it
 
 
     - [ ] find co-training module or write from scratch if necessary

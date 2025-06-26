@@ -181,7 +181,7 @@ def setup_callbacks():
         global graph
         MLLockBuilder.is_locked = True
         if len(graph.data_sets) == 0:
-            return False
+            return True
 
         if MLLockBuilder.training_done is True:
             MLLockBuilder.training_done = False

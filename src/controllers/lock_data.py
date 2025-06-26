@@ -23,8 +23,7 @@ def setup_callbacks():
         prevent_initial_call=True,
     )
     def generate_data(should_train: bool):
-        if not should_train:
-            print(2)
+        if should_train is not True or LockDataBuilder.is_locked is False:
             LockDataBuilder.is_locked = False
             LockDataBuilder.data_generated = False
             return (
@@ -36,7 +35,7 @@ def setup_callbacks():
                     ],
                     justify="center"
                 ),
-                False
+                True
             )
 
         global graph
@@ -83,16 +82,16 @@ def setup_callbacks():
         Output("tab7", "disabled", allow_duplicate=True),
         Output("tabs", "value", allow_duplicate=True),
         Output("global-reset-button", "disabled", allow_duplicate=True),
+        Output("global-reset-button", "n_clicks", allow_duplicate=True),
         Input("data-generation-store", "data"),
+        State("global-reset-button", "n_clicks"),
         prevent_initial_call=True
     )
-    def toggle_ui_components(do):
+    def toggle_ui_components(do, reset_button):
         if ctx.triggered_id != "data-generation-store":
             raise PreventUpdate()
         if do is not True:
             raise PreventUpdate()
-
-        print(f"toggle ui components: {do=}")
 
         match (LockDataBuilder.is_locked, LockDataBuilder.data_generated):
             case True, _:
@@ -106,6 +105,7 @@ def setup_callbacks():
                     True,
                     "tab-4",
                     True,
+                    0,
                 )
             case False, True:
                 return (
@@ -118,8 +118,13 @@ def setup_callbacks():
                     False,
                     "tab-4",
                     False,
+                    0,
                 )
             case False, False:
+                # TODO: this should not be triggered on reset button click
+                if reset_button > 0:
+                    # ugly solution but it works
+                    raise PreventUpdate()
                 return (
                     False,
                     False,
@@ -130,6 +135,7 @@ def setup_callbacks():
                     True,
                     "tab-4",
                     False,
+                    0,
                 )
             case _:
                 print("this should not be possible")
@@ -144,17 +150,15 @@ def setup_callbacks():
         if not clicked:
             raise PreventUpdate()
 
-        if ctx.triggered_id != "lock-button":
-            raise PreventUpdate()
-
         global graph
-        LockDataBuilder.is_locked = True
         if LockDataBuilder.data_generated is True:
+            LockDataBuilder.is_locked = False
             LockDataBuilder.data_generated = False
             graph.data = None
             StaticGraph.selected_node = None
             return True
 
+        LockDataBuilder.is_locked = True
         return True
 
     @callback(

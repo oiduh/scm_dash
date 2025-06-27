@@ -26,7 +26,7 @@ def setup_callbacks():
         # lock all previous tabs
         # maybe add a stop button to stop all algos with no results
         global graph
-        if not should_train:
+        if not should_train or MLLockBuilder.is_locked is False:
             MLLockBuilder.is_locked = False
             MLLockBuilder.training_done = False
             return (
@@ -175,18 +175,18 @@ def setup_callbacks():
         if not clicked:
             raise PreventUpdate()
 
-        if ctx.triggered_id != "ml-lock-button":
-            raise PreventUpdate()
-
         global graph
-        MLLockBuilder.is_locked = True
         if len(graph.data_sets) == 0:
-            return True
-
-        if MLLockBuilder.training_done is True:
+            MLLockBuilder.is_locked = False
             MLLockBuilder.training_done = False
             return True
 
+        if MLLockBuilder.training_done is True:
+            MLLockBuilder.is_locked = False
+            MLLockBuilder.training_done = False
+            return True
+
+        MLLockBuilder.is_locked = True
         return True
 
     @callback(

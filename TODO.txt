@@ -269,8 +269,9 @@ TODO:
         - [X] callback to go back to 1st tab
         - [X] disable during data gen and ml train
     - [X] fix naming or remove it (fixing in all stages)
-    -> for now removed
-    - [ ] global reset button broke ml lock logic -> fix
+        -> for now removed
+    - [X] global reset button broke ml lock logic -> fix
+        -> training works, but unlocking does not
     - [ ] raw stats -> some things like min, max for classifcation do not make much sense
         -> distinction class/reg
         -> nicer arrangement (not everything in separate line)

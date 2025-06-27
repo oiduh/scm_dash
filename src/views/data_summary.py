@@ -320,41 +320,44 @@ class RawStatsViewer(html.Div):
                 cur_col.children = []
 
                 # TODO:find a nice way to display the range of the data
+                # also think about regression data vs classification data
+                # min/max/avg does not make much sense for class
 
-                cur_col.children.append(html.H5(f"Node: {node.id_}"))
-                in_nodes = "\\{\\}" if len(node.in_nodes) < 1 else "\\{" + ", ".join(node.in_nodes) + "\\}"
-                cur_col.children.append(dcc.Markdown(f"$${node.id_}_{{in}} = {in_nodes}$$", mathjax=True))
-                out_nodes = "\\{\\}" if len(node.out_nodes) < 1 else "\\{" + ", ".join(node.out_nodes) + "\\}"
-                cur_col.children.append(dcc.Markdown(f"$${node.id_}_{{out}} = {out_nodes}$$", mathjax=True))
-                noise = np.array(list(node.noise.data.values())).flatten()
-                cur_col.children.append(dcc.Markdown(f"$$n_{{min}} = {noise.min():.4f}$$", mathjax=True))
-                cur_col.children.append(dcc.Markdown(f"$$n_{{max}} = {noise.max():.4f}$$", mathjax=True))
-                cur_col.children.append(dcc.Markdown(f"$$n_{{mean}} = {noise.mean():.4f}$$", mathjax=True))
-                cur_col.children.append(dcc.Markdown(f"$$n_{{median}} = {np.median(noise):.4f}$$", mathjax=True))
-                assert node.data is not None
-                cur_col.children.append(dcc.Markdown(f"$$data_{{min}} = {node.data.min():.4f}$$", mathjax=True))
-                cur_col.children.append(dcc.Markdown(f"$$data_{{max}} = {node.data.max():.4f}$$", mathjax=True))
-                cur_col.children.append(dcc.Markdown(f"$$data_{{mean}} = {node.data.mean():.4f}$$", mathjax=True))
-                cur_col.children.append(dcc.Markdown(f"$$data_{{median}} = {np.median(node.data):.4f}$$", mathjax=True))
-
-                causes = deepcopy(node.in_nodes)
-                causes.append(f"n_{node.id_}")
-                causes = ", ".join(causes)
                 if node.mechanism_metadata.mechanism_type == "regression":
-                    cur_col.children.append(dcc.Markdown("Mechanism type: regression"))
-                    x = f"f({causes})"
-                    y = py_to_latex(f"{list(node.mechanism_metadata.formulas.values())[0]}", node.in_nodes)
-                    formula = x + ":=" + y
-                    cur_col.children.append(dcc.Markdown(f"$${formula}$$", mathjax=True))
-                else:
-                    cur_col.children.append(dcc.Markdown("Mechanism type: classification"))
-                    for class_id, formula in node.mechanism_metadata.get_formulas().items():
-                        x = f"f_{class_id}({causes})"
+                    cur_col.children.append(html.H5(f"Node: {node.id_}"))
+                    in_nodes = "\\{\\}" if len(node.in_nodes) < 1 else "\\{" + ", ".join(node.in_nodes) + "\\}"
+                    cur_col.children.append(dcc.Markdown(f"$${node.id_}_{{in}} = {in_nodes}$$", mathjax=True))
+                    out_nodes = "\\{\\}" if len(node.out_nodes) < 1 else "\\{" + ", ".join(node.out_nodes) + "\\}"
+                    cur_col.children.append(dcc.Markdown(f"$${node.id_}_{{out}} = {out_nodes}$$", mathjax=True))
+                    noise = np.array(list(node.noise.data.values())).flatten()
+                    cur_col.children.append(dcc.Markdown(f"$$n_{{min}} = {noise.min():.4f}$$", mathjax=True))
+                    cur_col.children.append(dcc.Markdown(f"$$n_{{max}} = {noise.max():.4f}$$", mathjax=True))
+                    cur_col.children.append(dcc.Markdown(f"$$n_{{mean}} = {noise.mean():.4f}$$", mathjax=True))
+                    cur_col.children.append(dcc.Markdown(f"$$n_{{median}} = {np.median(noise):.4f}$$", mathjax=True))
+                    assert node.data is not None
+                    cur_col.children.append(dcc.Markdown(f"$$data_{{min}} = {node.data.min():.4f}$$", mathjax=True))
+                    cur_col.children.append(dcc.Markdown(f"$$data_{{max}} = {node.data.max():.4f}$$", mathjax=True))
+                    cur_col.children.append(dcc.Markdown(f"$$data_{{mean}} = {node.data.mean():.4f}$$", mathjax=True))
+                    cur_col.children.append(dcc.Markdown(f"$$data_{{median}} = {np.median(node.data):.4f}$$", mathjax=True))
+
+                    causes = deepcopy(node.in_nodes)
+                    causes.append(f"n_{node.id_}")
+                    causes = ", ".join(causes)
+                    if node.mechanism_metadata.mechanism_type == "regression":
+                        cur_col.children.append(dcc.Markdown("Mechanism type: regression"))
+                        x = f"f({causes})"
                         y = py_to_latex(f"{list(node.mechanism_metadata.formulas.values())[0]}", node.in_nodes)
                         formula = x + ":=" + y
                         cur_col.children.append(dcc.Markdown(f"$${formula}$$", mathjax=True))
-                    else_class = f"f_{{else}}({causes})"
-                    cur_col.children.append(dcc.Markdown(f"$${else_class}$$", mathjax=True))
+                    else:
+                        cur_col.children.append(dcc.Markdown("Mechanism type: classification"))
+                        for class_id, formula in node.mechanism_metadata.get_formulas().items():
+                            x = f"f_{class_id}({causes})"
+                            y = py_to_latex(f"{list(node.mechanism_metadata.formulas.values())[0]}", node.in_nodes)
+                            formula = x + ":=" + y
+                            cur_col.children.append(dcc.Markdown(f"$${formula}$$", mathjax=True))
+                        else_class = f"f_{{else}}({causes})"
+                        cur_col.children.append(dcc.Markdown(f"$${else_class}$$", mathjax=True))
             self.children.append(row)
 
 

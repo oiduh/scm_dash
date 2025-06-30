@@ -10,8 +10,10 @@ from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
 
 from models.graph import graph, new_graph, Graph
+from models.noise import CONSTANTS
 from utils.logger import DashLogger
 from views.graph import (
+    GeneralGraphConfig,
     VariableConfig,
     VariableSelection as VariableSelectionGraph,
     GraphViewer,
@@ -311,4 +313,21 @@ def setup_callbacks() -> None:
             MechanismViewer().children,
             MLViewer().children,
         )
+
+    @callback(
+        Output("general-graph-config", "children"),
+        Input("confirm-new-data-points", "n_clicks"),
+        State("new-data-points", "value"),
+        prevent_initiald_call=True
+    )
+    def confirm_new_data_points(clicked, new_value):
+        if not clicked or new_value is None:
+            raise PreventUpdate()
+
+        CONSTANTS.NR_DATA_POINTS = new_value
+        return GeneralGraphConfig().children
+
+
+
+
 

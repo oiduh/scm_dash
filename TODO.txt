@@ -272,10 +272,9 @@ TODO:
         -> for now removed
     - [X] global reset button broke ml lock logic -> fix
         -> training works, but unlocking does not
-    - [ ] raw stats -> some things like min, max for classifcation do not make much sense
+    - [X] raw stats -> some things like min, max for classifcation do not make much sense
         -> distinction class/reg
         -> nicer arrangement (not everything in separate line)
-    - [ ] graph in data summary should be stretched to full length
     - [ ] make number of data points an option before creating the data (data lock -> min, max etc.)
         -> before locking data or on first tab (effect on distribuion config?)
     - [ ] dockerize (simple)

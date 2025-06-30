@@ -6,6 +6,7 @@ from dash import dcc
 from typing import Any
 
 from models.graph import graph
+from models.noise import CONSTANTS
 
 
 class GraphUploader(html.Div):
@@ -66,6 +67,42 @@ class GraphUploader(html.Div):
         ]))
 
 
+class GeneralGraphConfig(html.Div):
+    def __init__(self):
+        super().__init__(id="general-graph-config")
+        self.style = {
+            "border": "solid black 2px",
+            "border-radius": "8px",
+            "padding": "10px",
+            "margin": "10px",
+        }
+        self.children = []
+        self.children.append(dbc.Row([
+            dbc.Col(html.H5(
+                f"Current data points = {CONSTANTS.NR_DATA_POINTS}",
+                id="current-data-points"
+            ), width="auto"),
+        ]))
+        self.children.append(dbc.Row([
+            dbc.Col(html.H5(f"New data points = "), width="auto"),
+            dbc.Col(dcc.Input(
+                id="new-data-points",
+                value=CONSTANTS.NR_DATA_POINTS,
+                type="number",
+                size="7",
+                min=CONSTANTS.MIN_DATA_POINTS,
+                max=CONSTANTS.MAX_DATA_POINTS,
+                step=1,
+                style={"border-radius": "8px"},
+            ), width="auto"),
+            dbc.Col(html.Button(
+                "confirm",
+                id="confirm-new-data-points",
+                n_clicks=0,
+                className="one-button",
+            ), width="auto")
+        ]))
+
 
 class GraphBuilder(html.Div):
     def __init__(self):
@@ -82,6 +119,7 @@ class GraphBuilder(html.Div):
         first_node = graph.get_nodes()[0]
         VariableSelection.selected_node_id = first_node.id_
 
+        self.children.append(GeneralGraphConfig())
         self.children.append(GraphUploader())
         self.children.append(variable_selection)
         self.children.append(VariableConfig())

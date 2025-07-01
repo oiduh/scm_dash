@@ -393,6 +393,7 @@ class MechanismViewer(html.Div):
         causes = ", ".join(in_nodes)
 
         self.children = []
+        self.children.append(html.H5("Mechanisms:"))
 
         formulas = node.mechanism_metadata.get_formulas()
         mechanism_type = node.mechanism_metadata.mechanism_type

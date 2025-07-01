@@ -173,6 +173,7 @@ app.layout = html.Div(
 )
 setup_callbacks()
 app.run(
-    # TODO: remove this for actual use -> ram usage
     debug=True,
+    host="0.0.0.0",
+    port=8050,
 )

@@ -8,11 +8,11 @@ from scipy.stats import rv_continuous as RVCont
 from scipy.stats import rv_discrete as RVDisc
 
 
-class CONSTANTS:
-    # FIXME: make this an option to configure, before creating the data -> data lock tab
+class GLOBAL_VARIABLES:
     NR_DATA_POINTS: int = 1000
     MIN_DATA_POINTS: int = 300
     MAX_DATA_POINTS: int = 3000
+    SEED: int = 0  # TODO: make it configurable
 
 
 Generator = RVCont | RVDisc
@@ -313,7 +313,7 @@ class Noise:
     @classmethod
     def default_noise(cls) -> Self:
         noise = cls()
-        noise.sub_distributions["0"] = Distribution.get_distribution("0", "normal")
+        noise.sub_distributions["0"] = Distribution.get_distribution("0", "uniform")
         return noise
 
     def get_distributions(self) -> list[Distribution]:
@@ -360,7 +360,7 @@ class Noise:
         # TODO: potentially think about using a custom seed
         np.random.seed(42)
         distributions = self.get_distributions()
-        partition, rest = divmod(CONSTANTS.NR_DATA_POINTS, len(distributions))
+        partition, rest = divmod(GLOBAL_VARIABLES.NR_DATA_POINTS, len(distributions))
         x = [partition for _ in range(len(distributions))]
         y = [1 if idx < rest else 0 for idx, _ in enumerate(range(len(distributions)))]
         buckets = [a + b for a, b in zip(x, y)]

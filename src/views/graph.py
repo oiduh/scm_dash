@@ -6,7 +6,7 @@ from dash import dcc
 from typing import Any
 
 from models.graph import graph
-from models.noise import CONSTANTS
+from models.noise import GLOBAL_VARIABLES
 
 
 class GraphUploader(html.Div):
@@ -79,7 +79,7 @@ class GeneralGraphConfig(html.Div):
         self.children = []
         self.children.append(dbc.Row([
             dbc.Col(html.H5(
-                f"Current data points = {CONSTANTS.NR_DATA_POINTS}",
+                f"Current data points = {GLOBAL_VARIABLES.NR_DATA_POINTS}",
                 id="current-data-points"
             ), width="auto"),
         ]))
@@ -87,11 +87,11 @@ class GeneralGraphConfig(html.Div):
             dbc.Col(html.H5(f"New data points = "), width="auto"),
             dbc.Col(dcc.Input(
                 id="new-data-points",
-                value=CONSTANTS.NR_DATA_POINTS,
+                value=GLOBAL_VARIABLES.NR_DATA_POINTS,
                 type="number",
                 size="7",
-                min=CONSTANTS.MIN_DATA_POINTS,
-                max=CONSTANTS.MAX_DATA_POINTS,
+                min=GLOBAL_VARIABLES.MIN_DATA_POINTS,
+                max=GLOBAL_VARIABLES.MAX_DATA_POINTS,
                 step=1,
                 style={"border-radius": "8px"},
             ), width="auto"),

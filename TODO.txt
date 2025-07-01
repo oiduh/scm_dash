@@ -275,9 +275,12 @@ TODO:
     - [X] raw stats -> some things like min, max for classifcation do not make much sense
         -> distinction class/reg
         -> nicer arrangement (not everything in separate line)
-    - [ ] make number of data points an option before creating the data (data lock -> min, max etc.)
+    - [X] make number of data points an option before creating the data (data lock -> min, max etc.)
         -> before locking data or on first tab (effect on distribuion config?)
+    - [ ] same as data points, make a seed input
     - [ ] dockerize (simple)
+        - [ ] fix docker build e.g. matplotlib failure
+        - [ ] ...
 
 
     -> send it

@@ -10,7 +10,7 @@ from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
 
 from models.graph import graph, new_graph, Graph
-from models.noise import CONSTANTS
+from models.noise import GLOBAL_VARIABLES
 from utils.logger import DashLogger
 from views.graph import (
     GeneralGraphConfig,
@@ -324,7 +324,7 @@ def setup_callbacks() -> None:
         if not clicked or new_value is None:
             raise PreventUpdate()
 
-        CONSTANTS.NR_DATA_POINTS = new_value
+        GLOBAL_VARIABLES.NR_DATA_POINTS = new_value
         return GeneralGraphConfig().children
 
 

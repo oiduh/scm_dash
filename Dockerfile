@@ -8,10 +8,12 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
-COPY main.py ./
-COPY src/ ./src/
-ENV PYTHONPATH="${PYTHONPATH}:/src"
+# COPY . .
+COPY main.py .
+COPY src/ src/
+COPY assets/ assets/
+
+ENV PYTHONPATH="${PYTHONPATH}:/app/src"
 
 # Use Gunicorn to serve Dash (recommended for production)
 # CMD ["gunicorn", "-b", "0.0.0.0:8050", "app:app"]

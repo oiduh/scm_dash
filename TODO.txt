@@ -279,8 +279,11 @@ TODO:
         -> before locking data or on first tab (effect on distribuion config?)
     - [ ] same as data points, make a seed input
     - [ ] dockerize (simple)
-        - [ ] fix docker build e.g. matplotlib failure
-        - [ ] ...
+        - [X] fix docker build e.g. matplotlib failure
+            -> removed matplotlib
+            -> copied only necessary files
+        - [ ] remove __pycache__ from docker build, regardless of location
+    - [ ] fix bug at ml prep stage -> source and target can be same
 
 
     -> send it

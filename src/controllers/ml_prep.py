@@ -1,6 +1,6 @@
 import logging
 
-from dash import ALL, Input, Output, State, callback
+from dash import ALL, Input, Output, State, callback, ctx
 from dash.exceptions import PreventUpdate
 
 from models.graph import graph
@@ -45,6 +45,8 @@ def setup_callbacks() -> None:
         prevent_initial_call="initial_duplicate"
     )
     def select_new_target(new_value: str):
+        if ctx.triggered_id != "selected-target-id":
+            raise PreventUpdate()
         if new_value == TrainingDataSetEditor.target_id:
             raise PreventUpdate()
 

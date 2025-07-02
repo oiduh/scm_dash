@@ -2,13 +2,16 @@ from dash import html
 import dash_bootstrap_components as dbc
 from dash import dcc
 from models.graph import graph
+from utils.logger import DashLogger
 
+LOGGER = DashLogger(name="MLPrep-Views")
 
 class TrainingDataSetEditor(html.Div):
     target_id: str | None = None
     training_set_counter = 0
     training_set_limit = 10
     def __init__(self):
+        LOGGER.info("called TrainingDataSetEditor")
         super().__init__(id="training-data-set-editor")
         self.style = {
             "border": "solid black 2px",
@@ -34,8 +37,6 @@ class TrainingDataSetEditor(html.Div):
         sources = set(graph.get_node_ids())
         sources.discard(target)
         sources = list(sources)
-
-        # TODO: add field for optional intervention -> simple float number input
 
         self.children.extend([
             html.H6("Select target variable:"),

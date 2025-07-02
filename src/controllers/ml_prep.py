@@ -1,6 +1,6 @@
 import logging
 
-from dash import ALL, Input, Output, State, callback, ctx
+from dash import ALL, Input, Output, State, callback, ctx, html
 from dash.exceptions import PreventUpdate
 
 from models.graph import graph
@@ -9,7 +9,7 @@ from views.ml_prep import MLViewer, TrainingDataSetEditor
 
 
 # TODO: add logs to functions
-LOGGER = DashLogger(name="MLPrep", level=logging.DEBUG)
+LOGGER = DashLogger(name="MLPrep-Controller", level=logging.DEBUG)
 
 
 def setup_callbacks() -> None:
@@ -40,7 +40,8 @@ def setup_callbacks() -> None:
         )
 
     @callback(
-        Output("training-data-set-editor", "children", allow_duplicate=True),
+        Output("selected-source-ids", "options", allow_duplicate=True),
+        Output("selected-source-ids", "value", allow_duplicate=True),
         Input("selected-target-id", "value"),
         prevent_initial_call="initial_duplicate"
     )
@@ -51,7 +52,23 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
 
         TrainingDataSetEditor.target_id = new_value
-        return TrainingDataSetEditor().children
+        global graph
+        nodes = graph.get_nodes()
+        target_node = graph.get_node_by_id(new_value)
+        assert target_node is not None
+
+        options: list = [{
+            "label": html.Span(
+                node.id_ + (" (target)" if target_node.id_ in [node.name, node.id_] else ""),
+                style={"padding-left": 10}
+            ),
+            "value": node.id_,
+            "disabled": node.id_ == target_node.id_,
+        } for node in nodes]
+        return (
+            options,
+            [node.id_ for node in nodes if node.id_ != target_node.id_]
+        )
 
     @callback(
         Output("ml-viewer", "children", allow_duplicate=True),

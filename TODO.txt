@@ -278,57 +278,21 @@ TODO:
     - [X] make number of data points an option before creating the data (data lock -> min, max etc.)
         -> before locking data or on first tab (effect on distribuion config?)
     - [ ] same as data points, make a seed input
-    - [ ] dockerize (simple)
+    - [X] dockerize (simple)
         - [X] fix docker build e.g. matplotlib failure
             -> removed matplotlib
             -> copied only necessary files
-        - [ ] remove __pycache__ from docker build, regardless of location
-    - [ ] fix bug at ml prep stage -> source and target can be same
-
+        - [-] remove __pycache__ from docker build, regardless of location
+            -> the app generates those for performance reasons, keep
+    - [X] fix bug at ml prep stage -> source and target can be same
+    - [ ] logging
+        - [ ] views, debug when updating or when errors
+        - [ ] controllers
+        - [ ] models
+    - [ ] readme for git + cleanup
 
     -> send it
 
 
     - [ ] find co-training module or write from scratch if necessary
     -> after whole project done, this is just an extra
-
-
-
-
-    - [ ] fixes
-        - [ ] add logger to all controllers
-        - [ ] graph
-            - [X] respect the maximum size of the defaults
-            -> reproduce: max out slider and then change -> result: cannot go back to default max (uniform)
-            - [ ] all distribution types update short description about parameters
-            - [ ] general distributions
-            -> instead of making 'random' values for limit to some uniform values
-            -> scaling can be done in the mechanism part
-            -> need to know which variables to limit, which not
-            -> might be useful for uniform distribution where we can just keep a constant
-        - [ ] mechanism
-            - [ ] when data already generated and locked -> keep state when reloading
-        - [ ] lock data
-            - [ ] think about adding seed (could also be added to noise?)
-            - [ ] handling names instead of ids 
-            - [ ] color coding for visualisations for classification
-        - [ ] detect null, nans and infs in the data set (data generation part)
-        - [ ] removing sub distributions raises error for color index
-        - [ ] high values after mechanism cause long loading times (timeout or exception on large values)
-        - [ ] proper names for variables
-        -> if set use instead of variable id, also use for visualization
-        - [ ] proper names for class labels
-        -> if set use instead of int, also use for visualization
-        - [ ] should not be able to remove nodes if there are only 2 left
-        - [ ] summary tab distribution should show something different?
-              -> is the distribution even important, what does it tell
-        - [ ] add reset button to start new generation (always available at any stage of process)
-        - [ ] removing nodes breaks summary window -> despite c being removed it still lingers at a
-              scatter plot generation variable
-        - [ ] loading new graph should also clean the visualization for selected data sets
-
-
-todo for readme:
-- how to build
-- how to start
-- tested and devd for chromium

@@ -1,3 +1,4 @@
+from logging import Logger
 import string
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -11,12 +12,10 @@ from models.mechanism import (
     ClassificationMechanism,
     MechanismMetadata,
     MechanismResult,
-    MechanismState,
     MechanismType,
     RegressionMechanism,
 )
 from models.noise import Noise
-
 
 @dataclass
 class Node:
@@ -39,7 +38,7 @@ class Node:
             target node already an in node
         """
         if to_add.id_ in self.in_nodes:
-            raise Exception("Node already an in_node")
+            raise ValueError("Node already an in_node")
         self.in_nodes.append(to_add.id_)
 
     def add_out_node(self, to_add: Self) -> None:
@@ -48,7 +47,7 @@ class Node:
             target node already an out node
         """
         if to_add.id_ in self.out_nodes:
-            raise Exception("Node already an out_node")
+            raise ValueError("Node already an out_node")
         self.out_nodes.append(to_add.id_)
 
     def remove_in_node(self, to_remove: Self) -> None:
@@ -57,7 +56,7 @@ class Node:
             target node not an in node
         """
         if to_remove.id_ not in self.in_nodes:
-            raise Exception("Target node is not an in node")
+            raise ValueError("Target node is not an in node")
         self.in_nodes.remove(to_remove.id_)
 
     def remove_out_node(self, to_remove: Self) -> None:
@@ -66,7 +65,7 @@ class Node:
             target node not an out node
         """
         if to_remove.id_ not in self.out_nodes:
-            raise Exception("Target node is not an out node")
+            raise ValueError("Target node is not an out node")
         self.out_nodes.remove(to_remove.id_)
 
     def change_type(self, new_type: MechanismType) -> None:
@@ -102,19 +101,24 @@ class Node:
         if name is None:
             new_node.name = node_id
         elif isinstance(name, str):
-            assert len(name) > 1 and name[0] in string.ascii_letters, (
-                "invalid name 1"
-            )
+            if not (len(name) > 1 and name[0] in string.ascii_letters):
+                raise ValueError(f"Node name must be longer than 1 character and start with a letter, got: '{name}'")
             new_node.name = name
         else:
-            assert False, "invalid name 2"
+            raise ValueError(f"Node name must be a string, got: '{name}' ({type(name)})")
 
-        assert (in_nodes := node_dict.get("in_nodes")) is not None and isinstance(in_nodes, list), (
-            "invalid in_nodes 1"
-        )
-        assert len(in_nodes) == 0 or all(isinstance(e, str) and len(e) == 1 for e in in_nodes), (
-            "invalid in_nodes 2"
-        )
+        if (in_nodes := node_dict.get("in_nodes")) is None or not isinstance(in_nodes, list):
+            raise ValueError(f"in_nodes must be a valid list of ids, got: {in_nodes}")
+        # assert (in_nodes := node_dict.get("in_nodes")) is not None and isinstance(in_nodes, list), (
+        #     "invalid in_nodes 1"
+        # )
+
+        if len(in_nodes) > 0 and not all(isinstance(e, str) and len(e) == 1 for e in in_nodes):
+            raise ValueError(f"Every in_node must be a be a one character (letter) id, got: {in_nodes}")
+        # assert len(in_nodes) == 0 or all(isinstance(e, str) and len(e) == 1 for e in in_nodes), (
+        #     "invalid in_nodes 2"
+        # )
+
         assert len(in_nodes) == len(set(in_nodes)), (
             "invalid in_nodes 3"
         )

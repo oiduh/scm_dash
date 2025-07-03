@@ -5,7 +5,7 @@ _Level: TypeAlias = int | str
 
 
 class DashLogger(logging.Logger):
-    def __init__(self, name: str, level: _Level = 0) -> None:
+    def __init__(self, name: str, level: _Level = logging.DEBUG) -> None:
         super().__init__(name, level)
         c_handler = logging.StreamHandler()
         f_handler = logging.FileHandler("file.log")

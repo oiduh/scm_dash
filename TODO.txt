@@ -287,8 +287,11 @@ TODO:
     - [X] fix bug at ml prep stage -> source and target can be same
     - [ ] logging
         - [ ] views, debug when updating or when errors
+            -> not sure about logger, or exceptions
         - [ ] controllers
+            -> must have logger
         - [ ] models
+            -> no logger in model, just exceptions
     - [ ] readme for git + cleanup
 
     -> send it

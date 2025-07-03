@@ -25,7 +25,7 @@ from views.noise import NoiseBuilder, NoiseViewer, VariableSelection as Variable
 from views.mechanism import MechanismBuilder, MechanismConfig, MechanismViewer, VariableSelection as VariableSelectionMechanism
 
 
-LOGGER = DashLogger(name="GraphController", level=logging.DEBUG)
+LOGGER = DashLogger(name="Graph-Controller")
 
 
 def setup_callbacks() -> None:

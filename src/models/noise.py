@@ -3,6 +3,7 @@ import string
 from typing import Any, Self
 
 import numpy as np
+from scipy.optimize import curve_fit
 import scipy.stats as stats
 from scipy.stats import rv_continuous as RVCont
 from scipy.stats import rv_discrete as RVDisc
@@ -12,7 +13,7 @@ class GLOBAL_VARIABLES:
     NR_DATA_POINTS: int = 1000
     MIN_DATA_POINTS: int = 300
     MAX_DATA_POINTS: int = 3000
-    SEED: int = 0  # TODO: make it configurable
+    SEED: int = 42  # TODO: make it configurable
 
 
 Generator = RVCont | RVDisc
@@ -35,20 +36,11 @@ class Parameter:
         self.slider_max = max(new_value, self.slider_max)
         self.current = new_value
 
-    # TODO: not used
-    def change_slider_min(self, new_value: float) -> None:
-        self.slider_min = max(self.min, min(self.slider_max - self.step, new_value))
-
-    # TODO: not used
-    def change_slider_max(self, new_value: float) -> None:
-        self.slider_max = min(self.max, max(self.slider_min + self.step, new_value))
-
 
 @dataclass
 class Distribution:
     id_: str
     name: str
-    # dependant on the type, 'parameters' & 'generator' do different things
     parameters: dict[str, Parameter]
     generator: Generator
 
@@ -127,9 +119,7 @@ class Distribution:
                     current=1,
                     step=0.1,
                 )
-                return cls(
-                    id, name, {"loc": loc, "scale": scale, "s": s}, stats.lognorm
-                )
+                return cls(id, name, {"loc": loc, "scale": scale, "s": s}, stats.lognorm)
             case "uniform":
                 # start (loc)
                 loc = Parameter(
@@ -278,20 +268,22 @@ class Distribution:
 
     @classmethod
     def parse_from_dict(cls, id_: str, distribution_dict: dict) -> Self:
-        assert (name := distribution_dict.get("name")) is not None and name in cls.parameter_options(), (
-            "invalid distribution name"
-        )
-        assert (params := distribution_dict.get("params")) is not None and isinstance(params, dict), (
-            "invalid distribution params"
-        )
+        if (name := distribution_dict.get("name")) is None or name not in cls.parameter_options():
+            raise ValueError("Invalid distributution type")
+        if (params := distribution_dict.get("params")) is None or not isinstance(params, dict):
+            raise ValueError("Distribution parameters must be a dict")
 
         new_distribution = Distribution.get_distribution(id_, name)
-        assert new_distribution is not None
+        if new_distribution is None:
+            raise ValueError("Invalid distributions type")
         for id_, current in params.items():
-            assert isinstance(current, float | int), "current not a float"
+            if not isinstance(current, float | int):
+                raise ValueError("Parameter value must be a number")
             default_param = new_distribution.parameters.get(id_)
-            assert default_param is not None
-            assert default_param.min <= current <= default_param.max, "current invalid range"
+            if default_param is None:
+                raise ValueError("Invalid parameter")
+            if not (default_param.min <= current <= default_param.max):
+                raise ValueError("Param value outside of valid range")
             new_distribution.parameters[id_].change_current(current)
         return cls(
             id_=new_distribution.id_,
@@ -329,36 +321,27 @@ class Noise:
 
     def get_free_id(self) -> str | None:
         free_ids = [
-            d for d in self.sub_distributions.keys()
+            d
+            for d in self.sub_distributions.keys()
             if self.sub_distributions.get(d) is None
         ]
         return free_ids[0] if len(free_ids) > 0 else None
 
     def add_distribution(self) -> str:
-        """
-        Exception:
-            cannot add another sub distribution
-        """
         free_id = self.get_free_id()
         if free_id is None:
             raise Exception("Cannot add another distribution")
-        self.sub_distributions[free_id] = Distribution.get_distribution(
-            free_id, "normal"
-        )
+        self.sub_distributions[free_id] = Distribution.get_distribution(free_id, "normal")
         return free_id
 
     def remove_distribution(self, to_remove: Distribution) -> None:
-        """
-        Exception:
-            cannot remove this sub distribution
-        """
         if to_remove.id_ not in self.get_distribution_ids():
             raise Exception("Cannot remove this distribution")
         self.sub_distributions[to_remove.id_] = None
 
     def generate_data(self) -> dict[str, np.ndarray]:
         # TODO: potentially think about using a custom seed
-        np.random.seed(42)
+        np.random.seed(GLOBAL_VARIABLES.SEED)
         distributions = self.get_distributions()
         partition, rest = divmod(GLOBAL_VARIABLES.NR_DATA_POINTS, len(distributions))
         x = [partition for _ in range(len(distributions))]
@@ -369,8 +352,6 @@ class Noise:
             parameter_values = {
                 v.name: v.current for v in distribution.parameters.values()
             }
-            # TODO: setting for seed via UI?
-            # np.random.seed(0)
             new_values: np.ndarray = distribution.generator.rvs(**parameter_values, size=nr_points)  # type: ignore
             values[distribution.id_] = new_values
         self.data = values
@@ -380,12 +361,10 @@ class Noise:
     def parse_from_dict(cls, noise_data: dict[str, Any]) -> Self:
         new_noise = cls()
 
-        assert all(isinstance(id_, str) and len(id_) == 1 and id_ in string.digits for id_ in noise_data.keys()), (
-            "invalid noise id"
-        )
-        assert all(isinstance(d, dict) for d in noise_data.values()), (
-            "invalid noise dict"
-        )
+        if not all(isinstance(id_, str) and len(id_) == 1 and id_ in string.digits for id_ in noise_data.keys()):
+            raise ValueError("Invalid noise id")
+        if not all(isinstance(d, dict) for d in noise_data.values()):
+            raise ValueError("invalid noise dict")
 
         for id_, sub_distr in noise_data.items():
             new_sub_distribution = Distribution.parse_from_dict(id_, sub_distr)

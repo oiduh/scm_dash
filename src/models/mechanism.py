@@ -7,10 +7,8 @@ import numpy as np
 from numpy.typing import NDArray
 from utils.parser import Calc
 
-#
-# supported 'builtin' functions
-#
 
+# supported 'builtin' functions
 
 # trignometry
 sin = np.sin
@@ -97,17 +95,21 @@ class MechanismMetadata:
     @classmethod
     def parse_from_dict(cls, mechanism_data: dict[str,  Any]):
         new_mechanism = cls()
-        assert "type" in mechanism_data, "type is missing"
-        assert "formulas" in mechanism_data, "formulas are missing"
-        assert mechanism_data["type"] in get_args(MechanismType)
-        assert isinstance(mechanism_data["formulas"], dict), "formulas must be a dict"
+        if "type" not in mechanism_data:
+            raise ValueError("type is missing")
+        if "formulas" not in mechanism_data:
+            raise ValueError("formulas are missing") 
+        if mechanism_data["type"] not in get_args(MechanismType):
+            raise ValueError("Invalid mechanism type")
+        if not isinstance(mechanism_data["formulas"], dict):
+            raise ValueError("formulas must be a dict")
 
         formulas = mechanism_data["formulas"]
         new_mechanism.mechanism_type = mechanism_data["type"]
-        if mechanism_data["type"] == "regression":
-            assert len(formulas) == 1, "invalid amount of formulas for regression"
-        else:
-            assert len(formulas) > 0, "invalid amount of formulas for classification"
+        if mechanism_data["type"] == "regression" and len(formulas) != 1:
+            raise ValueError("Invalid amount of formulas for regression")
+        elif len(formulas) <= 0:
+            raise ValueError("Invalid amount of formulas for classification")
         for id_, formula in formulas.items():
             new_mechanism.formulas[id_] = formula
             new_mechanism.valid = True
@@ -175,7 +177,8 @@ class ClassificationMechanism(BaseMechanism):
             new_formula = ast.unparse(tree)
             try:
                 result: np.ndarray[Any, np.dtype[np.bool_]] = eval(new_formula)
-                assert result.dtype == np.bool_, "NOT A BOOL"
+                if result.dtype != np.bool_:
+                    raise Exception("Classification result is not a bool")
             except Exception:
                 return MechanismResult(None, "invalid_formula")
 

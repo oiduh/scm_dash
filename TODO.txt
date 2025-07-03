@@ -290,7 +290,7 @@ TODO:
             -> not sure about logger, or exceptions
         - [ ] controllers
             -> must have logger
-        - [ ] models
+        - [X] models
             -> no logger in model, just exceptions
     - [ ] readme for git + cleanup
 

@@ -1,12 +1,9 @@
 from decimal import Decimal
-from itertools import combinations
-from sklearn.metrics import accuracy_score
 from sklearn.linear_model import (
     LinearRegression,
     Ridge,
     Lasso,
 )
-# TODO:replace cross_val_score with cross_validate (can handle multiple scores)
 from sklearn.model_selection import cross_val_score, cross_validate, train_test_split
 from sklearn.tree import (
     DecisionTreeRegressor,
@@ -25,9 +22,6 @@ from sklearn.svm import (
 from sklearn.gaussian_process import (
     GaussianProcessRegressor,
 )
-# from mvlearn.semi_supervised import (
-#     CTClassifier,
-# )
 import pandas as pd
 import numpy as np
 
@@ -68,11 +62,9 @@ class Regression:
         for model_type in self.models:
             model = model_type()
             scores[model.__class__.__name__] = {}
-            # scores_ = cross_val_score(model, source_matrix, target_array, cv=10, n_jobs=6, scoring="neg_mean_squared_error")
             scores_ = cross_validate(model, source_matrix, target_array, cv=10, n_jobs=-1, scoring=list(scorings.keys()))
             for scoring in scorings.keys():
                 test_score = scores_[f"test_{scoring}"]
-                # final_score = f"{np.mean(test_score):.4f}+-{np.std(test_score):.4f}"
                 final_score = Decimal(f"{np.mean(test_score):.4f}")
                 scores[model.__class__.__name__][scoring] = final_score
 
@@ -83,7 +75,6 @@ class Regression:
         cols = list(frame.columns)
         cols.reverse()
         frame = frame[cols]
-        print(frame)
         return frame
 
 from sklearn.tree import (
@@ -117,8 +108,6 @@ classification_models = [
     DecisionTreeClassifier,
     GaussianNB,
     KNeighborsClassifier,
-    # LabelSpreading,
-    # LabelPropagation,
     LogisticRegression,
     RidgeClassifier,
     SGDClassifier,
@@ -165,7 +154,6 @@ class SemiSupervisedClassification:
     def __init__(self) -> None:
         self.models = semi_supervised_classification_models
 
-    # TODO: this needs adjustment since cv does not work; also include results for different percentages
     def evaluate_models(self, data: pd.DataFrame, sources: list[str], target: str) -> pd.DataFrame:
         source_matrix = data[sources].to_numpy()
         target_array = data[target].to_numpy()

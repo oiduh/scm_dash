@@ -8,6 +8,7 @@ from typing import Any, Self
 import numpy as np
 import pandas as pd
 
+from models import mechanism
 from models.mechanism import (
     ClassificationMechanism,
     MechanismMetadata,
@@ -109,40 +110,30 @@ class Node:
 
         if (in_nodes := node_dict.get("in_nodes")) is None or not isinstance(in_nodes, list):
             raise ValueError(f"in_nodes must be a valid list of ids, got: {in_nodes}")
-        # assert (in_nodes := node_dict.get("in_nodes")) is not None and isinstance(in_nodes, list), (
-        #     "invalid in_nodes 1"
-        # )
 
         if len(in_nodes) > 0 and not all(isinstance(e, str) and len(e) == 1 for e in in_nodes):
             raise ValueError(f"Every in_node must be a be a one character (letter) id, got: {in_nodes}")
-        # assert len(in_nodes) == 0 or all(isinstance(e, str) and len(e) == 1 for e in in_nodes), (
-        #     "invalid in_nodes 2"
-        # )
 
-        assert len(in_nodes) == len(set(in_nodes)), (
-            "invalid in_nodes 3"
-        )
+        if len(in_nodes) != len(set(in_nodes)):
+            raise ValueError("Every in_node must be unique")
         new_node.in_nodes = in_nodes
 
-        assert (out_nodes := node_dict.get("out_nodes")) is not None and isinstance(out_nodes, list), (
-            "invalid out_nodes 1"
-        )
-        assert len(out_nodes) == 0 or all(isinstance(e, str) and len(e) == 1 for e in out_nodes), (
-            "invalid out_nodes 1"
-        )
-        assert len(out_nodes) == len(set(out_nodes)), (
-            "invalid out_nodes 1"
-        )
+        if (out_nodes := node_dict.get("out_nodes")) is None or not isinstance(out_nodes, list):
+            raise ValueError(f"out_nodes must be a valid list of ids, got: {out_nodes}")
+
+        if len(out_nodes) > 0 and not all(isinstance(e, str) and len(e) == 1 for e in out_nodes):
+            raise ValueError(f"Every out_node must be a be a one character (letter) id, got: {out_nodes}")
+
+        if len(out_nodes) != len(set(out_nodes)):
+            raise ValueError("Every out_node must be unique")
         new_node.out_nodes = out_nodes
 
-        assert (noise_data := node_dict.get("noise")) is not None and isinstance(noise_data, dict), (
-            "noise data dict error"
-        )
+        if (noise_data := node_dict.get("noise")) is None or not isinstance(noise_data, dict):
+            raise ValueError(f"noise must be a valid dict, got: {noise_data}")
         new_node.noise = Noise.parse_from_dict(noise_data)
 
-        assert (mechanism_data := node_dict.get("mechanism")) is not None and isinstance(mechanism_data, dict), (
-            "mechanism data dict error"
-        )
+        if (mechanism_data := node_dict.get("mechanism")) is None or not isinstance(mechanism_data, dict):
+            raise ValueError(f"mechanism must be a valid dict, got: {mechanism_data}")
         new_node.mechanism_metadata = MechanismMetadata.parse_from_dict(mechanism_data)
 
         return new_node
@@ -156,7 +147,6 @@ class Graph:
     )
     data: pd.DataFrame | None = None
     data_sets: list[dict[str, str | list[str]]] = field(default_factory=list)
-    # TODO:add support for intervention for data sets field e.g. bool and int accepted
 
     def reset(self) -> None:
         self.nodes =  {str(id): None for id in string.ascii_lowercase}
@@ -223,7 +213,6 @@ class Graph:
         target.add_in_node(source)
 
     def can_add_edge(self, source: Node, target: Node) -> bool:
-        print(f"checking {source.id_} -> {target.id_}")
         if source.id_ == target.id_:
             return False
         if source.id_ in target.in_nodes or source.id_ in target.out_nodes:
@@ -264,19 +253,13 @@ class Graph:
         for neighbor in node.out_nodes:
             if not visited[neighbor]:
                 if Graph.is_cyclic_util(neighbor, visited, recursive_stack, graph_cpy):
-                    print("CYCLE 1")
                     return True
             elif recursive_stack[neighbor]:
-                print("CYCLE 2")
                 return True
         recursive_stack[node_id] = False
         return False
 
     def remove_edge(self, source: Node, target: Node) -> None:
-        """
-        Exception:
-            edge cannot be removed
-        """
         if self._can_remove_edge(source, target) is False:
             raise Exception("Cannot remove edge")
 
@@ -298,7 +281,6 @@ class Graph:
         current_layer = 1
 
         while len(available_node_ids) != len(all_nodes_ids):
-            # TODO: why infinite loop
             unassigned_node_ids = [
                 x for x in all_nodes_ids if x not in available_node_ids
             ]
@@ -351,10 +333,9 @@ class Graph:
                         result = mechanism.transform()
                         if result.error is not None:
                             raise Exception("Failed to evaluate")
-                    case _:
-                        raise Exception("no mechanism type found")
 
-                assert result.values is not None
+                if result.values is None:
+                    raise Exception("failed to generate a data set")
                 node.data = result.values
 
         dataframe = pd.DataFrame.from_dict(
@@ -365,7 +346,7 @@ class Graph:
             }
         )
         if sorted(dataframe.columns.tolist()) != sorted(self.get_node_ids()):
-            raise Exception("Inconsisten columns")
+            raise Exception("Inconsistent columns")
 
         return dataframe
 
@@ -458,20 +439,18 @@ class Graph:
 
         # ids valid
         ids_ = list(graph_data.keys())
-        assert all(isinstance(id_, str) and id_ in string.ascii_lowercase for id_ in ids_), (
-            "wrong ids in graph"
-        )
-        assert all(isinstance(d, dict) for d in graph_data.values()), (
-            "nodes not dicts"
-        )
+        if not all(isinstance(id_, str) and id_ in string.ascii_lowercase for id_ in ids_):
+            raise ValueError("Incorrect graph ids")
+        if not all(isinstance(d, dict) for d in graph_data.values()):
+            raise ValueError("Node values must be dicts")
+
         for id_, d_ in graph_data.items():
             new_node = Node.parse_from_dict(id_, d_)
             graph_cpy.nodes[id_] = new_node
 
-        # TODO: not sure if verification is needed
         if data_sets is not None:
             if not Graph.verify_data_sets(graph_cpy, data_sets):
-                assert False, "data sets not valid"
+                raise ValueError("Data sets not valid")
             graph_cpy.data_sets = deepcopy(data_sets)
 
         return graph_cpy

@@ -286,10 +286,11 @@ TODO:
             -> the app generates those for performance reasons, keep
     - [X] fix bug at ml prep stage -> source and target can be same
     - [ ] logging
-        - [ ] views, debug when updating or when errors
-            -> not sure about logger, or exceptions
+        - [X] views, debug when updating or when errors
+            -> no logger
         - [ ] controllers
             -> must have logger
+            -> continue in graph.py
         - [X] models
             -> no logger in model, just exceptions
     - [ ] readme for git + cleanup

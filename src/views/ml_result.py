@@ -1,8 +1,6 @@
 from dash import html, dash_table
 import dash_bootstrap_components as dbc
-from models.graph import graph
 from models.mechanism import MechanismType
-from models.ml import Classification, Regression, SemiSupervisedClassification, SelfTrainingClassification
 import pandas as pd
 from typing import Literal
 

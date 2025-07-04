@@ -245,7 +245,6 @@ class StaticGraph(html.Div):
                 mechanism_viewer.children.append(
                     dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
             )
-            # TODO: label the else class correctly
             latex_formula = py_to_latex(f"f_{'else'}({causes})", in_nodes)
             mechanism_viewer.children.append(
                 dcc.Markdown(f"$${latex_formula}$$", mathjax=True)
@@ -319,10 +318,6 @@ class RawStatsViewer(html.Div):
                 cur_col = row.children[jdx]
                 cur_col.children = []
 
-                # TODO:find a nice way to display the range of the data
-                # also think about regression data vs classification data
-                # min/max/avg does not make much sense for class
-
                 cur_col.children.append(html.H5(f"Node: {node.id_}"))
                 in_nodes = "\\{\\}" if len(node.in_nodes) < 1 else "\\{" + ", ".join(node.in_nodes) + "\\}"
                 cur_col.children.append(dcc.Markdown(f"$${node.id_}_{{in}} = {in_nodes}$$", mathjax=True))
@@ -394,9 +389,6 @@ class ScatterPlotViewerAll(html.Div):
         ]
         scatter_plot = go.Figure(data=go.Splom(
             dimensions=dimensions,
-            # TODO: add or leave?
-            # showupperhalf=False,
-            # diagonal_visible=False,
         ))
         self.children.extend([
             dbc.Row(dbc.Col(html.H3("Scatter Plot - All"))),

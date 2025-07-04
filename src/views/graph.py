@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import Dash, dcc, html
+from dash import dcc, html
 from dash_cytoscape import Cytoscape
 from enum import Enum
 from dash import dcc
@@ -126,11 +126,9 @@ class GraphBuilder(html.Div):
 
     @staticmethod
     def get_graph_data():
-        nodes = [
-            {
-                "data": {"id": cause.id_, "label": cause.name or cause.id_}
-            } for cause in graph.get_nodes()
-        ]
+        nodes = [{
+            "data": {"id": cause.id_, "label": cause.name or cause.id_}
+        } for cause in graph.get_nodes()]
         edges = []
         for cause in graph.get_nodes():
             for effect in cause.out_nodes:

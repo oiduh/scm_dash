@@ -1,11 +1,9 @@
-import logging
 import string
 import base64
 import json
 from typing import Any
 import dataclasses
 
-# from dash import ALL, Input, Output, State, callback, ctx
 from dash import Input, Output, State, callback
 from dash.exceptions import PreventUpdate
 
@@ -41,8 +39,6 @@ def setup_callbacks() -> None:
     )
     def select_node(selected_node_id: str):
         if selected_node_id == VariableSelectionGraph.selected_node_id:
-            # this is called on startup/refresh: keep custom names
-            # TODO: add mechanism selection once finished
             return (
                 VariableSelectionGraph().children,
                 VariableSelectionNoise().children,
@@ -73,12 +69,12 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
         try:
             new_node_id = graph.add_node()
-            LOGGER.info(f"Added new node with id: {new_node_id}")
-        except Exception as e:
+        except Exception:
             LOGGER.exception("Failed to add a new Node")
-            raise PreventUpdate from e
-        VariableSelectionGraph.selected_node_id = new_node_id
+            raise PreventUpdate()
 
+        LOGGER.info(f"Added new node with id: {new_node_id}")
+        VariableSelectionGraph.selected_node_id = new_node_id
         return (
             VariableSelectionGraph().children,
             VariableConfig().children,
@@ -103,14 +99,15 @@ def setup_callbacks() -> None:
 
         nodes = graph.get_nodes()
         if len(nodes) == 1:
-            raise PreventUpdate("at least one node must remain")
+            LOGGER.error("Cannot remove last remaining node")
+            raise PreventUpdate()
         try:
             node_to_remove = graph.get_node_by_id(source_node_id)
-            assert node_to_remove
+            assert node_to_remove is not None
             graph.remove_node(node_to_remove)
-        except Exception as e:
-            LOGGER.error("Faield to remove an edge")
-            raise PreventUpdate from e
+        except Exception:
+            LOGGER.error("Failed to remove an edge")
+            raise PreventUpdate
 
         nodes = graph.get_nodes()  # get updated nodes
         new_selection = nodes[0]
@@ -145,17 +142,14 @@ def setup_callbacks() -> None:
         source = graph.get_node_by_id(source_node_id)
         target = graph.get_node_by_id(target_node_id)
         if source is None or target is None:
-            raise PreventUpdate()
-
-        if source is None or target is None:
-            LOGGER.error("Failed to find source and target node")
+            LOGGER.error("The source and/or target node was not found")
             raise PreventUpdate()
 
         try:
             graph.add_edge(source, target)
-        except Exception as e:
+        except Exception:
             LOGGER.exception("Failed to add edge")
-            raise PreventUpdate from e
+            raise PreventUpdate
 
         LOGGER.info(f"Added edge from id={source_node_id} to id={target_node_id}")
         return (
@@ -163,6 +157,10 @@ def setup_callbacks() -> None:
             GraphBuilder.get_graph_data(),
             MechanismConfig().children,
         )
+
+
+
+    # FIXME:continue here
 
     @callback(
         Output("variable-config-graph", "children", allow_duplicate=True),

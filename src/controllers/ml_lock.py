@@ -1,16 +1,19 @@
 import random
-import logging
-from dash import callback, Output, Input, State, ctx
+from dash import callback, Output, Input, ctx
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import pandas as pd
-from uuid import uuid4
 
 from models.graph import graph
 from models.mechanism import MechanismType
 from models.ml import Classification, Regression, SelfTrainingClassification, SemiSupervisedClassification
+from utils.logger import DashLogger
 from views.ml_lock import MLLockBuilder
 from views.ml_result import MLResultViewer
+
+
+LOGGER = DashLogger(name="MLLock-Controller")
+
 
 def setup_callbacks():
     @callback(
@@ -21,14 +24,11 @@ def setup_callbacks():
         prevent_initial_call=True
     )
     def toggle_lock(should_train: bool):
-        # TODO: when we lock, we should also start running the ml algos
-        # since it might take longer: progress bar for each algo
-        # lock all previous tabs
-        # maybe add a stop button to stop all algos with no results
         global graph
         if not should_train or MLLockBuilder.is_locked is False:
             MLLockBuilder.is_locked = False
             MLLockBuilder.training_done = False
+            LOGGER.info("No training required")
             return (
                 [],
                 dbc.Row(
@@ -42,8 +42,6 @@ def setup_callbacks():
 
         all_scores: list[tuple[pd.DataFrame, dict, MechanismType]] = []
         try:
-            # TODO: should be a cancellable job via button?
-            print("running all ml algos...")
             for data_set in graph.data_sets:
                 row = dbc.Row(justify="center")
                 row.children = []
@@ -85,10 +83,10 @@ def setup_callbacks():
                         )
                     ]).sort_values(by=["mean"], ascending=False)
                 all_scores.append((scores, {"source": sources, "target": target}, mechanism_type))
-
-        except Exception as e:
+        except Exception:
             MLLockBuilder.is_locked = False
             MLLockBuilder.training_done = False
+            LOGGER.exception("ML training failed")
             return (
                 [],
                 dbc.Row(
@@ -102,6 +100,7 @@ def setup_callbacks():
 
         MLLockBuilder.is_locked = False
         MLLockBuilder.training_done = True
+        LOGGER.info("ML training completed")
         return (
             MLResultViewer(all_scores).children,
             dbc.Row(
@@ -129,10 +128,12 @@ def setup_callbacks():
             raise PreventUpdate()
 
         if do is not True:
+            LOGGER.info("Not ready for ML training")
             raise PreventUpdate()
 
         match (MLLockBuilder.is_locked, MLLockBuilder.training_done):
             case True, _:
+                LOGGER.info("Locked functions while training")
                 return (
                     True,
                     True,
@@ -143,6 +144,7 @@ def setup_callbacks():
                     True,
                 )
             case False, True:
+                LOGGER.info("Training complete, unlocking next tabs")
                 return (
                     True,
                     False,
@@ -153,6 +155,7 @@ def setup_callbacks():
                     False,
                 )
             case False, False:
+                LOGGER.info("Training failed or undone, unlocking previous tabs")
                 return (
                     False,
                     False,
@@ -163,7 +166,7 @@ def setup_callbacks():
                     False,
                 )
             case _:
-                print("this should not be possible")
+                LOGGER.info("This should not be possible")
                 raise PreventUpdate()
 
     @callback(
@@ -179,14 +182,17 @@ def setup_callbacks():
         if len(graph.data_sets) == 0:
             MLLockBuilder.is_locked = False
             MLLockBuilder.training_done = False
+            LOGGER.warning("Cannot perform training without data sets")
             return True
 
         if MLLockBuilder.training_done is True:
             MLLockBuilder.is_locked = False
             MLLockBuilder.training_done = False
+            LOGGER.warning("Undoing a previously successful training")
             return True
 
         MLLockBuilder.is_locked = True
+        LOGGER.info("Triggered training")
         return True
 
     @callback(
@@ -197,6 +203,7 @@ def setup_callbacks():
     def export_data(clicked):
         if not clicked:
             raise PreventUpdate()
+        LOGGER.info("Exported data set")
         return {
             "content": graph.to_dict(),
             "filename": f"graph_{random.randint(1000,9999)}.txt"

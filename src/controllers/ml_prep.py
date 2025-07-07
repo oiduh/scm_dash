@@ -1,5 +1,3 @@
-import logging
-
 from dash import ALL, Input, Output, State, callback, ctx, html
 from dash.exceptions import PreventUpdate
 
@@ -7,10 +5,8 @@ from models.graph import graph
 from utils.logger import DashLogger
 from views.ml_prep import MLViewer, TrainingDataSetEditor
 
-# FIXME: continue here
 
-# TODO: add logs to functions
-LOGGER = DashLogger(name="MLPrep-Controller", level=logging.DEBUG)
+LOGGER = DashLogger(name="MLPrep-Controller")
 
 
 def setup_callbacks() -> None:
@@ -29,12 +25,15 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
 
         if len(source_ids) < 1:
+            LOGGER.warning("At least on source node needed for training")
             raise PreventUpdate()
 
         source_id_dict = {id_: True for id_ in source_ids}
         if graph.add_data_set(source_id_dict, target_id) is False:
+            LOGGER.warning("Data set already existent")
             raise PreventUpdate()
 
+        LOGGER.info("New data set for training added")
         return (
             TrainingDataSetEditor().children,
             MLViewer().children,
@@ -56,7 +55,9 @@ def setup_callbacks() -> None:
         global graph
         nodes = graph.get_nodes()
         target_node = graph.get_node_by_id(new_value)
-        assert target_node is not None
+        if target_node is None:
+            LOGGER.warning("No target node found")
+            raise PreventUpdate()
 
         options: list = [{
             "label": html.Span(
@@ -66,6 +67,7 @@ def setup_callbacks() -> None:
             "value": node.id_,
             "disabled": node.id_ == target_node.id_,
         } for node in nodes]
+        LOGGER.info(f"New target for ml training selected: {new_value}")
         return (
             options,
             [node.id_ for node in nodes if node.id_ != target_node.id_]
@@ -81,4 +83,5 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
         index = remove_buttons.index(next(x for x in remove_buttons if x))
         graph.data_sets.pop(index)
+        LOGGER.info("Data set removed from training")
         return MLViewer().children

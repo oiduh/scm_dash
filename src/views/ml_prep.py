@@ -4,7 +4,7 @@ from dash import dcc
 from models.graph import graph
 from utils.logger import DashLogger
 
-LOGGER = DashLogger(name="MLPrep-Views")
+LOGGER = DashLogger(name="MLPrep-Controller")
 
 class TrainingDataSetEditor(html.Div):
     target_id: str | None = None

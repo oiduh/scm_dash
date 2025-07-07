@@ -1,8 +1,8 @@
 from models.graph import graph
 from dash import Input, Output, callback, ctx
-import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 
+from utils.logger import DashLogger
 from views.graph import (
     GraphBuilder,
     GraphUploader,
@@ -19,6 +19,9 @@ from views.mechanism import (
     MechanismConfig,
     VariableSelection as VariableSelectionMechanism,
 )
+
+
+LOGGER = DashLogger(name="Main-Controller")
 
 
 def setup_callbacks() -> None:
@@ -51,7 +54,6 @@ def setup_callbacks() -> None:
 
         global graph
         graph.reset()
-        print("new graph nodes: ", graph.get_node_ids())
 
         # graph view resets
         GraphUploader.last_uploaded_graph = None
@@ -71,9 +73,7 @@ def setup_callbacks() -> None:
         LockDataBuilder.is_locked = False
         LockDataBuilder.data_generated = False
 
-
-        print('global-reset-button')
-
+        LOGGER.info("Global reset button triggered. Resetting to initial setup")
         return (
             VariableSelectionGraph().children,
             VariableSelectionNoise().children,

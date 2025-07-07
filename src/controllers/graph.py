@@ -20,7 +20,12 @@ from views.graph import (
 )
 from views.ml_prep import MLViewer
 from views.noise import NoiseBuilder, NoiseViewer, VariableSelection as VariableSelectionNoise
-from views.mechanism import MechanismBuilder, MechanismConfig, MechanismViewer, VariableSelection as VariableSelectionMechanism
+from views.mechanism import (
+    MechanismBuilder,
+    MechanismConfig,
+    MechanismViewer,
+    VariableSelection as VariableSelectionMechanism
+)
 
 
 LOGGER = DashLogger(name="Graph-Controller")
@@ -159,9 +164,6 @@ def setup_callbacks() -> None:
         )
 
 
-
-    # FIXME:continue here
-
     @callback(
         Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
@@ -179,6 +181,7 @@ def setup_callbacks() -> None:
         target = graph.get_node_by_id(target_node_id)
 
         if source is None or target is None:
+            LOGGER.error("Source and/or target node not found")
             raise PreventUpdate()
 
         try:
@@ -201,6 +204,7 @@ def setup_callbacks() -> None:
     def update_layout_choice(new_value: GraphViewer.Layouts):
         if new_value not in GraphViewer.Layouts.get_all():
             raise PreventUpdate(f"Invalid layout choice: {new_value}")
+
         GraphViewer.LAYOUT = new_value
         LOGGER.info(f"Updating graph viewer layout to: {new_value}")
         return GraphViewer().children
@@ -221,11 +225,11 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
 
         if new_name[0] not in string.ascii_letters:
-            LOGGER.warning(f"First char must be ascii letter, found: '{new_name[0]}'")
+            LOGGER.error(f"First char must be ascii letter, found: '{new_name[0]}'")
             raise PreventUpdate()
 
         if len(new_name) == 1:
-            LOGGER.warning("Custom name must be longer than 1 char")
+            LOGGER.error("Custom name must be longer than 1 char")
             raise PreventUpdate()
 
         if VariableSelectionGraph.selected_node_id is None:
@@ -234,14 +238,16 @@ def setup_callbacks() -> None:
 
         names_used = graph.get_node_names()
         if new_name in names_used:
-            LOGGER.warning(f"Name already used: {new_name}")
+            LOGGER.error(f"Name already used: {new_name}")
             raise PreventUpdate()
 
         node = graph.get_node_by_id(VariableSelectionGraph.selected_node_id)
-        assert node is not None
+        if node is None:
+            LOGGER.fatal("Failed to find node")
+            raise PreventUpdate()
 
-        LOGGER.warning(f"Changed name for variable with id={node.id_}, from={node.name} to={new_name}")
         node.name = new_name
+        LOGGER.info(f"Changed name for variable with id={node.id_}, from={node.name} to={new_name}")
         return (
             VariableSelectionGraph().children,
             VariableConfig().children,
@@ -268,9 +274,11 @@ def setup_callbacks() -> None:
             graph_data: dict[str, Any] = json.loads(base64.b64decode(b64_str))
             new_graph = Graph.parse_from_dict(graph_data)
             GraphUploader.last_uploaded_graph = True
-        except Exception as e:
+            LOGGER.info("Uploaded graph is OK")
+        except Exception:
             GraphUploader.last_uploaded_graph = False
-            print(e)
+            LOGGER.exception("Uploaded graph is NOT OK")
+
         return GraphUploader().children
 
     @callback(
@@ -289,7 +297,10 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
 
         global graph, new_graph
-        assert new_graph is not None
+        if new_graph is None:
+            LOGGER.fatal("Cannot upload a graph that does not exist")
+            raise PreventUpdate()
+
         for field in dataclasses.fields(Graph):
             setattr(graph, field.name, getattr(new_graph, field.name))
 
@@ -302,6 +313,7 @@ def setup_callbacks() -> None:
         MechanismConfig.mechanism_type = None
         MechanismConfig.is_open = False
 
+        LOGGER.info("New graph was uploaded and can be used")
         return (
             GraphBuilder().children,
             GraphViewer().children,
@@ -323,6 +335,7 @@ def setup_callbacks() -> None:
             raise PreventUpdate()
 
         GLOBAL_VARIABLES.NR_DATA_POINTS = new_value
+        LOGGER.info(f"Set new number of data points to: {new_value}")
         return GeneralGraphConfig().children
 
 

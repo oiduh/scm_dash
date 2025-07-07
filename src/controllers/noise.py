@@ -7,7 +7,7 @@ from models.graph import graph
 from utils.logger import DashLogger
 from views.noise import VariableSelection, NoiseConfig, NoiseViewer
 
-LOGGER = DashLogger(name="NoiseController", level=logging.DEBUG)
+LOGGER = DashLogger(name="Noise-Controller", level=logging.DEBUG)
 
 def setup_callbacks():
 
@@ -27,7 +27,10 @@ def setup_callbacks():
 
         if variable_new != variable_old:
             node = graph.get_node_by_id(variable_new)
-            assert node is not None
+            if node is None:
+                LOGGER.fatal("Failed to find node")
+                raise PreventUpdate()
+
             sub_variables = node.noise.get_distribution_ids()
             VariableSelection.sub_variable = sub_variables[0]
         else:
@@ -49,16 +52,21 @@ def setup_callbacks():
         variable = VariableSelection.variable
         sub_variable = VariableSelection.sub_variable
         node = graph.get_node_by_id(variable)
-        assert node is not None
+        if node is None:
+            LOGGER.fatal("Failed to find node")
+            raise PreventUpdate()
+
         distribution = node.noise.get_distribution_by_id(sub_variable)
-        assert distribution is not None
+        if distribution is None:
+            LOGGER.fatal("Failed to find distribution")
+            raise PreventUpdate()
         if distribution.name == new_distribution_type:
             # only update if something changed
             raise PreventUpdate()
 
         distribution.change_distribution(new_distribution_type)
         LOGGER.info(
-            "Changed distribution for node with"
+            "Changed distribution for node with "
             f"id={VariableSelection.variable}_{VariableSelection.sub_variable} to type={new_distribution_type}"
         )
         return NoiseConfig().children
@@ -75,14 +83,17 @@ def setup_callbacks():
 
         variable = VariableSelection.variable
         node = graph.get_node_by_id(variable)
-        assert node is not None
+        if node is None:
+            LOGGER.fatal("Failed to find node")
+            raise PreventUpdate()
+
         try:
             new_sub_variable = node.noise.add_distribution()
-        except Exception as e:
+        except Exception:
             LOGGER.exception(
                 f"Failed to add sub distribution for node with id: {variable}"
             )
-            raise PreventUpdate from e
+            raise PreventUpdate
 
         LOGGER.info(f"Added new sub variable with id={VariableSelection.variable}_{new_sub_variable}")
         return (
@@ -101,18 +112,23 @@ def setup_callbacks():
             raise PreventUpdate()
 
         node = graph.get_node_by_id(VariableSelection.variable)
-        assert node is not None
+        if node is None:
+            LOGGER.fatal("Failed to find node")
+            raise PreventUpdate()
 
         if len(node.noise.get_distribution_ids()) == 1:
-
             raise PreventUpdate("At least one must remain")
+
         target_distribution = node.noise.get_distribution_by_id(VariableSelection.sub_variable)
-        assert target_distribution is not None
+        if target_distribution is None:
+            LOGGER.fatal("Failed to find target distribution")
+            raise PreventUpdate()
 
         try:
             node.noise.remove_distribution(target_distribution)
-        except Exception as e:
-            raise PreventUpdate from e
+        except Exception:
+            LOGGER.exception("Failed to remove distribution")
+            raise PreventUpdate
 
         # after removing a sub variable -> assign first one
         VariableSelection.sub_variable = node.noise.get_distribution_ids()[0]
@@ -144,9 +160,14 @@ def setup_callbacks():
         param = input_id.get("index")
 
         node = graph.get_node_by_id(variable)
-        assert node is not None
+        if node is None:
+            LOGGER.fatal("Failed to find node")
+            raise PreventUpdate()
+
         distribution = node.noise.get_distribution_by_id(sub_variable)
-        assert distribution is not None
+        if distribution is None:
+            LOGGER.fatal("Failed to find distribution")
+            raise PreventUpdate()
 
         current_ = distribution.parameters[param].current
         min_ = distribution.parameters[param].min
@@ -164,9 +185,10 @@ def setup_callbacks():
         new_max = min(max(new_value, input_max), max_)
 
         target_parameter = distribution.get_parameter_by_name(param)
-        assert target_parameter is not None
-        # target_parameter.min = new_min
-        # target_parameter.max = new_max
+        if target_parameter is None:
+            LOGGER.fatal("Failed to find target parameter")
+            raise PreventUpdate()
+
         target_parameter.current = new_value
         target_parameter.slider_min = new_min
         target_parameter.slider_max = new_max
@@ -179,7 +201,8 @@ def setup_callbacks():
         )
         tooltip = ({"placement": "top", "always_visible": True},)
         LOGGER.info(
-            f"Updated values for node with id={VariableSelection.variable}_{VariableSelection.sub_variable}: {target_parameter.__dict__}"
+            f"Updated values for node with "
+            f"id={VariableSelection.variable}_{VariableSelection.sub_variable}: {target_parameter.__dict__}"
         )
         return (
             new_min,
@@ -212,7 +235,11 @@ def setup_callbacks():
         prevent_initial_call=True,
     )
     def toggle_noise_view(viewer_option):
-        assert viewer_option in ["combined", "individual"]
+        if viewer_option not in ["combined", "individual"]:
+            LOGGER.fatal("Unknown noise view option found")
+            raise PreventUpdate()
+
         NoiseViewer.selected_view_option = viewer_option
+        LOGGER.info(f"Changed noise view to '{viewer_option}'")
         return NoiseViewer().children
 

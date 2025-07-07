@@ -78,13 +78,14 @@ class MechanismMetadata:
         free_class_ids = self.get_free_class_ids()
         return free_class_ids[0] if len(free_class_ids) > 0 else None
 
-    def add_class(self) -> None:
+    def add_class(self) -> str:
         assert self.mechanism_type == "classification"
         free_id = self.get_next_free_class_id()
         if free_id is None:
             raise Exception("Cannot add another class")
         self.formulas[free_id] = "<invalid>"
         self.valid = False
+        return free_id
 
     def remove_class(self, class_id: str) -> None:
         if class_id not in self.formulas.keys() or self.formulas[class_id] is None:

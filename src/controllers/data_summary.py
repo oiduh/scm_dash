@@ -1,16 +1,12 @@
-import logging
-import json
 
-from dash import Input, Output, State, callback
+from dash import Input, Output, callback
 from dash.exceptions import PreventUpdate
 
 from utils.logger import DashLogger
-from views.data_summary import DataSummary, ScatterPlotViewerInidvidual, StaticGraph
-from views.graph import GraphBuilder
+from views.data_summary import ScatterPlotViewerInidvidual, StaticGraph
 
 
-# TODO: add logs to functions
-LOGGER = DashLogger(name="DataSummary", level=logging.DEBUG)
+LOGGER = DashLogger(name="DataSummary-Controller")
 
 
 def setup_callbacks() -> None:
@@ -24,6 +20,7 @@ def setup_callbacks() -> None:
         if new_value == StaticGraph.selected_node:
             raise PreventUpdate()
         StaticGraph.selected_node = new_value
+        LOGGER.info(f"Selected new node: {new_value}")
         return StaticGraph().children
 
     @callback(
@@ -37,6 +34,7 @@ def setup_callbacks() -> None:
         node_id = data.get("id")  # also 'label'
         assert node_id is not None
         StaticGraph.selected_node = node_id
+        LOGGER.info(f"Showing node: {node_id}")
         return StaticGraph().children
 
     @callback(
@@ -54,6 +52,7 @@ def setup_callbacks() -> None:
 
         ScatterPlotViewerInidvidual.Selected_first = first_node
         ScatterPlotViewerInidvidual.Selected_second = second_node
+        LOGGER.info(f"Selected nodes for comparison: source={first_node}, target={second_node}")
         return ScatterPlotViewerInidvidual().children
 
     @callback(
@@ -63,7 +62,7 @@ def setup_callbacks() -> None:
     )
     def update_layout_choice(new_value: StaticGraph.Layouts):
         if new_value not in StaticGraph.Layouts.get_all():
-            LOGGER.warn(f"not updating layout: {new_value}")
+            LOGGER.fatal(f"Unknown Layout found: {new_value}")
             raise PreventUpdate(f"Invalid layout choice: {new_value}")
         StaticGraph.layout = new_value
         LOGGER.info(f"Updating graph viewer layout in data summary to: {new_value}")

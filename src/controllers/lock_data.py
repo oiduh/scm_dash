@@ -1,16 +1,17 @@
-import logging  # TODO: logging
 import random
 from time import sleep
 
-from dash import Input, Output, State, callback, html, ctx
+from dash import Input, Output, State, callback, ctx
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 
 from models.graph import graph
+from utils.logger import DashLogger
 from views.lock_data import LockDataBuilder
 from views.data_summary import DataSummary, StaticGraph
 from views.ml_prep import TrainingDataSetEditor
 
+LOGGER = DashLogger(name="LockData-Controller")
 
 
 def setup_callbacks():
@@ -24,6 +25,7 @@ def setup_callbacks():
     )
     def generate_data(should_train: bool):
         if should_train is not True or LockDataBuilder.is_locked is False:
+            LOGGER.info("Data generation not needed")
             LockDataBuilder.is_locked = False
             LockDataBuilder.data_generated = False
             return (
@@ -41,8 +43,9 @@ def setup_callbacks():
         global graph
         try:
             full_data_set = graph.generate_full_data_set()
-            sleep(1.)
-        except Exception as e:
+            sleep(1.)  # cosmetic sleep
+        except Exception:
+            LOGGER.exception("Data generation failed")
             LockDataBuilder.is_locked = False
             LockDataBuilder.data_generated = False
             return (
@@ -60,6 +63,8 @@ def setup_callbacks():
         graph.data = full_data_set
         LockDataBuilder.is_locked = False
         LockDataBuilder.data_generated = True
+
+        LOGGER.info("Data generation finished")
         return (
             DataSummary().children,
             TrainingDataSetEditor().children,
@@ -91,10 +96,12 @@ def setup_callbacks():
         if ctx.triggered_id != "data-generation-store":
             raise PreventUpdate()
         if do is not True:
+            LOGGER.warning("Data generation not needed")
             raise PreventUpdate()
 
         match (LockDataBuilder.is_locked, LockDataBuilder.data_generated):
             case True, _:
+                LOGGER.info("Data generation started. Locking tabs and functions.")
                 return (
                     True,
                     True,
@@ -108,6 +115,7 @@ def setup_callbacks():
                     0,
                 )
             case False, True:
+                LOGGER.info("Data generation finished. Unlocking new tabs.")
                 return (
                     True,
                     True,
@@ -121,10 +129,10 @@ def setup_callbacks():
                     0,
                 )
             case False, False:
-                # TODO: this should not be triggered on reset button click
                 if reset_button > 0:
                     # ugly solution but it works
                     raise PreventUpdate()
+                LOGGER.info("Data generation undone. Unlocking data generation tabs.")
                 return (
                     False,
                     False,
@@ -139,6 +147,7 @@ def setup_callbacks():
                 )
             case _:
                 print("this should not be possible")
+                LOGGER.fatal("This should not be possible")
                 raise PreventUpdate()
 
     @callback(
@@ -156,9 +165,11 @@ def setup_callbacks():
             LockDataBuilder.data_generated = False
             graph.data = None
             StaticGraph.selected_node = None
+            LOGGER.info("Data generation can be undone")
             return True
 
         LockDataBuilder.is_locked = True
+        LOGGER.info("Data generation can begin")
         return True
 
     @callback(
@@ -169,6 +180,8 @@ def setup_callbacks():
     def export_data(clicked):
         if not clicked:
             raise PreventUpdate()
+
+        LOGGER.info("Generated graph was exported")
         return {
             "content": graph.to_dict(),
             "filename": f"graph_{random.randint(1000,9999)}.txt"

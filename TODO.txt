@@ -300,3 +300,4 @@ TODO:
 
     - [ ] find co-training module or write from scratch if necessary
     -> after whole project done, this is just an extra
+    - [ ] make custom names work again (tracking hard)

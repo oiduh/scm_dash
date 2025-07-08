@@ -24,6 +24,9 @@ from sklearn.gaussian_process import (
 )
 import pandas as pd
 import numpy as np
+import inspect
+
+from models.noise import GLOBAL_VARIABLES
 
 # TODO: make a generic model if possible
 # group multiple algos and execute them with proper parameters
@@ -60,7 +63,11 @@ class Regression:
         }
         scores = {}
         for model_type in self.models:
-            model = model_type()
+            print(f"training model with seed: {GLOBAL_VARIABLES.SEED}")
+            if "random_state" in inspect.signature(model_type.__init__).parameters:
+                model = model_type(random_state=GLOBAL_VARIABLES.SEED)
+            else:
+                model = model_type()
             scores[model.__class__.__name__] = {}
             scores_ = cross_validate(model, source_matrix, target_array, cv=10, n_jobs=-1, scoring=list(scorings.keys()))
             for scoring in scorings.keys():
@@ -136,7 +143,10 @@ class Classification:
         target_array = data[target].to_numpy()
         scores = []
         for model_type in self.models:
-            model = model_type()
+            if "random_state" in inspect.signature(model_type.__init__).parameters:
+                model = model_type(random_state=GLOBAL_VARIABLES.SEED)
+            else:
+                model = model_type()
             scores_ = cross_val_score(model, source_matrix, target_array, cv=10, n_jobs=6)
             final_score = Decimal(f"{np.mean(scores_):.4f}")
             scores.append([model.__class__.__name__, final_score])
@@ -162,8 +172,10 @@ class SemiSupervisedClassification:
             model = model_type()
             model_scores = []
             for i in range(10):
+                # we need some variety here, so no fixed seeding
+                seed = None if GLOBAL_VARIABLES.SEED is None else GLOBAL_VARIABLES.SEED + i
                 X_train, X_test, y_train, y_test = train_test_split(
-                    source_matrix, target_array, test_size=.1, random_state=i
+                    source_matrix, target_array, test_size=.1, random_state=seed
                 )
 
                 class_indices = np.unique(y_train)
@@ -203,8 +215,10 @@ class SelfTrainingClassification:
             model = SelfTrainingClassifier(estimator)
             model_scores = []
             for i in range(10):
+                # we need some variety here, so no fixed seeding
+                seed = None if GLOBAL_VARIABLES.SEED is None else GLOBAL_VARIABLES.SEED + i
                 X_train, X_test, y_train, y_test = train_test_split(
-                    source_matrix, target_array, test_size=.1, random_state=i
+                    source_matrix, target_array, test_size=.1, random_state=seed
                 )
 
                 class_indices = np.unique(y_train)

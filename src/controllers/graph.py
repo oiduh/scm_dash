@@ -4,7 +4,7 @@ import json
 from typing import Any
 import dataclasses
 
-from dash import Input, Output, State, callback
+from dash import Input, Output, State, callback, ctx
 from dash.exceptions import PreventUpdate
 
 from models.graph import graph, new_graph, Graph
@@ -348,15 +348,26 @@ def setup_callbacks() -> None:
         if not clicked or new_value is None:
             raise PreventUpdate()
 
-        GLOBAL_VARIABLES.SEED = new_value
+        GLOBAL_VARIABLES.SEED = new_value if new_value is not None else 42
         LOGGER.info(f"Set new seed to: {new_value}")
         return GeneralGraphConfig().children
 
     @callback(
         Output("general-graph-config", "children"),
         Input("random-seed-check", "value"),
+        State("new-seed", "value"),
         prevent_initial_call=True
     )
-    def toggle_seed_mode(new_mode):
+    def toggle_seed_mode(new_mode, current_value):
+        print(f"{current_value=}")
+        match new_mode:
+            case "fixed":
+                GLOBAL_VARIABLES.SEED = 42 if current_value is None else GLOBAL_VARIABLES.SEED
+            case "random":
+                GLOBAL_VARIABLES.SEED = None
+            case _:
+                LOGGER.error(f"unknown seed mode detected: {new_mode}")
+                raise PreventUpdate()
+
         GeneralGraphConfig.seed_mode = new_mode
         return GeneralGraphConfig().children

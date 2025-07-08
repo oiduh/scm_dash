@@ -293,16 +293,17 @@ TODO:
         - [X] models
             -> no logger in model, just exceptions
     - [ ] same as data points, make a seed input
-        - [ ] every function that uses randomness should use this seed, which means all distribution functions
+        - [X] every function that uses randomness should use this seed, which means all distribution functions
            must be deterministic (same params for distr -> same result)
-        - [ ] also check that ml algorithms that use random seeds are also affected
-        - [ ] goal is to have reproducible results
-        - [ ] make checkbox to use 'true' random seeds for each affected functions (in most functions we just pass None)
+        - [X] also check that ml algorithms that use random seeds are also affected
+        - [X] goal is to have reproducible results
+            -> not really possible for semi supervised learning, since we have to make our own cross validate
+                where we make a data split with labelled and unlabelled data
+        - [X] make checkbox to use 'true' random seeds for each affected functions (in most functions we just pass None)
+        - [ ] include it in export
     - [ ] readme for git + cleanup
 
     -> send it
-
-        OGGER.info("Global reset button triggered. Resetting to initial setup")
 
     - [ ] find co-training module or write from scratch if necessary
     -> after whole project done, this is just an extra

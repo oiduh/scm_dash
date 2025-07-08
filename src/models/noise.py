@@ -13,7 +13,7 @@ class GLOBAL_VARIABLES:
     NR_DATA_POINTS: int = 1000
     MIN_DATA_POINTS: int = 300
     MAX_DATA_POINTS: int = 3000
-    SEED: int = 42  # TODO: make it configurable
+    SEED: int | None = 42  # TODO: make it configurable
 
 
 Generator = RVCont | RVDisc

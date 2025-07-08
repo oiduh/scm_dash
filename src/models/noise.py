@@ -341,7 +341,6 @@ class Noise:
 
     def generate_data(self) -> dict[str, np.ndarray]:
         # TODO: potentially think about using a custom seed
-        np.random.seed(GLOBAL_VARIABLES.SEED)
         distributions = self.get_distributions()
         partition, rest = divmod(GLOBAL_VARIABLES.NR_DATA_POINTS, len(distributions))
         x = [partition for _ in range(len(distributions))]
@@ -352,6 +351,7 @@ class Noise:
             parameter_values = {
                 v.name: v.current for v in distribution.parameters.values()
             }
+            np.random.seed(GLOBAL_VARIABLES.SEED)
             new_values: np.ndarray = distribution.generator.rvs(**parameter_values, size=nr_points)  # type: ignore
             values[distribution.id_] = new_values
         self.data = values

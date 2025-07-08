@@ -3,7 +3,7 @@ from dash import dcc, html
 from dash_cytoscape import Cytoscape
 from enum import Enum
 from dash import dcc
-from typing import Any
+from typing import Any, Literal
 
 from models.graph import graph
 from models.noise import GLOBAL_VARIABLES
@@ -68,6 +68,8 @@ class GraphUploader(html.Div):
 
 
 class GeneralGraphConfig(html.Div):
+    seed_mode: Literal["random", "fixed"] = "fixed"
+
     def __init__(self):
         super().__init__(id="general-graph-config")
         self.style = {
@@ -101,6 +103,43 @@ class GeneralGraphConfig(html.Div):
                 n_clicks=0,
                 className="one-button",
             ), width="auto")
+        ]))
+
+        self.children.append(html.Hr())
+
+        seed_text = f"{GLOBAL_VARIABLES.SEED if GeneralGraphConfig.seed_mode == 'fixed' else 'random'}"
+        self.children.append(dbc.Row([
+            dbc.Col(html.H5(
+                f"Current seed = {seed_text}",
+                id="current-seed"
+            ), width="auto"),
+        ]))
+        self.children.append(dbc.Row([
+            dbc.Col(html.H5(f"New seed = "), width="auto"),
+            dbc.Col(dcc.Input(
+                id="new-seed",
+                value=GLOBAL_VARIABLES.SEED,
+                type="number",
+                size="7",
+                min=0,
+                max=2**32,
+                step=1,
+                style={"border-radius": "8px"},
+                disabled=GeneralGraphConfig.seed_mode == "random",
+            ), width="auto"),
+            dbc.Col(html.Button(
+                "confirm",
+                id="confirm-new-seed",
+                n_clicks=0,
+                className="one-button",
+                disabled=GeneralGraphConfig.seed_mode == "random",
+            ), width="auto"),
+            dbc.Col(dcc.RadioItems(
+                id="random-seed-check",
+                options=["random", "fixed"],
+                value=GeneralGraphConfig.seed_mode,
+                inline=True,
+            ))
         ]))
 
 

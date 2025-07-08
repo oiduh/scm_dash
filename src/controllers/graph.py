@@ -325,10 +325,10 @@ def setup_callbacks() -> None:
         )
 
     @callback(
-        Output("general-graph-config", "children"),
+        Output("general-graph-config", "children", allow_duplicate=True),
         Input("confirm-new-data-points", "n_clicks"),
         State("new-data-points", "value"),
-        prevent_initiald_call=True
+        prevent_initial_call=True
     )
     def confirm_new_data_points(clicked, new_value):
         if not clicked or new_value is None:
@@ -338,7 +338,25 @@ def setup_callbacks() -> None:
         LOGGER.info(f"Set new number of data points to: {new_value}")
         return GeneralGraphConfig().children
 
+    @callback(
+        Output("general-graph-config", "children", allow_duplicate=True),
+        Input("confirm-new-seed", "n_clicks"),
+        State("new-seed", "value"),
+        prevent_initial_call=True
+    )
+    def confirm_new_seed(clicked, new_value):
+        if not clicked or new_value is None:
+            raise PreventUpdate()
 
+        GLOBAL_VARIABLES.SEED = new_value
+        LOGGER.info(f"Set new seed to: {new_value}")
+        return GeneralGraphConfig().children
 
-
-
+    @callback(
+        Output("general-graph-config", "children"),
+        Input("random-seed-check", "value"),
+        prevent_initial_call=True
+    )
+    def toggle_seed_mode(new_mode):
+        GeneralGraphConfig.seed_mode = new_mode
+        return GeneralGraphConfig().children

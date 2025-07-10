@@ -16,7 +16,7 @@ from models.mechanism import (
     MechanismType,
     RegressionMechanism,
 )
-from models.noise import Noise
+from models.noise import DEFAULT_VARIABLES, GLOBAL_VARIABLES, Noise
 
 @dataclass
 class Node:
@@ -363,8 +363,10 @@ class Graph:
         return True
 
     def to_dict(self) -> str:
-        # TODO: add source and target info to graph as well?
-        graph_as_dict = {}
+        graph_as_dict = {
+            "seed": GLOBAL_VARIABLES.SEED,
+            "nr_data_points": GLOBAL_VARIABLES.NR_DATA_POINTS,
+        }
         for id_, node in self.nodes.items():
             if node is None:
                 continue
@@ -433,6 +435,12 @@ class Graph:
     @classmethod
     def parse_from_dict(cls, graph_data: dict[str, Any]) -> Self:
         graph_cpy = cls()
+
+        GLOBAL_VARIABLES.SEED = graph_data.get("seed") or DEFAULT_VARIABLES.SEED
+        GLOBAL_VARIABLES.NR_DATA_POINTS = graph_data.get("nr_data_points") or DEFAULT_VARIABLES.NR_DATA_POINTS
+        graph_data.pop("seed")
+        graph_data.pop("nr_data_points")
+
         data_sets = graph_data.get("data_sets")
         if data_sets is not None:
             del graph_data["data_sets"]

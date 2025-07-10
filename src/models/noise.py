@@ -3,7 +3,6 @@ import string
 from typing import Any, Self
 
 import numpy as np
-from scipy.optimize import curve_fit
 import scipy.stats as stats
 from scipy.stats import rv_continuous as RVCont
 from scipy.stats import rv_discrete as RVDisc
@@ -13,7 +12,12 @@ class GLOBAL_VARIABLES:
     NR_DATA_POINTS: int = 1000
     MIN_DATA_POINTS: int = 300
     MAX_DATA_POINTS: int = 3000
-    SEED: int | None = 42  # TODO: make it configurable
+    SEED: int | None = 42
+
+
+class DEFAULT_VARIABLES:
+    NR_DATA_POINTS: int = 1000
+    SEED: int | None = 42
 
 
 Generator = RVCont | RVDisc

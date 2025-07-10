@@ -2,6 +2,7 @@ from models.graph import graph
 from dash import Input, Output, callback, ctx
 from dash.exceptions import PreventUpdate
 
+from models.noise import DEFAULT_VARIABLES, GLOBAL_VARIABLES
 from utils.logger import DashLogger
 from views.graph import (
     GraphBuilder,
@@ -9,6 +10,7 @@ from views.graph import (
     GraphViewer,
     VariableSelection as VariableSelectionGraph,
     VariableConfig,
+    GeneralGraphConfig,
 )
 from views.lock_data import LockDataBuilder
 from views.ml_lock import MLLockBuilder
@@ -26,6 +28,7 @@ LOGGER = DashLogger(name="Main-Controller")
 
 def setup_callbacks() -> None:
     @callback(
+        Output("general-graph-config", "children", allow_duplicate=True),
         Output("variable-selection-graph", "children", allow_duplicate=True),
         Output("variable-config-graph", "children", allow_duplicate=True),
         Output("network-graph", "elements", allow_duplicate=True),
@@ -73,8 +76,13 @@ def setup_callbacks() -> None:
         LockDataBuilder.is_locked = False
         LockDataBuilder.data_generated = False
 
+        # reset global variables
+        GLOBAL_VARIABLES.SEED = DEFAULT_VARIABLES.SEED
+        GLOBAL_VARIABLES.NR_DATA_POINTS = DEFAULT_VARIABLES.NR_DATA_POINTS
+
         LOGGER.info("Global reset button triggered. Resetting to initial setup")
         return (
+            GeneralGraphConfig().children,
             VariableSelectionGraph().children,
             VariableSelectionNoise().children,
             GraphBuilder.get_graph_data(),

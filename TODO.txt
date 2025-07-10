@@ -292,7 +292,7 @@ TODO:
             -> continue in graph.py
         - [X] models
             -> no logger in model, just exceptions
-    - [ ] same as data points, make a seed input
+    - [X] same as data points, make a seed input
         - [X] every function that uses randomness should use this seed, which means all distribution functions
            must be deterministic (same params for distr -> same result)
         - [X] also check that ml algorithms that use random seeds are also affected
@@ -300,7 +300,14 @@ TODO:
             -> not really possible for semi supervised learning, since we have to make our own cross validate
                 where we make a data split with labelled and unlabelled data
         - [X] make checkbox to use 'true' random seeds for each affected functions (in most functions we just pass None)
-        - [ ] include it in export
+        - [X] include it in export
+    - [X] fix new graph export logic with seed and nr points
+    - [ ] read thesis + plan:
+        - [ ] current state roughly
+        - [ ] write short summary
+        - [ ] short sw descrition
+        - [ ] plan experiments in program
+        - [ ] replicate some results
     - [ ] readme for git + cleanup
 
     -> send it
